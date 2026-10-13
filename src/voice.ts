@@ -9,6 +9,7 @@ type Callbacks = {
   error: (message: string) => void;
   metric: (metric: Metric) => void;
   actions: (actions: Array<{ id: string; title: string; summary: string; steps: string[] }>) => void;
+  context: (matches: Array<{ id: string; source_type: 'journal' | 'feedback'; source_id: string; excerpt: string }>, noMatch?: boolean) => void;
   urgentHelp: () => void;
 };
 
@@ -43,7 +44,7 @@ export class Voice {
 
   constructor(private callbacks: Callbacks) {}
 
-  async connect(session: DemoSession, history: Message[]) {
+  async connect(session: DemoSession, history: Message[], feedbackId?: string) {
     this.close();
     const epoch = this.epoch;
     this.session = session;
@@ -95,7 +96,9 @@ export class Voice {
         this.remoteTracks.push(event.track);
         event.track.enabled = !this.suppressed;
       };
-      const secret = await request<{ value: string; generation: number }>(`/sessions/${session.session_id}/voice`, session, {});
+      const secret = await request<{ value: string; generation: number; context_source?: { id: string; source_type: 'feedback'; source_id: string; label: string; excerpt: string } | null }>(
+        `/sessions/${session.session_id}/voice`, session, { feedback_id: feedbackId ?? null });
+      if (secret.context_source) this.callbacks.context([secret.context_source]);
       if (epoch !== this.epoch) return;
       this.generation = secret.generation;
       const offer = await pc.createOffer({});
@@ -299,6 +302,7 @@ export class Voice {
       if (response.call_id !== event.call_id) throw new Error('Mismatched call ID');
       output = response.result;
       if (response.result.actions) this.callbacks.actions(response.result.actions);
+      if (response.result.matches) this.callbacks.context(response.result.matches, response.result.no_match);
       this.callbacks.metric({ event: `tool round-trip: ${event.name}`, ms: Date.now() - started });
     } catch {
       output = { error: 'tool_unavailable', instruction: 'Continue without memory; do not invent actions.' };

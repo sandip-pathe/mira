@@ -17,6 +17,11 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.keystore
+*.pem
+*.pfx
+*.cert
+*.provisionprofile
 
 # Metro
 .metro-health-check*
@@ -28,10 +33,27 @@ yarn-error.*
 
 # macOS
 .DS_Store
-*.pem
+._*
+
+# Windows
+Thumbs.db
+Desktop.ini
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+
+# Local tooling and machine-specific state
+.claude/
+.vscode/*.local.json
+.idea/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
 
 # typescript
 *.tsbuildinfo

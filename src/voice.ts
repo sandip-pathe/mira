@@ -1,5 +1,6 @@
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { DemoSession, Message, request } from './api';
+import { SupportDecision } from './interventions';
 
 export type VoiceState = 'disconnected' | 'connecting' | 'ready' | 'listening' | 'thinking' | 'speaking';
 export type Metric = { event: string; ms?: number };
@@ -8,8 +9,9 @@ type Callbacks = {
   message: (message: Message) => void;
   error: (message: string) => void;
   metric: (metric: Metric) => void;
-  actions: (actions: Array<{ id: string; title: string; summary: string; steps: string[] }>) => void;
-  context: (matches: Array<{ id: string; source_type: 'journal' | 'feedback'; source_id: string; excerpt: string }>, noMatch?: boolean) => void;
+  decision: (decision: SupportDecision) => void;
+  moment: (state: { what_happened: string; current_need: string; what_is_unclear: string; support_mode: 'listen_more' | 'clarify' | 'offer_action' | 'continue_action' | 'check_outcome' | 'suggest_human_support'; suggested_action: string; previously_helpful: string }) => void;
+  context: (matches: Array<{ id: string; source_type: 'journal' | 'action' | 'feedback'; source_id: string; excerpt: string }>, noMatch?: boolean) => void;
   urgentHelp: () => void;
 };
 
@@ -44,7 +46,7 @@ export class Voice {
 
   constructor(private callbacks: Callbacks) {}
 
-  async connect(session: DemoSession, history: Message[], feedbackId?: string) {
+  async connect(session: DemoSession, history: Message[], feedbackId?: string, momentState?: unknown) {
     this.close();
     const epoch = this.epoch;
     this.session = session;
@@ -97,7 +99,7 @@ export class Voice {
         event.track.enabled = !this.suppressed;
       };
       const secret = await request<{ value: string; generation: number; context_source?: { id: string; source_type: 'feedback'; source_id: string; label: string; excerpt: string } | null }>(
-        `/sessions/${session.session_id}/voice`, session, { feedback_id: feedbackId ?? null });
+        `/sessions/${session.session_id}/voice`, session, { feedback_id: feedbackId ?? null, moment_state: momentState ?? null });
       if (secret.context_source) this.callbacks.context([secret.context_source]);
       if (epoch !== this.epoch) return;
       this.generation = secret.generation;
@@ -301,11 +303,12 @@ export class Voice {
       if (epoch !== this.epoch || turn !== this.turn) return;
       if (response.call_id !== event.call_id) throw new Error('Mismatched call ID');
       output = response.result;
-      if (response.result.actions) this.callbacks.actions(response.result.actions);
+      if (response.result.decision) this.callbacks.decision(response.result.decision);
+      if (response.result.moment_state) this.callbacks.moment(response.result.moment_state);
       if (response.result.matches) this.callbacks.context(response.result.matches, response.result.no_match);
       this.callbacks.metric({ event: `tool round-trip: ${event.name}`, ms: Date.now() - started });
     } catch {
-      output = { error: 'tool_unavailable', instruction: 'Continue without memory; do not invent actions.' };
+      output = { error: 'tool_unavailable', instruction: 'Continue without memory or an activity suggestion.' };
       if (epoch === this.epoch && turn === this.turn) this.callbacks.error('Tool unavailable. Continuing without its result.');
     } finally {
       if (epoch === this.epoch) {

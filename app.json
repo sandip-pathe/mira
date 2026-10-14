@@ -48,7 +48,8 @@
         }
       ],
       "@config-plugins/react-native-webrtc",
-      "./plugins/withPrivateDemoHttp"
+      "./plugins/withPrivateDemoHttp",
+      "expo-router"
     ],
     "extra": {
       "eas": {

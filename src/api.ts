@@ -3,6 +3,10 @@ import Constants from 'expo-constants';
 export type DemoSession = { session_id: string; capability: string; expires_at: number };
 export type Message = { role: 'user' | 'assistant'; content: string };
 
+let activeSession: DemoSession | undefined;
+let creatingSession: Promise<DemoSession> | undefined;
+let serverInstanceId: string | undefined;
+
 function resolveApiOrigin() {
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
@@ -32,4 +36,19 @@ export async function createSession(): Promise<DemoSession> {
   // UUID generation is supplied by expo-crypto, never a timestamp/user identity.
   const { randomUUID } = require('expo-crypto') as typeof import('expo-crypto');
   return request('/sessions', undefined, { session_id: randomUUID() });
+}
+
+export async function getDemoSession(): Promise<DemoSession> {
+  const health = await request<{ server_instance_id: string }>('/health');
+  if (serverInstanceId !== health.server_instance_id) {
+    activeSession = undefined;
+    creatingSession = undefined;
+    serverInstanceId = health.server_instance_id;
+  }
+  if (activeSession && activeSession.expires_at > Date.now() / 1000 + 30) return activeSession;
+  if (!creatingSession) {
+    creatingSession = createSession().then(value => { activeSession = value; return value; })
+      .finally(() => { creatingSession = undefined; });
+  }
+  return creatingSession;
 }

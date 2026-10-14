@@ -1,14 +1,14 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, AppState, Text, TextInput, View } from 'react-native';
 import { fetch as expoFetch } from 'expo/fetch';
 import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, useAudioRecorder } from 'expo-audio';
 import { File } from 'expo-file-system';
 import { API_URL, DemoSession, request } from './api';
-import { ActionButton, colors, Eyebrow, StatusPill, Surface, ui } from './ui';
+import { ActionButton, Eyebrow, StatusPill, Surface, ui } from './ui';
 
 type Entry = { id: string; text: string; input_type: 'text' | 'voice'; created_at: number };
 type MemoryItem = { id: string; source_entry_id: string; excerpt: string; approved: number; revoked: number };
-type FeedbackItem = { id: string; action_id: string; rating: string; reuse_context: number };
+type FeedbackItem = { id: string; action_id: string; rating: string; reuse_context: number; helpful_lesson?: string | null };
 
 export function Journal({ draft, setDraft, getSession, visible, onReset, onContextRevoked }: {
   draft: string; setDraft: (text: string) => void; getSession: () => Promise<DemoSession>; visible: boolean;
@@ -27,7 +27,7 @@ export function Journal({ draft, setDraft, getSession, visible, onReset, onConte
   const [voiceDraft, setVoiceDraft] = useState(false);
   const active = useRef(true);
   const visibleRef = useRef(visible);
-  visibleRef.current = visible;
+  useLayoutEffect(() => { visibleRef.current = visible; }, [visible]);
   const recordingRef = useRef(false);
   const retainedUri = useRef<string | undefined>(undefined);
   const controller = useRef<AbortController | undefined>(undefined);
@@ -43,7 +43,7 @@ export function Journal({ draft, setDraft, getSession, visible, onReset, onConte
       if (!cancelled) { setEntries(journal.entries); setMemories(context.items); setFeedback(context.feedback); }
     }).catch(() => { if (!cancelled) setStatus('Mira is temporarily offline. Your draft stays here.'); });
     return () => { cancelled = true; };
-  }, [visible]);
+  }, [visible, getSession]);
 
   async function saveEntry() {
     const text = draft.trim();
@@ -273,8 +273,8 @@ export function Journal({ draft, setDraft, getSession, visible, onReset, onConte
       {item.approved === 1 && <ActionButton label="Revoke future use" variant="secondary" onPress={() => void memoryAction(item.id, 'revoke')} />}
       <ActionButton label="Delete context" variant="quiet" onPress={() => void memoryAction(item.id, 'delete')} />
     </Surface>)}</View>}
-    {!!feedback.length && <View style={{ gap: 12 }}><Eyebrow>FEEDBACK CONTEXT</Eyebrow>{feedback.map(item => <Surface key={item.id} style={{ gap: 9 }}>
-      <Text style={ui.body}>{`Feedback: ${item.action_id.replaceAll('_', ' ')} · ${item.rating.replaceAll('_', ' ')}`}</Text>
+    {!!feedback.length && <View style={{ gap: 12 }}><Eyebrow>OUTCOMES MIRA CAN REMEMBER</Eyebrow>{feedback.map(item => <Surface key={item.id} style={{ gap: 9 }}>
+      <Text style={ui.body}>{item.helpful_lesson || `Private rating: ${item.action_id.replaceAll('_', ' ')} · ${item.rating.replaceAll('_', ' ')}`}</Text>
       <ActionButton label={item.reuse_context ? 'Stop future use' : 'Allow future use'} variant="secondary" onPress={() => void feedbackAction(item.id, 'reuse', !item.reuse_context)} />
       <ActionButton label="Delete feedback context" variant="quiet" onPress={() => void feedbackAction(item.id, 'delete')} />
     </Surface>)}</View>}

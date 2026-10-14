@@ -13,7 +13,7 @@ let holdTool = false;
 const sent = [];
 const states = [];
 const messages = [];
-const actions = [];
+const decisions = [];
 const metrics = [];
 const errors = [];
 const appState = { currentState: 'active', addEventListener: (_, callback) => {
@@ -36,7 +36,7 @@ const api = { request: async (url, _, body) => {
   if (url.includes('/tool-calls?')) return { registered: true };
   if (url.endsWith('/tools')) {
     if (holdTool) await new Promise(resolve => { delayedTool = resolve; });
-    return { call_id: body.call_id, result: { actions: [{ id: 'pause_60s', title: 'A short pause' }] } };
+    return { call_id: body.call_id, result: { decision: { route: 'offer_intervention', intervention: { id: 'pause_60s', title: 'A short pause' } } } };
   }
   throw new Error('Unexpected endpoint');
 } };
@@ -66,7 +66,7 @@ loaded.paths = module.paths;
 loaded._compile(compiled, filename);
 const { Voice } = loaded.exports;
 const voice = new Voice({ state: value => states.push(value), message: value => messages.push(value),
-  error: value => errors.push(value), metric: value => metrics.push(value), actions: value => actions.push(value), urgentHelp() {} });
+  error: value => errors.push(value), metric: value => metrics.push(value), decision: value => decisions.push(value), urgentHelp() {} });
 const emit = event => pc.channel.onmessage({ data: JSON.stringify(event) });
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -105,24 +105,24 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   voice.press(); voice.holdAt -= 500; voice.release();
   emit({ type: 'input_audio_buffer.committed' });
   emit({ type: 'response.created', response: { id: 'response_two' } });
-  emit({ type: 'response.function_call_arguments.done', call_id: 'call_one', name: 'select_actions', arguments: '{"action_ids":["task_reset_60s","pause_60s"]}' });
+  emit({ type: 'response.function_call_arguments.done', call_id: 'call_one', name: 'choose_support', arguments: '{"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
   emit({ type: 'response.done', response: { id: 'response_two', status: 'completed' } });
   await settle();
   assert(sent.some(event => event.item?.type === 'function_call_output' && event.item.call_id === 'call_one'));
   assert.equal(sent.at(-1).type, 'response.create');
-  assert.equal(actions.length, 1);
+  assert.equal(decisions.length, 1);
 
   // Cancel while the tool is in flight; its late result cannot restart output.
   holdTool = true;
   emit({ type: 'response.created', response: { id: 'response_three' } });
-  emit({ type: 'response.function_call_arguments.done', call_id: 'call_two', name: 'select_actions', arguments: '{"action_ids":["task_reset_60s","pause_60s"]}' });
+  emit({ type: 'response.function_call_arguments.done', call_id: 'call_two', name: 'choose_support', arguments: '{"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
   await settle();
   voice.cancel();
   const count = sent.length;
   delayedTool();
   await settle();
   assert.equal(sent.length, count, 'late cancelled tool causes no provider continuation');
-  assert.equal(actions.length, 1, 'late cancelled action result is not shown');
+  assert.equal(decisions.length, 1, 'late cancelled decision result is not shown');
   // Captions are retained only after a completed response finishes playback.
   voice.press(); voice.holdAt -= 500; voice.release();
   emit({ type: 'input_audio_buffer.committed' });

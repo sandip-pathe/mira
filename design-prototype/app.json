@@ -1,0 +1,9 @@
+{
+  "expo": {
+    "name": "Mira UI Concepts",
+    "slug": "mira-ui-concepts",
+    "version": "1.0.0",
+    "platforms": ["web"],
+    "web": { "bundler": "metro" }
+  }
+}

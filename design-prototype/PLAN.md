@@ -40,4 +40,4 @@ Compare three visual treatments for Mira's Talk screen using the approved V0.03 
 
 ## Review record
 
-Design review and Autoplan findings will be appended here.
+See [REVIEW.md](./REVIEW.md) for the source-level UI review. The Autoplan run is complete through CEO, design, and engineering review; its final plan approval gate is pending the owner's choice. No production visual direction has been selected.

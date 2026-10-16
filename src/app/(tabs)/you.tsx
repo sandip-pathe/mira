@@ -1,1 +1,1 @@
-export { default } from '../../YouScreen';
+export { default } from '../../features/you/YouScreen';

@@ -1,1 +1,1 @@
-export { default } from '../../Mira';
+export { default } from '../../features/talk/TalkScreen';

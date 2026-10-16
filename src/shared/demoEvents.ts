@@ -7,7 +7,7 @@ export function onDemoReset(listener: () => void) {
 }
 
 export function emitDemoReset() {
-  resetListeners.forEach(listener => listener());
+  resetListeners.forEach((listener) => listener());
 }
 
 export function onContextRevoked(listener: () => void) {
@@ -16,5 +16,5 @@ export function onContextRevoked(listener: () => void) {
 }
 
 export function emitContextRevoked() {
-  contextRevokedListeners.forEach(listener => listener());
+  contextRevokedListeners.forEach((listener) => listener());
 }

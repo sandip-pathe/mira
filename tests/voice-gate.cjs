@@ -56,7 +56,7 @@ Module._load = function(name, parent, isMain) {
   return originalLoad.call(this, name, parent, isMain);
 };
 global.fetch = async () => ({ ok: true, text: async () => 'test_answer' });
-const filename = path.resolve(__dirname, '../src/voice.ts');
+const filename = path.resolve(__dirname, '../src/shared/voice.ts');
 const compiled = ts.transpileModule(fs.readFileSync(filename, 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;

@@ -1,1 +1,1 @@
-export { default } from '../DoScreen';
+export { default } from '../features/do/DoScreen';

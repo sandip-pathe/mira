@@ -49,7 +49,8 @@
       ],
       "@config-plugins/react-native-webrtc",
       "./plugins/withPrivateDemoHttp",
-      "expo-router"
+      "expo-router",
+      "expo-font"
     ],
     "extra": {
       "eas": {

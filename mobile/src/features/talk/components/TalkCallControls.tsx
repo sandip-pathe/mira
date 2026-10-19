@@ -1,28 +1,27 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Voice, VoiceState } from '../../../shared/voice';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { VoiceState } from '../../../shared/voice';
 
 export function TalkCallControls({
   state,
-  error,
   textMode,
-  ready,
-  voice,
   caption,
   onToggleMode,
-  onConnect,
+  onTalkPressIn,
+  onTalkPressOut,
   onEnd,
 }: {
   state: VoiceState;
-  error: string;
   textMode: boolean;
-  ready: boolean;
-  voice?: Voice;
   caption: string;
   onToggleMode: () => void;
-  onConnect: () => void;
+  onTalkPressIn: () => void;
+  onTalkPressOut: () => void;
   onEnd: () => void;
 }) {
+  const endDisabled = (state === 'disconnected' || state === 'error') && !textMode;
+
   return (
     <View style={styles.area}>
       <View style={styles.controls}>
@@ -33,48 +32,34 @@ export function TalkCallControls({
           onPress={onToggleMode}
           style={styles.sideControl}
         >
-          <Text style={styles.sideIcon}>{textMode ? 'Mic' : 'Aa'}</Text>
+          {textMode ? (
+            <MaterialDesignIcons name="microphone-outline" size={23} color="#5F706C" />
+          ) : (
+            <Text style={styles.sideIcon}>Aa</Text>
+          )}
           <Text style={styles.sideLabel}>{textMode ? 'Voice' : 'Type'}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={
-            ready
-              ? 'Hold to talk. Release to send. Hold while Mira speaks to interrupt.'
-              : error
-                ? 'Tap to retry voice connection'
-                : 'Tap to connect voice, then hold to talk.'
-          }
-          accessibilityState={{ disabled: state === 'connecting', busy: state === 'connecting' }}
-          disabled={state === 'connecting'}
-          onPressIn={() => {
-            if (ready) voice?.press();
-            else onConnect();
+          accessibilityLabel="Hold to speak and release to send. Hold while Mira speaks to interrupt. If voice is off, holding starts it and speaks when ready."
+          accessibilityState={{
+            busy: state === 'connecting' || state === 'reconnecting' || state === 'starting',
           }}
-          onPressOut={() => voice?.release()}
-          style={({ pressed }) => [
-            styles.mic,
-            !!error && styles.micError,
-            pressed && styles.micPressed,
-          ]}
+          onPressIn={onTalkPressIn}
+          onPressOut={onTalkPressOut}
+          style={({ pressed }) => [styles.mic, pressed && styles.micPressed]}
         >
-          <View style={styles.micGlyph}>
-            <View style={styles.micCapsule} />
-            <View style={styles.micCradle} />
-            <View style={styles.micStem} />
-            <View style={styles.micBase} />
-          </View>
+          <MaterialDesignIcons name="microphone" size={56} color="#F6f6f6" />
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="End session. This conversation will not be saved."
-          accessibilityState={{ disabled: state === 'disconnected' && !textMode }}
-          disabled={state === 'disconnected' && !textMode}
+          accessibilityLabel="End voice session."
+          accessibilityState={{ disabled: endDisabled }}
+          disabled={endDisabled}
           onPress={onEnd}
-          style={[styles.sideControl, state === 'disconnected' && !textMode && styles.disabled]}
+          style={[styles.sideControl, endDisabled && styles.disabled]}
         >
-          <Text style={styles.endIcon}>x</Text>
-          <Text style={styles.sideLabel}>End</Text>
+          <MaterialDesignIcons name="close" size={32} color="#748278" />
         </Pressable>
       </View>
       <Text accessibilityLiveRegion="polite" style={styles.caption}>
@@ -128,22 +113,6 @@ const styles = StyleSheet.create({
     elevation: 5,
     opacity: 0.86,
   },
-  micError: { backgroundColor: '#527965' },
-  micGlyph: { width: 32, height: 43, alignItems: 'center', justifyContent: 'flex-start' },
-  micCapsule: { width: 12, height: 22, borderRadius: 7, backgroundColor: '#F7FAF4' },
-  micCradle: {
-    width: 24,
-    height: 16,
-    borderBottomLeftRadius: 15,
-    borderBottomRightRadius: 15,
-    borderWidth: 3,
-    borderTopWidth: 0,
-    borderColor: '#F7FAF4',
-    marginTop: -3,
-  },
-  micStem: { width: 3, height: 7, backgroundColor: '#F7FAF4' },
-  micBase: { width: 14, height: 3, borderRadius: 2, backgroundColor: '#F7FAF4' },
-  endIcon: { fontSize: 26, lineHeight: 28, fontWeight: '400', color: '#E86F66' },
   caption: { minHeight: 21, textAlign: 'center', fontSize: 13, lineHeight: 19, color: '#4C6660' },
   micPressed: { backgroundColor: '#2D674D', transform: [{ scale: 0.97 }] },
   disabled: { opacity: 0.5 },

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tabs } from 'expo-router';
+import { router, Tabs } from 'expo-router';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { colors } from '../../components/ui';
 
@@ -16,8 +16,6 @@ export default function MainTabs() {
           paddingBottom: 4,
           backgroundColor: colors.surface,
           borderTopColor: colors.line,
-          borderTopLeftRadius: 24,
-          borderTopRightRadius: 24,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
@@ -27,7 +25,7 @@ export default function MainTabs() {
         options={{
           title: 'Talk',
           tabBarIcon: ({ color }) => (
-            <MaterialDesignIcons name="chat-outline" size={22} color={color} />
+            <MaterialDesignIcons name="microphone" size={22} color={color} />
           ),
         }}
       />
@@ -47,6 +45,9 @@ export default function MainTabs() {
           tabBarIcon: ({ color }) => (
             <MaterialDesignIcons name="book-open-page-variant-outline" size={22} color={color} />
           ),
+        }}
+        listeners={{
+          tabPress: () => router.navigate('/you/new'),
         }}
       />
     </Tabs>

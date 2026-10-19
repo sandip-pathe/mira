@@ -69,7 +69,29 @@ export async function createSession(): Promise<DemoSession> {
 }
 
 export async function getDemoSession(): Promise<DemoSession> {
-  const health = await request<{ server_instance_id: string }>('/health');
+  const healthPromise = request<{ server_instance_id: string }>('/health');
+  const cachedSessionValid = Boolean(
+    activeSession && activeSession.expires_at > Date.now() / 1000 + 30,
+  );
+  if (!cachedSessionValid) {
+    if (!creatingSession) {
+      creatingSession = createSession()
+        .then((value) => {
+          activeSession = value;
+          return value;
+        })
+        .finally(() => {
+          creatingSession = undefined;
+        });
+    }
+    const [health, session] = await Promise.all([healthPromise, creatingSession]);
+    if (serverInstanceId !== health.server_instance_id) {
+      serverInstanceId = health.server_instance_id;
+      activeSession = session;
+    }
+    return session;
+  }
+  const health = await healthPromise;
   if (serverInstanceId !== health.server_instance_id) {
     activeSession = undefined;
     creatingSession = undefined;

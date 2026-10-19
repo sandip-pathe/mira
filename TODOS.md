@@ -19,6 +19,18 @@ These items are deliberately outside Mira V0's connected phone demo. Revisit the
 
 ## Engineering
 
+### Revisit clipboard export for Reach Out
+
+**What:** Consider a user-initiated copy action for the Reach Out message preview, with a compatible native clipboard module and truthful success/failure feedback.
+
+**Why:** Clipboard export is temporarily removed so the current development app no longer depends on the unavailable `ExpoClipboard` native module.
+
+**Context:** Reach Out currently lets the person review, edit, and explicitly save the draft to Actions > Continue. Mira does not send the message. Reintroduce clipboard export only when a native build containing the selected clipboard module is available and the flow can be checked on Android.
+
+**Effort:** S
+**Priority:** P2
+**Depends on:** A compatible native development build and Android verification.
+
 ### Evaluate server-side WebRTC sideband for a pilot
 
 **What:** If Mpower approves a pilot, assess replacing phone-relayed tool calls with a server-side WebRTC sideband.

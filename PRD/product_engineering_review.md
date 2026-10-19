@@ -1,3 +1,5 @@
+> **Status update (2026-10-19):** This review predates the selected Nine Activities Master Blueprint and is a historical snapshot. Its Actions/library conflict is resolved: the blueprint and reconciled PRD approve the static Activities library and explicit local Continue shelf. Its implementation paths and findings must be rechecked against current code; see [Work Order 00 ledger](mira_activity_build_status.md) for the current map and evidence. Do not use its old file paths as current implementation tasks.
+
 # Mira product and engineering review
 
 Date: 2026-10-15. Static review of the current workspace. No runtime, device, provider, lint, or test checks were run. The workspace has no Git repository metadata, so this review cannot establish change history or provide a diff against a baseline.

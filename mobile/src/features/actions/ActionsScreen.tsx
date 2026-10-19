@@ -2,6 +2,7 @@ import React from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { getDemoSession, request } from '../../shared/api';
 import {
   ContinueItem,
@@ -10,12 +11,15 @@ import {
   rememberIntervention,
   removeContinueItem,
 } from '../../shared/interventions';
-import { ActionButton, Eyebrow, Surface, colors, ui } from '../../components/ui';
+import { ActionButton, Eyebrow, HelpButton, Surface, colors, ui } from '../../components/ui';
+import { isCompatibleActivity, RegisteredActivityId } from '../../shared/activityRegistry';
+import { emitUrgentHelp } from '../../shared/demoEvents';
 
-const groups: { title: string; ids: string[] }[] = [
-  { title: 'Right now', ids: ['pause_60s', 'grounding', 'name_a_feeling'] },
-  { title: 'Move forward', ids: ['task_reset_60s', 'brain_dump', 'tiny_next_step', 'reach_out'] },
-  { title: 'Reset / wind down', ids: ['short_movement', 'sleep_wind_down'] },
+const groups: { title: string; ids: RegisteredActivityId[] }[] = [
+  { title: 'Express', ids: ['brain_dump', 'unsent_letter', 'name_a_feeling'] },
+  { title: 'Move forward', ids: ['one_small_step', 'reach_out'] },
+  { title: 'Take a break', ids: ['short_movement', 'one_song_break'] },
+  { title: 'Follow a guide', ids: ['grounding', 'paced_breathing'] },
 ];
 
 export default function ActionsScreen() {
@@ -38,7 +42,7 @@ export default function ActionsScreen() {
       const ordered = groups.flatMap((group) =>
         group.ids
           .map((id) => result.actions.find((item) => item.id === id))
-          .filter((item): item is Intervention => !!item),
+          .filter((item): item is Intervention => !!item && isCompatibleActivity(item)),
       );
       ordered.forEach(rememberIntervention);
       setCatalog(ordered);
@@ -62,6 +66,27 @@ export default function ActionsScreen() {
     router.push({ pathname: '/do', params: { id, origin, ...(itemId ? { itemId } : {}) } });
   }
 
+  function showHelp() {
+    Alert.alert('Help', 'Choose a support route or urgent help.', [
+      {
+        text: 'Support route',
+        onPress: () =>
+          Alert.alert(
+            'Support route',
+            'This prototype is not connected to Mpower support. Ask the Mpower team which route belongs here.',
+          ),
+      },
+      {
+        text: 'Urgent help now',
+        onPress: () => {
+          emitUrgentHelp();
+          router.push('/(tabs)/index');
+        },
+      },
+      { text: 'Close', style: 'cancel' },
+    ]);
+  }
+
   function confirmRemove(item: ContinueItem) {
     Alert.alert('Remove from Continue?', 'This removes the item saved on this device.', [
       { text: 'Keep', style: 'cancel' },
@@ -81,7 +106,6 @@ export default function ActionsScreen() {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 22,
-          paddingTop: 18,
           paddingBottom: 28,
           gap: 20,
           maxWidth: 660,
@@ -90,9 +114,22 @@ export default function ActionsScreen() {
         }}
       >
         <View style={{ gap: 5 }}>
-          <Eyebrow>ACTIVITIES</Eyebrow>
-          <Text style={ui.title}>Activities</Text>
-          <Text style={ui.muted}>Choose one small thing to try.</Text>
+          <View
+            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <Text
+              style={{
+                fontSize: 32,
+                lineHeight: 42,
+                fontWeight: '700',
+                color: '#0474f3',
+                letterSpacing: -1.2,
+              }}
+            >
+              Activities
+            </Text>
+            <HelpButton onPress={showHelp} />
+          </View>
         </View>
         {!!items.length && (
           <View style={{ gap: 10 }}>
@@ -100,7 +137,9 @@ export default function ActionsScreen() {
             {items.map((item) => (
               <Surface key={item.id} style={{ gap: 9 }}>
                 <Text style={ui.label}>{item.title}</Text>
+                {!!item.source_task && <Text style={ui.muted}>Task: {item.source_task}</Text>}
                 <Text style={ui.body}>{item.content}</Text>
+                {!!item.cue && <Text style={ui.muted}>When: {item.cue}</Text>}
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <ActionButton
                     label="Continue"
@@ -127,37 +166,117 @@ export default function ActionsScreen() {
         )}
         <View style={{ gap: 14 }}>
           <Text style={ui.heading}>Choose an activity</Text>
-          {groups.map((group) => (
-            <View key={group.title} style={{ gap: 9 }}>
-              <Text style={ui.label}>{group.title}</Text>
-              {group.ids.map((id) => {
-                const intervention = catalog.find((item) => item.id === id);
-                return (
+          {groups
+            .filter((group) => group.ids.some((id) => catalog.some((item) => item.id === id)))
+            .map((group) => (
+              <View key={group.title} style={{ gap: 9 }}>
+                <Text style={ui.label}>{group.title}</Text>
+                {group.title === 'Express' && (
                   <Pressable
-                    key={id}
                     accessibilityRole="button"
-                    accessibilityLabel={
-                      intervention ? `${intervention.title}. ${intervention.summary}` : id
-                    }
-                    onPress={() => intervention && open(id, 'actions_library')}
-                    disabled={!intervention}
+                    accessibilityLabel="Journal. Recent entries and new entry"
+                    onPress={() => router.push('/you')}
                   >
-                    <Surface style={{ gap: 4, opacity: intervention ? 1 : 0.65 }}>
-                      <Text style={ui.label}>{intervention?.title ?? id.replaceAll('_', ' ')}</Text>
-                      <Text style={ui.muted}>
-                        {intervention?.summary ?? 'Activity details load when Mira is online.'}
-                      </Text>
-                      {intervention && (
-                        <Text style={{ color: colors.accent, fontSize: 14, fontWeight: '600' }}>
-                          View activity
-                        </Text>
-                      )}
+                    <Surface style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+                      <View
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 15,
+                          backgroundColor: colors.accentSoft,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <MaterialDesignIcons
+                          name="book-open-page-variant-outline"
+                          size={22}
+                          color={colors.accent}
+                        />
+                      </View>
+                      <View style={{ flex: 1, gap: 4 }}>
+                        <Text style={ui.label}>Journal</Text>
+                        <Text style={ui.muted}>Recent entries and a new entry</Text>
+                      </View>
+                      <MaterialDesignIcons name="chevron-right" size={22} color={colors.muted} />
                     </Surface>
                   </Pressable>
-                );
-              })}
-            </View>
-          ))}
+                )}
+                {group.ids.map((id) => {
+                  const intervention = catalog.find((item) => item.id === id);
+                  return (
+                    <Pressable
+                      key={id}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        intervention ? `${intervention.title}. ${intervention.summary}` : id
+                      }
+                      onPress={() => intervention && open(id, 'actions_library')}
+                      disabled={!intervention}
+                    >
+                      <Surface
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 13,
+                          opacity: intervention ? 1 : 0.65,
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 44,
+                            height: 44,
+                            borderRadius: 15,
+                            backgroundColor: colors.accentSoft,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <MaterialDesignIcons
+                            name={
+                              id === 'grounding'
+                                ? 'eye-outline'
+                                : id === 'brain_dump'
+                                  ? 'notebook-edit-outline'
+                                  : id === 'task_reset_60s' || id === 'one_small_step'
+                                    ? 'checkbox-marked-circle-outline'
+                                    : id === 'name_a_feeling'
+                                      ? 'emoticon-outline'
+                                      : id === 'write_100_words' || id === 'unsent_message'
+                                        ? 'email-edit-outline'
+                                        : id === 'reach_out'
+                                          ? 'message-text-outline'
+                                          : id === 'short_movement'
+                                            ? 'walk'
+                                            : id === 'one_song_break' || id === 'one_song_reset'
+                                              ? 'music-note-outline'
+                                              : 'account-switch-outline'
+                            }
+                            size={22}
+                            color={colors.accent}
+                          />
+                        </View>
+                        <View style={{ flex: 1, gap: 4 }}>
+                          <Text style={ui.label}>
+                            {intervention?.title ?? id.replaceAll('_', ' ')}
+                          </Text>
+                          <Text style={ui.muted}>
+                            {intervention?.summary ?? 'Activity details load when Mira is online.'}
+                          </Text>
+                        </View>
+                        {intervention && (
+                          <MaterialDesignIcons
+                            name="chevron-right"
+                            size={22}
+                            color={colors.muted}
+                          />
+                        )}
+                      </Surface>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ))}
         </View>
         {!!status && (
           <Text accessibilityLiveRegion="polite" style={ui.muted}>

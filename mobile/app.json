@@ -42,12 +42,17 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Record a voice journal note when you choose Record.",
+          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak, or when you choose to record a Journal note.",
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
         }
       ],
-      "@config-plugins/react-native-webrtc",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak, or when you choose to record a Journal note."
+        }
+      ],
       "./plugins/withPrivateDemoHttp",
       "expo-router",
       "expo-font"

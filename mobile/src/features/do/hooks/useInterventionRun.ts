@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
+import { randomUUID } from 'expo-crypto';
 import { ApiError, DemoSession, getDemoSession, request } from '../../../shared/api';
 import {
   ContinueItem,
   getContinueKind,
   getRememberedIntervention,
   Intervention,
+  isSupportedContinueCatalogVersion,
   loadContinueItems,
   rememberIntervention,
   removeContinueItem,
@@ -13,6 +15,11 @@ import {
   updateContinueItem,
 } from '../../../shared/interventions';
 import { Rating } from '../components/ActivityOutcome';
+import {
+  activityCapabilities,
+  canonicalActivityId,
+  isCompatibleActivity,
+} from '../../../shared/activityRegistry';
 
 type Run = {
   id: string;
@@ -31,6 +38,7 @@ export function useInterventionRun({
   origin?: 'talk' | 'actions_library' | 'actions_continue';
   continueItemId?: string;
 }) {
+  const clientRunId = useRef(randomUUID()).current;
   const [intervention, setIntervention] = useState<Intervention>();
   const [activeId, setActiveId] = useState('');
   const [run, setRun] = useState<Run>();
@@ -44,6 +52,14 @@ export function useInterventionRun({
     ignore: string[];
   }>();
   const [tinyStep, setTinyStep] = useState('');
+  const [smallStepMode, setSmallStepMode] = useState<'many' | 'known'>();
+  const [taskSlips, setTaskSlips] = useState<{ id: string; text: string; bucket: 'now' | 'later' | 'not_now' }[]>([]);
+  const [selectedTask, setSelectedTask] = useState('');
+  const [smallStepCue, setSmallStepCue] = useState('');
+  const [reflection, setReflection] = useState('');
+  const [groundingCounts, setGroundingCounts] = useState([0, 0, 0]);
+  const [groundingSkipped, setGroundingSkipped] = useState([false, false, false]);
+  const [groundingSummary, setGroundingSummary] = useState('');
   const [rating, setRating] = useState<Rating>();
   const [tried, setTried] = useState<boolean>();
   const [phase, setPhase] = useState<'loading' | 'ready' | 'active' | 'paused' | 'outcome'>(
@@ -64,29 +80,47 @@ export function useInterventionRun({
   const [continueCompletionPending, setContinueCompletionPending] = useState(false);
   const [localStatus, setLocalStatus] = useState('');
   const operationPending = useRef(false);
+  const talkAutoStartAttempted = useRef(false);
+  const mounted = useRef(true);
+  const latestRun = useRef<{ run?: Run; phase: typeof phase }>({ run, phase });
+  latestRun.current = { run, phase };
 
   const initialize = useCallback(async () => {
+    const requestedId = canonicalActivityId(id);
+    if (!requestedId) {
+      setStatus('This activity link is invalid or no longer supported. Return to where you came from.');
+      return;
+    }
+    if (origin === 'actions_continue' && !continueItemId) {
+      setStatus('This saved activity link is incomplete. Your saved items are still available in Continue.');
+      return;
+    }
     let session: DemoSession | undefined;
-    let content: Intervention | undefined = getRememberedIntervention(id);
+    let content: Intervention | undefined = getRememberedIntervention(requestedId);
     try {
       session = await getDemoSession();
       content = await request<Intervention>(
-        `/sessions/${session.session_id}/interventions/${id}/activity`,
+        `/sessions/${session.session_id}/interventions/${requestedId}/activity`,
         session,
       );
       rememberIntervention(content);
     } catch {
       /* Use activity text already loaded by Talk when the service is offline. */
     }
+    if (!mounted.current) return;
     if (!content) {
       setStatus('This activity is unavailable. Return to Talk and try again.');
+      return;
+    }
+    if (!isCompatibleActivity(content)) {
+      setStatus('This activity needs a compatible app version. Return to where you came from.');
       return;
     }
     setActiveId(content.id);
     setIntervention(content);
     if (
       !content.presentation ||
-      !['sort', 'capture', 'steps'].includes(content.presentation.pattern) ||
+      !['sort', 'capture', 'steps', 'letter', 'grounding', 'breathing'].includes(content.presentation.pattern) ||
       !content.steps.length
     ) {
       setStatus('This activity needs updated content. Connect to Mira and try again.');
@@ -96,48 +130,89 @@ export function useInterventionRun({
     if (origin === 'actions_continue' && continueItemId) {
       try {
         const item = (await loadContinueItems()).find((value) => value.id === continueItemId);
-        if (item) {
+        if (
+          item &&
+          isSupportedContinueCatalogVersion(item.catalog_version) &&
+          canonicalActivityId(item.intervention_id) === content.id &&
+          item.schema_version <= 2
+        ) {
           setContinueItem(item);
           setContinueSaved(true);
-          if (item.kind === 'next_step') setTinyStep(item.content);
+          if (item.kind === 'next_step' || item.kind === 'one_small_step') setTinyStep(item.content);
           else setDraft(item.content);
+          if (item.kind === 'one_small_step') {
+            setSelectedTask(item.source_task ?? '');
+            setSmallStepCue(item.cue ?? '');
+            setStep(3);
+          }
           if (content.presentation.pattern === 'sort')
             setGroups({ now: [item.content], later: [], ignore: [] });
+        } else {
+          setStatus('This saved item is invalid or needs a different app version. It remains in Continue.');
+          return;
         }
       } catch {
+        if (!mounted.current) return;
         setLocalStatus('This saved item could not be loaded.');
       }
     }
+    if (!mounted.current) return;
     setPhase('ready');
     setStatus(
       `Ready when you are. Start, skip, or return to ${origin === 'talk' ? 'Talk' : 'Actions'}.`,
     );
   }, [id, origin, continueItemId]);
 
-  async function startActivity() {
+  const startActivity = useCallback(async () => {
     if (phase === 'ready' && !busy && !operationPending.current) {
       operationPending.current = true;
       setBusy(true);
       try {
         const session = await getDemoSession();
+        const requestedId = canonicalActivityId(id)!;
         const created = await request<Omit<Run, 'session'>>(
-          `/sessions/${session.session_id}/interventions/${id}/start`,
+          `/sessions/${session.session_id}/interventions/${requestedId}/start`,
           session,
-          { consented: true },
+          {
+            consented: true,
+            client_run_id: clientRunId,
+            client_activity_capabilities: activityCapabilities(),
+          },
         );
+        if (!mounted.current) {
+          await request(
+            `/sessions/${session.session_id}/action-runs/${created.id}`,
+            session,
+            { state: 'stopped' },
+            'PATCH',
+          ).catch(() => {});
+          return;
+        }
         setRun({ ...created, session });
         setPhase('active');
         setStatus('Started. Stop whenever you like.');
       } catch {
-        setStatus(
-          'Mira could not confirm this activity can start. Check the connection or try again shortly.',
-        );
+        if (mounted.current)
+          setStatus(
+            'Mira could not confirm this activity can start. Check the connection or try again shortly.',
+          );
       } finally {
         operationPending.current = false;
-        setBusy(false);
+        if (mounted.current) setBusy(false);
       }
     }
-  }
+  }, [phase, busy, id, clientRunId]);
+
+  useEffect(() => {
+    if (
+      origin !== 'talk' ||
+      phase !== 'ready' ||
+      ['paced_breathing', 'reach_out', 'short_movement', 'one_song_break'].includes(canonicalActivityId(id) ?? '') ||
+      talkAutoStartAttempted.current
+    ) return;
+    talkAutoStartAttempted.current = true;
+    void startActivity();
+  }, [id, origin, phase, startActivity]);
 
   async function finishRun(next: Exclude<Run['state'], 'started'>) {
     if (!run || busy || operationPending.current || (phase !== 'active' && phase !== 'paused'))
@@ -159,10 +234,14 @@ export function useInterventionRun({
     }
     if (continueItem && origin === 'actions_continue' && next === 'completed') {
       setContinueCompletionPending(true);
-    } else if (continueItem) {
+    } else if (continueItem && activeId !== 'brain_dump') {
       try {
         const updated = await updateContinueItem(continueItem.id, {
-          content: continueItem.kind === 'next_step' ? tinyStep : draft,
+          content: continueItem.kind === 'short_movement'
+            ? continueItem.content
+            : continueItem.kind === 'next_step'
+              ? tinyStep
+              : draft,
         });
         if (!updated) throw new Error('Saved item no longer exists.');
       } catch {
@@ -181,7 +260,7 @@ export function useInterventionRun({
     );
   }
 
-  async function keepInActions(content: string) {
+  async function keepInActions(content: string, details?: { source_task?: string; cue?: string }) {
     if (
       !intervention ||
       !content.trim() ||
@@ -197,11 +276,12 @@ export function useInterventionRun({
       if (continueItem) {
         const updated = await updateContinueItem(continueItem.id, {
           content: content.trim(),
+          ...details,
         });
         if (!updated) throw new Error('Saved item no longer exists.');
-        setContinueItem({ ...continueItem, content: content.trim() });
+        setContinueItem({ ...continueItem, content: content.trim(), ...details });
       } else {
-        const item = await saveContinueItem(intervention, content);
+        const item = await saveContinueItem(intervention, content, clientRunId, details);
         setContinueItem(item);
       }
       setContinueSaved(true);
@@ -214,17 +294,21 @@ export function useInterventionRun({
     }
   }
 
-  function confirmKeepInActions(content: string) {
+  function confirmKeepInActions(
+    content: string,
+    details?: { source_task?: string; cue?: string },
+    confirmation?: { title: string; message: string; confirmLabel: string },
+  ) {
     if (!intervention || !content.trim()) return;
     const isExisting = !!continueItem;
     Alert.alert(
-      isExisting ? 'Update this Actions item?' : 'Keep this in Actions?',
-      content.trim(),
+      confirmation?.title ?? (isExisting ? 'Update this Actions item?' : 'Keep this in Actions?'),
+      confirmation?.message ?? [details?.source_task ? `Task: ${details.source_task}` : '', `First move: ${content.trim()}`, details?.cue ? `When: ${details.cue}` : ''].filter(Boolean).join('\n'),
       [
         { text: 'Not now', style: 'cancel' },
         {
-          text: isExisting ? 'Update item' : 'Keep in Actions',
-          onPress: () => void keepInActions(content),
+          text: confirmation?.confirmLabel ?? (isExisting ? 'Update item' : 'Keep in Actions'),
+          onPress: () => void keepInActions(content, details),
         },
       ],
     );
@@ -240,6 +324,21 @@ export function useInterventionRun({
     setPhase('active');
     setStatus('Activity resumed.');
   }
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      const current = latestRun.current;
+      if (current.run?.state !== 'started' || !['active', 'paused'].includes(current.phase)) return;
+      void request(
+        `/sessions/${current.run.session.session_id}/action-runs/${current.run.id}`,
+        current.run.session,
+        { state: 'stopped' },
+        'PATCH',
+      ).catch(() => {});
+    };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -425,6 +524,22 @@ export function useInterventionRun({
     setGroups,
     tinyStep,
     setTinyStep,
+    smallStepMode,
+    setSmallStepMode,
+    taskSlips,
+    setTaskSlips,
+    selectedTask,
+    setSelectedTask,
+    smallStepCue,
+    setSmallStepCue,
+    reflection,
+    setReflection,
+    groundingCounts,
+    setGroundingCounts,
+    groundingSkipped,
+    setGroundingSkipped,
+    groundingSummary,
+    setGroundingSummary,
     rating,
     setRating,
     tried,
@@ -444,6 +559,7 @@ export function useInterventionRun({
     feedbackStatus,
     feedbackRetry,
     continueSaved,
+    clientRunId,
     localStatus,
     startActivity,
     finishRun,

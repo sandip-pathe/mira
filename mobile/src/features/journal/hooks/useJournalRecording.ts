@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import { fetch as expoFetch } from 'expo/fetch';
 import {
   RecordingPresets,
   requestRecordingPermissionsAsync,
@@ -8,9 +7,8 @@ import {
   useAudioRecorder,
 } from 'expo-audio';
 import { File } from 'expo-file-system';
-import { API_URL, DemoSession } from '../../../shared/api';
 
-// Failed deletions are retried during this process; no recording paths are persisted.
+// Failed deletions are retried during this process.
 const pendingCleanup = new Set<string>();
 
 function removeRecording(path?: string): boolean {
@@ -29,14 +27,11 @@ function removeRecording(path?: string): boolean {
 
 type Options = {
   visible: boolean;
-  getSession: () => Promise<DemoSession>;
-  setDraft: (text: string) => void;
-  setVoiceDraft: (value: boolean) => void;
   setStatus: (text: string) => void;
 };
 
 export function useJournalRecording(options: Options) {
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = useAudioRecorder({ ...RecordingPresets.HIGH_QUALITY, directory: 'document' });
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
   const [uri, setUri] = useState<string>();
@@ -45,7 +40,6 @@ export function useJournalRecording(options: Options) {
   const capturing = useRef(false);
   const operating = useRef(false);
   const retained = useRef<string | undefined>(undefined);
-  const controller = useRef<AbortController | undefined>(undefined);
   const stopping = useRef<Promise<string | undefined> | undefined>(undefined);
   const generation = useRef(0);
   useLayoutEffect(() => {
@@ -88,7 +82,7 @@ export function useJournalRecording(options: Options) {
     void stopCapture()
       .then(() => {
         if (active.current)
-          callbacks.current.setStatus('Recording stopped. Retry transcription or discard.');
+          callbacks.current.setStatus('Recording stopped. Save or discard the voice note.');
       })
       .catch(() => {
         if (active.current)
@@ -110,61 +104,9 @@ export function useJournalRecording(options: Options) {
       active.current = false;
       generation.current += 1;
       subscription.remove();
-      controller.current?.abort();
       if (capturing.current || stopping.current) void stopCapture().catch(() => {});
-      removeRecording(retained.current);
     };
   }, [interrupt, stopCapture]);
-
-  async function transcribeRecording(path: string) {
-    const abort = new AbortController();
-    controller.current = abort;
-    const timeout = setTimeout(() => abort.abort(), 50000);
-    callbacks.current.setStatus('Transcribing…');
-    try {
-      const session = await callbacks.current.getSession();
-      if (!active.current || abort.signal.aborted) return;
-      const form = new FormData();
-      form.append('file', new File(path), 'journal.m4a');
-      const response = await expoFetch(`${API_URL}/sessions/${session.session_id}/transcriptions`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session.capability}` },
-        body: form,
-        signal: abort.signal,
-      });
-      if (!response.ok) {
-        const reason =
-          response.status === 401
-            ? 'Journal session expired. Reopen Journal and try again.'
-            : response.status === 413
-              ? 'Recording is too large. Record a shorter note.'
-              : `Transcription unavailable (HTTP ${response.status}). The recording is kept for retry or discard.`;
-        throw new Error(reason);
-      }
-      const result: { text?: unknown } = await response.json();
-      if (typeof result.text !== 'string')
-        throw new Error('Transcription was incomplete. Retry or discard.');
-      if (!active.current || abort.signal.aborted) return;
-      callbacks.current.setDraft(result.text);
-      callbacks.current.setVoiceDraft(true);
-      if (removeRecording(path)) {
-        retained.current = undefined;
-        setUri(undefined);
-        callbacks.current.setStatus('Transcript ready. Edit it before saving.');
-      } else
-        callbacks.current.setStatus(
-          'Transcript ready. The recording could not be deleted; use Discard to retry cleanup.',
-        );
-    } catch (error) {
-      if (active.current)
-        callbacks.current.setStatus(
-          error instanceof Error ? error.message : 'Transcription failed. Retry or discard.',
-        );
-    } finally {
-      clearTimeout(timeout);
-      if (controller.current === abort) controller.current = undefined;
-    }
-  }
 
   async function operate(work: () => Promise<void>) {
     if (operating.current || stopping.current) return;
@@ -222,13 +164,8 @@ export function useJournalRecording(options: Options) {
     return operate(async () => {
       const path = await stopCapture();
       if (!path) throw new Error('No recording available. Try again.');
-      if (active.current && callbacks.current.visible && AppState.currentState === 'active')
-        await transcribeRecording(path);
+      callbacks.current.setStatus('Voice note ready. Save it or discard it.');
     });
-  }
-
-  function transcribe(path: string) {
-    return operate(() => transcribeRecording(path));
   }
 
   function discard() {
@@ -242,5 +179,12 @@ export function useJournalRecording(options: Options) {
     return true;
   }
 
-  return { recording, busy, uri, start, stop, transcribe, discard };
+  function keep() {
+    const path = retained.current;
+    retained.current = undefined;
+    setUri(undefined);
+    return path;
+  }
+
+  return { recording, busy, uri, start, stop, discard, keep };
 }

@@ -3,15 +3,20 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Message } from '../../../shared/api';
 
 export function ConversationMessages({ messages }: { messages: Message[] }) {
+  const currentExchangeStart = messages.reduce(
+    (latest, message, index) => (message.role === 'user' ? index : latest),
+    Math.max(0, messages.length - 1),
+  );
   return (
     <>
       {messages.map((message, index) => (
         <View
           key={`${index}-${message.role}`}
-          style={[styles.message, message.role === 'user' && styles.userMessage]}
+          style={[styles.message, index < currentExchangeStart && styles.previousMessage]}
         >
-          <Text style={styles.label}>{message.role === 'user' ? 'YOU' : 'MIRA'}</Text>
-          <Text style={styles.body}>{message.content}</Text>
+          <Text style={[styles.body, message.role === 'user' && styles.userBody]}>
+            {message.content}
+          </Text>
         </View>
       ))}
     </>
@@ -19,15 +24,8 @@ export function ConversationMessages({ messages }: { messages: Message[] }) {
 }
 
 const styles = StyleSheet.create({
-  message: {
-    padding: 13,
-    gap: 6,
-    borderRadius: 17,
-    backgroundColor: '#FFFDF9',
-    borderWidth: 1,
-    borderColor: '#DDE2D9',
-  },
-  userMessage: { backgroundColor: '#E9F1E8', borderColor: '#D4E1D2' },
-  label: { fontSize: 11, fontWeight: '700', letterSpacing: 0.8, color: '#71807B' },
-  body: { fontSize: 15, lineHeight: 22, color: '#263F3A' },
+  message: { paddingHorizontal: 6, paddingVertical: 8 },
+  previousMessage: { opacity: 0.6 },
+  body: { fontSize: 18, lineHeight: 27, color: '#263F3A' },
+  userBody: { fontWeight: '700' },
 });

@@ -2,11 +2,27 @@ import { AppState, PermissionsAndroid, Platform } from 'react-native';
 import { DemoSession, Message, request } from './api';
 import { SupportDecision } from './interventions';
 import type { ContextMatch, MomentState } from '../features/talk/conversation';
+import { activityCapabilities } from './activityRegistry';
 
-export type VoiceState =
-  'disconnected' | 'connecting' | 'ready' | 'listening' | 'thinking' | 'speaking';
+export type VoiceTransportState =
+  | 'disconnected'
+  | 'connecting'
+  | 'ready'
+  | 'reconnecting'
+  | 'error';
+export type VoiceTurnState =
+  | 'idle'
+  | 'starting'
+  | 'recording'
+  | 'finalizing'
+  | 'processing'
+  | 'speaking'
+  | 'failed';
+export type VoiceState = VoiceTransportState | VoiceTurnState | 'turn_error';
 type Callbacks = {
-  state: (value: VoiceState) => void;
+  transport: (value: VoiceTransportState) => void;
+  turn: (value: VoiceTurnState) => void;
+  audioLevel: (value: number) => void;
   message: (message: Message) => void;
   error: (message: string) => void;
   decision: (decision: SupportDecision) => void;
@@ -15,15 +31,54 @@ type Callbacks = {
   urgentHelp: () => void;
 };
 
+export async function requestMicrophonePermission(context: 'talk' | 'brain_dump' = 'talk') {
+  const title = context === 'talk' ? 'Use your microphone in Talk?' : 'Use your microphone in Brain Dump?';
+  const message = context === 'talk'
+    ? 'Mira only captures audio while you hold the Talk button to speak.'
+    : 'Mira only captures audio while you hold to speak. The transcript stays in this temporary draft.';
+  const deniedAndroid = context === 'talk'
+    ? 'Microphone access is needed for voice. You can allow it in Settings or use text.'
+    : 'Microphone access was not allowed. Your typed draft is still here.';
+  const deniedOther = context === 'talk'
+    ? 'Microphone access is needed for voice. Allow it in Settings or use text.'
+    : 'Microphone access was not allowed. Your typed draft is still here.';
+  const { permissions } = require('react-native-webrtc') as typeof import('react-native-webrtc');
+  if (Platform.OS === 'android') {
+    const permission = (await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO))
+      ? PermissionsAndroid.RESULTS.GRANTED
+      : await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.RECORD_AUDIO, {
+          title,
+          message,
+          buttonPositive: 'Continue',
+          buttonNegative: 'Not now',
+        });
+    if (permission !== PermissionsAndroid.RESULTS.GRANTED)
+      throw new Error(deniedAndroid);
+    return;
+  }
+  const permission = await permissions.query({ name: 'microphone' });
+  const granted = permission === permissions.RESULT.GRANTED ||
+    (permission === permissions.RESULT.PROMPT && (await permissions.request({ name: 'microphone' })) === true);
+  if (!granted) throw new Error(deniedOther);
+}
+
 export class Voice {
   private pc: any;
   private channel: any;
   private stream: any;
+  private audioSender: any;
+  private senderUpdate: Promise<void> = Promise.resolve();
+  private mediaDevices: any;
   private remoteTracks: any[] = [];
-  private lifecycle?: ReturnType<typeof AppState.addEventListener>;
   private timeout?: ReturnType<typeof setTimeout>;
+  private reconnectTimer?: ReturnType<typeof setTimeout>;
   private ready = false;
+  private peerConnected = false;
+  private channelOpen = false;
+  private sessionStarted = false;
   private held = false;
+  private holdAttempt = 0;
+  private captureReady = false;
   private holdAt = 0;
   private releasedAt = 0;
   private responseActive = false;
@@ -42,23 +97,32 @@ export class Voice {
   private seenCalls = new Set<string>();
   private toolJobs = 0;
   private continueAfterTools = false;
+  private awaitingTranscript = false;
+  private statsTimer?: ReturnType<typeof setInterval>;
+  private lastAudioLevel = 0;
+  private previousAudioStats = new Map<string, { energy: number; duration: number }>();
+  private audioMeterGeneration = 0;
+  private remoteAudioTrack: any;
   private session?: DemoSession;
 
   constructor(private callbacks: Callbacks) {}
+
+  async requestMicPermission() {
+    await requestMicrophonePermission();
+  }
 
   async connect(
     session: DemoSession,
     history: Message[],
     feedbackId?: string,
     momentState?: unknown,
+    reconnecting = false,
+    permissionGranted = false,
   ) {
-    this.close();
+    this.close(false);
     const epoch = this.epoch;
     this.session = session;
-    this.callbacks.state('connecting');
-    this.lifecycle = AppState.addEventListener('change', (state) => {
-      if (state !== 'active') this.close();
-    });
+    this.callbacks.transport(reconnecting ? 'reconnecting' : 'connecting');
     this.timeout = setTimeout(() => {
       if (!this.ready && epoch === this.epoch)
         this.fail('Voice connection timed out. Retry voice or continue with text.');
@@ -67,27 +131,13 @@ export class Voice {
       // Lazy load lets Expo Go preview Journal without evaluating native WebRTC.
       const { RTCPeerConnection, RTCSessionDescription, mediaDevices } =
         require('react-native-webrtc') as typeof import('react-native-webrtc');
-      if (Platform.OS === 'android') {
-        const permission = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
-        );
-        if (permission !== PermissionsAndroid.RESULTS.GRANTED)
-          throw new Error('Microphone permission denied. Continue with text.');
-      }
+      this.mediaDevices = mediaDevices;
+      if (!permissionGranted) await this.requestMicPermission();
       if (epoch !== this.epoch || AppState.currentState !== 'active') return;
-      const stream = await mediaDevices.getUserMedia({ audio: true, video: false });
-      stream.getAudioTracks().forEach((track) => {
-        track.enabled = false;
-      });
-      if (epoch !== this.epoch) {
-        stream.getTracks().forEach((track) => track.stop());
-        stream.release();
-        return;
-      }
-      this.stream = stream;
       const pc = new RTCPeerConnection({ iceServers: [] });
       this.pc = pc;
-      stream.getTracks().forEach((track) => pc.addTrack(track, stream));
+      // Negotiate the audio channel now; acquire a microphone track only during a hold.
+      this.audioSender = pc.addTransceiver('audio', { direction: 'sendrecv' }).sender;
       const channel = pc.createDataChannel('oai-events');
       this.channel = channel;
       channel.onmessage = (event: any) => {
@@ -100,41 +150,41 @@ export class Voice {
       };
       channel.onopen = () => {
         if (epoch !== this.epoch) return;
+        this.channelOpen = true;
         // Restore only confirmed captions; do not replay unfinished audio turns.
-        history.forEach((message) =>
-          this.send({
-            type: 'conversation.item.create',
-            item: {
-              type: 'message',
-              role: message.role,
-              content: [
-                { type: message.role === 'user' ? 'input_text' : 'text', text: message.content },
-              ],
-            },
-          }),
-        );
-        this.send({
-          type: 'session.update',
-          session: { type: 'realtime', audio: { input: { turn_detection: null } } },
-        });
+        this.addTextMessages(history);
+        this.maybeReady();
       };
       channel.onclose = () => {
-        if (epoch === this.epoch)
-          this.fail('Voice connection dropped. Retry voice or continue with text.');
+        if (epoch === this.epoch) this.fail('Voice connection dropped. Reconnecting…', this.ready);
       };
       pc.onconnectionstatechange = () => {
-        if (
-          epoch === this.epoch &&
-          ['failed', 'disconnected', 'closed'].includes(pc.connectionState)
-        )
-          this.fail('Voice connection dropped. Retry voice or continue with text.');
+        if (epoch !== this.epoch) return;
+        if (pc.connectionState === 'connected') {
+          this.peerConnected = true;
+          clearTimeout(this.reconnectTimer);
+          this.reconnectTimer = undefined;
+          this.maybeReady();
+        } else if (pc.connectionState === 'disconnected' && this.ready) {
+          this.peerConnected = false;
+          this.callbacks.transport('reconnecting');
+          this.reconnectTimer = setTimeout(() => {
+            if (epoch === this.epoch && pc.connectionState === 'disconnected')
+              this.fail('Voice connection dropped. Reconnecting…', true);
+          }, 1800);
+        } else if (['failed', 'closed'].includes(pc.connectionState)) {
+          this.peerConnected = false;
+          this.fail('Voice connection dropped. Reconnecting…', this.ready);
+        }
       };
       pc.ontrack = (event: any) => {
         if (epoch !== this.epoch) return;
         this.remoteTracks.push(event.track);
+        this.remoteAudioTrack = event.track;
         event.track.enabled = !this.suppressed;
+        this.startAudioMeter(pc, event.track, 'inbound');
       };
-      const secret = await request<{
+      const secretPromise = request<{
         value: string;
         generation: number;
         context_source?: {
@@ -147,12 +197,17 @@ export class Voice {
       }>(`/sessions/${session.session_id}/voice`, session, {
         feedback_id: feedbackId ?? null,
         moment_state: momentState ?? null,
+        client_activity_capabilities: activityCapabilities(),
       });
+      const offerPromise = (async () => {
+        const offer = await pc.createOffer({});
+        await pc.setLocalDescription(offer);
+        return offer;
+      })();
+      const [secret, offer] = await Promise.all([secretPromise, offerPromise]);
       if (secret.context_source) this.callbacks.context([secret.context_source]);
       if (epoch !== this.epoch) return;
       this.generation = secret.generation;
-      const offer = await pc.createOffer({});
-      await pc.setLocalDescription(offer);
       const response = await fetch('https://api.openai.com/v1/realtime/calls', {
         method: 'POST',
         headers: { Authorization: `Bearer ${secret.value}`, 'Content-Type': 'application/sdp' },
@@ -177,10 +232,87 @@ export class Voice {
   private send(event: object) {
     if (this.channel?.readyState === 'open') this.channel.send(JSON.stringify(event));
   }
-  private mic(enabled: boolean) {
-    this.stream?.getAudioTracks().forEach((track: any) => {
-      track.enabled = enabled;
+  private maybeReady() {
+    if (this.ready || !this.peerConnected || !this.channelOpen || !this.sessionStarted) return;
+    this.ready = true;
+    clearTimeout(this.timeout);
+    this.callbacks.transport('ready');
+  }
+  private startAudioMeter(pc: any, track: any, direction: 'inbound' | 'outbound') {
+    clearInterval(this.statsTimer);
+    const generation = ++this.audioMeterGeneration;
+    this.previousAudioStats.clear();
+    this.statsTimer = setInterval(async () => {
+      if (pc !== this.pc || !this.ready || (direction === 'inbound' && this.suppressed)) return;
+      try {
+        const stats = await pc.getStats(track);
+        if (generation !== this.audioMeterGeneration) return;
+        let level = 0;
+        stats.forEach((report: any) => {
+          if (
+            (report.type === `${direction}-rtp` ||
+              (direction === 'outbound' && report.type === 'media-source')) &&
+            (report.kind === 'audio' || report.mediaType === 'audio') &&
+            report.isRemote !== true
+          ) {
+            if (typeof report.audioLevel === 'number') {
+              level = Math.max(level, report.audioLevel);
+            } else if (
+              typeof report.totalAudioEnergy === 'number' &&
+              typeof report.totalSamplesDuration === 'number'
+            ) {
+              const previous = this.previousAudioStats.get(report.id);
+              if (previous) {
+                const energy = report.totalAudioEnergy - previous.energy;
+                const duration = report.totalSamplesDuration - previous.duration;
+                if (energy > 0 && duration > 0)
+                  level = Math.max(level, Math.sqrt(energy / duration));
+              }
+              this.previousAudioStats.set(report.id, {
+                energy: report.totalAudioEnergy,
+                duration: report.totalSamplesDuration,
+              });
+            }
+          }
+        });
+        this.lastAudioLevel = level;
+        this.callbacks.audioLevel(level);
+      } catch {
+        // Stats are only used for visualization; audio continues without them.
+      }
+    }, 100);
+  }
+  addTextMessages(messages: Message[]) {
+    messages.forEach((message) =>
+      this.send({
+        type: 'conversation.item.create',
+        item: {
+          type: 'message',
+          role: message.role,
+          content: [
+            { type: message.role === 'user' ? 'input_text' : 'text', text: message.content },
+          ],
+        },
+      }),
+    );
+  }
+  private stopCapture() {
+    const stream = this.stream;
+    this.stream = undefined;
+    this.captureReady = false;
+    stream?.getTracks().forEach((track: any) => {
+      track.enabled = false;
+      track.stop();
     });
+    stream?.release();
+    return this.replaceAudioTrack(null).catch(() => {});
+  }
+  private replaceAudioTrack(track: any) {
+    const sender = this.audioSender;
+    this.senderUpdate = this.senderUpdate
+      .catch(() => {})
+      .then(() => (sender ? sender.replaceTrack(track) : undefined));
+    return this.senderUpdate;
   }
   private muteOutput(muted: boolean) {
     this.remoteTracks.forEach((track) => {
@@ -188,10 +320,12 @@ export class Voice {
     });
   }
 
-  press() {
+  async press() {
     if (!this.ready || this.held || AppState.currentState !== 'active') return;
     this.turn++;
     this.held = true;
+    this.captureReady = false;
+    const holdAttempt = ++this.holdAttempt;
     this.holdAt = Date.now();
     this.suppressed = true;
     this.continueAfterTools = false;
@@ -201,30 +335,78 @@ export class Voice {
     if (this.responseActive) this.send({ type: 'response.cancel' });
     if (this.outputPlaying || this.responseActive) this.send({ type: 'output_audio_buffer.clear' });
     this.send({ type: 'input_audio_buffer.clear' });
-    this.mic(true);
-    this.callbacks.state('listening');
+    this.callbacks.turn('starting');
+    try {
+      const stream = await this.mediaDevices.getUserMedia({ audio: true, video: false });
+      const track = stream.getAudioTracks()[0];
+      if (!track) throw new Error('Microphone is unavailable. You can retry or use text.');
+      if (!this.held || holdAttempt !== this.holdAttempt || !this.ready) {
+        stream.getTracks().forEach((item: any) => item.stop());
+        stream.release();
+        return;
+      }
+      this.stream = stream;
+      track.enabled = true;
+      await this.replaceAudioTrack(track);
+      if (!this.held || holdAttempt !== this.holdAttempt || !this.ready) {
+        this.stopCapture();
+        return;
+      }
+      this.captureReady = true;
+      this.startAudioMeter(this.pc, track, 'outbound');
+      this.callbacks.turn('recording');
+    } catch (error) {
+      if (holdAttempt !== this.holdAttempt) return;
+      this.held = false;
+      this.stopCapture();
+      this.callbacks.audioLevel(0);
+      this.callbacks.error(
+        error instanceof Error ? error.message : 'Microphone unavailable. Retry or use text.',
+      );
+      this.callbacks.turn('failed');
+    }
   }
 
-  release() {
-    this.mic(false);
+  async release() {
     if (!this.held) return;
     this.held = false;
-    if (!this.ready) return;
-    if (Date.now() - this.holdAt < 150) {
+    this.holdAttempt++;
+    const captured = this.captureReady;
+    const detach = this.stopCapture();
+    if (!this.ready) {
+      await detach;
+      return;
+    }
+    if (!captured) {
       this.send({ type: 'input_audio_buffer.clear' });
-      this.callbacks.state('ready');
+      this.callbacks.turn('idle');
+      await detach;
+      return;
+    }
+    if (Date.now() - this.holdAt < 350) {
+      await detach;
+      if (this.remoteAudioTrack && this.pc)
+        this.startAudioMeter(this.pc, this.remoteAudioTrack, 'inbound');
+      this.send({ type: 'input_audio_buffer.clear' });
+      this.callbacks.turn('idle');
       return;
     }
     this.releasedAt = Date.now();
-    this.commits.push(this.turn);
+    const releasedTurn = this.turn;
+    this.callbacks.turn('finalizing');
+    await detach;
+    if (this.remoteAudioTrack && this.pc)
+      this.startAudioMeter(this.pc, this.remoteAudioTrack, 'inbound');
+    if (!this.ready || this.held || this.turn !== releasedTurn) return;
+    this.commits.push(releasedTurn);
     this.send({ type: 'input_audio_buffer.commit' });
     // Create the response on the commit acknowledgement to avoid an empty-buffer race.
-    this.callbacks.state('thinking');
   }
 
   cancel() {
     this.turn++;
-    this.mic(false);
+    this.holdAttempt++;
+    void this.stopCapture();
     this.held = false;
     this.releasedAt = 0;
     this.suppressed = true;
@@ -235,26 +417,29 @@ export class Voice {
     if (this.responseActive) this.send({ type: 'response.cancel' });
     this.send({ type: 'output_audio_buffer.clear' });
     this.send({ type: 'input_audio_buffer.clear' });
-    if (this.ready) this.callbacks.state('ready');
+    this.awaitingTranscript = false;
+    this.callbacks.turn('idle');
   }
 
   private event(event: any) {
     if (event.response_id && this.cancelledResponses.has(event.response_id)) return;
     switch (event.type) {
+      case 'session.created':
       case 'session.updated':
-        if (event.session?.audio?.input?.turn_detection !== null) {
+        const turnDetection = event.session?.audio?.input?.turn_detection;
+        if (turnDetection !== undefined && turnDetection !== null) {
           this.fail('Push-to-talk configuration was not accepted.');
           return;
         }
-        this.ready = true;
-        clearTimeout(this.timeout);
-        this.callbacks.state('ready');
+        this.sessionStarted = true;
+        this.maybeReady();
         break;
       case 'input_audio_buffer.committed':
         if (this.commits.shift() === this.turn && this.releasedAt && !this.held) {
           this.suppressed = false;
           this.muteOutput(false);
-          this.send({ type: 'response.create' });
+          this.awaitingTranscript = true;
+          this.callbacks.turn('processing');
         }
         break;
       case 'response.created':
@@ -275,7 +460,7 @@ export class Voice {
         }
         this.continueTools();
         if (!this.held && !this.outputPlaying && !this.toolJobs && !this.continueAfterTools)
-          this.callbacks.state('ready');
+          this.callbacks.turn('idle');
         break;
       case 'output_audio_buffer.started':
         if (this.suppressed) {
@@ -284,7 +469,7 @@ export class Voice {
         }
         this.outputPlaying = true;
         this.playingResponseId = event.response_id;
-        this.callbacks.state('speaking');
+        this.callbacks.turn('speaking');
         if (this.releasedAt) {
           this.releasedAt = 0;
         }
@@ -296,26 +481,36 @@ export class Voice {
         }
         this.outputPlaying = false;
         this.playingResponseId = undefined;
-        if (!this.held && !this.responseActive) this.callbacks.state('ready');
+        if (!this.held && !this.responseActive) this.callbacks.turn('idle');
         break;
       case 'output_audio_buffer.cleared':
         this.outputPlaying = false;
         this.playingResponseId = undefined;
-        if (!this.held && !this.responseActive) this.callbacks.state('ready');
+        if (!this.held && !this.responseActive) this.callbacks.turn('idle');
         break;
       case 'conversation.item.input_audio_transcription.completed':
-        if (event.transcript) {
-          this.callbacks.message({ role: 'user', content: event.transcript });
-          if (event.transcript.trim() === 'I am in immediate danger and need emergency help now.') {
+        if (typeof event.transcript === 'string' && event.transcript.trim()) {
+          const transcript = event.transcript.trim();
+          this.callbacks.message({ role: 'user', content: transcript });
+          if (transcript === 'I am in immediate danger and need emergency help now.') {
             this.cancel();
             this.callbacks.urgentHelp();
+            break;
           }
+          if (this.awaitingTranscript && !this.suppressed) {
+            this.awaitingTranscript = false;
+            this.send({ type: 'response.create' });
+          }
+        } else if (this.awaitingTranscript) {
+          this.awaitingTranscript = false;
+          this.releasedAt = 0;
+          this.callbacks.turn('idle');
         }
         break;
       case 'conversation.item.input_audio_transcription.failed':
-        this.callbacks.error(
-          'This turn could not be transcribed. Try again or continue with text.',
-        );
+        this.awaitingTranscript = false;
+        this.releasedAt = 0;
+        this.callbacks.turn('idle');
         break;
       case 'response.output_audio_transcript.done':
         if (!this.suppressed && event.transcript && event.response_id) {
@@ -330,8 +525,12 @@ export class Voice {
         // Cancellation can race completion. It is safe to ignore only this specific race.
         if (event.error?.code === 'response_cancel_not_active') break;
         this.cancel();
-        this.callbacks.error('Voice turn failed. Hold to try again or continue with text.');
-        if (this.ready) this.callbacks.state('ready');
+        this.callbacks.error(
+          event.error?.code
+            ? `Voice turn failed (${event.error.code}). Hold to try again or continue with text.`
+            : 'Voice turn failed. Hold to try again or continue with text.',
+        );
+        this.callbacks.turn('failed');
         break;
     }
   }
@@ -419,13 +618,14 @@ export class Voice {
     }
   }
 
-  private fail(message: string) {
-    this.close();
+  private fail(message: string, recoverable = false) {
+    this.close(false);
     this.callbacks.error(message);
+    this.callbacks.transport(recoverable ? 'reconnecting' : 'error');
   }
 
-  close() {
-    this.mic(false);
+  close(notify = true) {
+    void this.stopCapture();
     this.muteOutput(true);
     this.epoch++;
     this.ready = false;
@@ -438,21 +638,34 @@ export class Voice {
     this.releasedAt = 0;
     this.toolJobs = 0;
     this.continueAfterTools = false;
+    this.awaitingTranscript = false;
     clearTimeout(this.timeout);
-    this.lifecycle?.remove();
-    this.lifecycle = undefined;
+    clearTimeout(this.reconnectTimer);
+    clearInterval(this.statsTimer);
+    this.statsTimer = undefined;
+    this.audioMeterGeneration++;
+    this.lastAudioLevel = 0;
+    this.previousAudioStats.clear();
     this.channel?.close();
-    this.stream?.getTracks().forEach((track: any) => track.stop());
-    this.stream?.release?.();
     this.pc?.close();
     this.channel = this.stream = this.pc = undefined;
+    this.audioSender = this.mediaDevices = undefined;
+    this.session = undefined;
     this.remoteTracks = [];
+    this.remoteAudioTrack = undefined;
     this.seenCalls.clear();
     this.cancelledResponses.clear();
     this.completedResponses.clear();
     this.playedResponses.clear();
     this.captions.clear();
     this.commits = [];
-    this.callbacks.state('disconnected');
+    this.peerConnected = false;
+    this.channelOpen = false;
+    this.sessionStarted = false;
+    if (notify) {
+      this.callbacks.turn('idle');
+      this.callbacks.audioLevel(0);
+      this.callbacks.transport('disconnected');
+    }
   }
 }

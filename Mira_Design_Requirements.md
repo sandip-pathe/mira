@@ -8,6 +8,8 @@
 
 Mira's main experience is a private audio-call-style session: talk, receive an optional suggestion, try one focused activity, and return to the conversation. Journal provides a separate place for intentional reflection and user-controlled saved context.
 
+> **Scope update (2026-10-19):** This October 14 baseline is superseded on activity catalog, Actions navigation, and Continue behavior by the selected [Nine Activities Master Blueprint](PRD/Mira_Nine_Activities_Master_Blueprint_v2.1.md), revision 2.2. The blueprint's nine-slot catalog and permanent Activities library are the target. This document continues to guide visual judgment and preserves the Talk, Journal, voice, privacy, Help, consent, and safety contracts; it does not reopen the superseded catalog or navigation decisions.
+
 ## 1. Authority and decision status
 
 This document consolidates the supplied `CURRENT_UX.md`, `mira_prd.md`, the proposed design research plan, and the design decisions in our conversation. It specifies the design target without claiming that the target already exists or has passed user testing.
@@ -66,7 +68,7 @@ Exact device prices, daily app habits, participant quotas, and 3–4 second comp
 | **You** | Bottom tab | Journal, approved context, consented preferences/history, privacy controls, demo reset. |
 | **Help / urgent help** | States inside Talk | Accurate support placeholder and existing scripted emergency-demo state. |
 
-There are **three destinations and two permanent tabs: Talk and You**. Journal stays inside You. Do has no permanent tab. “Actions” is not a dashboard or a library.
+The permanent destinations are Talk, Activities, and You; Do is a focused route, not a permanent tab. Journal stays inside You. Activities is the static nine-item library with an explicitly saved, device-local Continue shelf as specified by the selected blueprint.
 
 Opening the app must not start microphone capture. Entering Do must not create an unrelated conversation or discard session context.
 
@@ -139,7 +141,7 @@ Shared frame:
 
 Use catalog-defined content and steps. The UI must not invent exercises, change eligibility, or substitute generated instructions.
 
-### Full V0.03 catalog
+### Historical catalog (superseded by the Nine Activities Master Blueprint)
 
 | Catalog ID | Activity | Presentation pattern |
 |---|---|---|

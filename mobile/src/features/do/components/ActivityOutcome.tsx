@@ -1,6 +1,7 @@
 import React from 'react';
 import { Text } from 'react-native';
-import { ActionButton, Eyebrow, Surface, ui } from '../../../components/ui';
+import { ActionButton, Eyebrow, ui } from '../../../components/ui';
+import { ActivityPanel } from './ActivityPanel';
 
 export type Rating = 'no' | 'a_little' | 'yes' | 'not_sure';
 export function ActivityOutcome({
@@ -13,6 +14,12 @@ export function ActivityOutcome({
   saved,
   busy,
   title,
+  checkInPrompt = 'Did you try it?',
+  checkInYesLabel = 'Yes, I tried it',
+  checkInNoLabel = 'I stopped early',
+  checkInSkipLabel = 'Skip these questions',
+  checkInThanks = 'Thanks for letting Mira know. No message was sent by Mira.',
+  simpleCheckIn = false,
   origin,
   feedbackStatus,
   feedbackRetry,
@@ -28,6 +35,12 @@ export function ActivityOutcome({
   saved?: boolean;
   busy: boolean;
   title: string;
+  checkInPrompt?: string;
+  checkInYesLabel?: string;
+  checkInNoLabel?: string;
+  checkInSkipLabel?: string;
+  checkInThanks?: string;
+  simpleCheckIn?: boolean;
   origin: 'talk' | 'actions_library' | 'actions_continue';
   feedbackStatus: string;
   feedbackRetry: boolean;
@@ -38,24 +51,30 @@ export function ActivityOutcome({
   return (
     <>
       {tried === undefined && (
-        <Surface style={{ gap: 11 }}>
+        <ActivityPanel style={{ gap: 11 }}>
           <Eyebrow>OPTIONAL CHECK IN</Eyebrow>
-          <Text style={ui.heading}>Did you try it?</Text>
+          <Text style={ui.heading}>{checkInPrompt}</Text>
           <ActionButton
-            label="Yes, I tried it"
+            label={checkInYesLabel}
             variant="secondary"
             onPress={() => setTried(true)}
           />
           <ActionButton
-            label="I stopped early"
+            label={checkInNoLabel}
             variant="secondary"
             onPress={() => setTried(false)}
           />
-          <ActionButton label="Skip these questions" variant="quiet" onPress={onBack} />
-        </Surface>
+          <ActionButton label={checkInSkipLabel} variant="quiet" onPress={onBack} />
+        </ActivityPanel>
       )}
-      {tried !== undefined && rating === undefined && (
-        <Surface style={{ gap: 11 }}>
+      {simpleCheckIn && tried !== undefined && (
+        <ActivityPanel style={{ gap: 11 }}>
+          <Text style={ui.muted}>{checkInThanks}</Text>
+          <ActionButton label={`Back to ${returnLabel}`} onPress={onBack} />
+        </ActivityPanel>
+      )}
+      {!simpleCheckIn && tried !== undefined && rating === undefined && (
+        <ActivityPanel style={{ gap: 11 }}>
           <Eyebrow>OPTIONAL CHECK IN</Eyebrow>
           <Text style={ui.heading}>Did it help?</Text>
           {(['no', 'a_little', 'yes', 'not_sure'] as const).map((value) => (
@@ -75,10 +94,10 @@ export function ActivityOutcome({
             />
           ))}
           <ActionButton label="Skip this question" variant="quiet" onPress={onBack} />
-        </Surface>
+        </ActivityPanel>
       )}
       {rating && reuse === undefined && (
-        <Surface style={{ gap: 10 }}>
+        <ActivityPanel style={{ gap: 10 }}>
           <Eyebrow>YOUR CHOICE</Eyebrow>
           <Text style={ui.heading}>Would you like Mira to suggest this again?</Text>
           <ActionButton label="Yes, show me the preference" onPress={() => setReuse(true)} />
@@ -88,18 +107,18 @@ export function ActivityOutcome({
             onPress={() => onSave(false)}
           />
           <ActionButton label="Not now" variant="quiet" onPress={() => onSave(false)} />
-        </Surface>
+        </ActivityPanel>
       )}
       {reuse === true && saved === undefined && (
-        <Surface style={{ gap: 10 }}>
+        <ActivityPanel style={{ gap: 10 }}>
           <Eyebrow>REVIEW BEFORE SAVING</Eyebrow>
           <Text style={ui.body}>“Mira may suggest {title} again in a similar moment.”</Text>
           <ActionButton label="Save this preference" loading={busy} onPress={() => onSave(true)} />
           <ActionButton label="Keep it private" variant="quiet" onPress={() => onSave(false)} />
-        </Surface>
+        </ActivityPanel>
       )}
       {saved !== undefined && (
-        <Surface style={{ gap: 10 }}>
+        <ActivityPanel style={{ gap: 10 }}>
           <Text accessibilityLiveRegion="polite" style={ui.body}>
             {feedbackStatus}
           </Text>
@@ -111,10 +130,10 @@ export function ActivityOutcome({
             />
           )}
           <ActionButton label={`Back to ${returnLabel}`} onPress={onBack} />
-        </Surface>
+        </ActivityPanel>
       )}
       {feedbackRetry && saved === undefined && (
-        <Surface style={{ gap: 10 }}>
+        <ActivityPanel style={{ gap: 10 }}>
           <Text accessibilityLiveRegion="polite" style={ui.muted}>
             {feedbackStatus}
           </Text>
@@ -124,7 +143,7 @@ export function ActivityOutcome({
             onPress={() => onSave(true)}
           />
           <ActionButton label="Keep it private" variant="quiet" onPress={() => onSave(false)} />
-        </Surface>
+        </ActivityPanel>
       )}
     </>
   );

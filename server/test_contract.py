@@ -8,40 +8,58 @@ from uuid import uuid4
 
 from fastapi.testclient import TestClient
 from server import app as backend
-from server.interventions.catalog import all_interventions
+from server.interventions.catalog import PRIMARY_ACTIVITY_IDS, all_interventions, primary_interventions
 from server.interventions.eligibility import eligible_interventions
+from server.interventions.client_registry import SUPPORTED_CLIENTS
 from server.interventions.decision import DecisionInput, select_support
 from server.store import DemoStore
 
 
 class DecisionContract(unittest.IsolatedAsyncioTestCase):
+    async def test_current_talk_selector_receives_only_the_nine_primary_activities(self):
+        fake = AsyncMock(return_value={'route': 'listen', 'situation_summary': '', 'question': '',
+            'offer_reason': '', 'ranked_ids': [], 'intervention': None})
+        with patch('server.app.select_support', fake):
+            await backend.choose_support({'user_message': 'Hello'},
+                compatible_activity_ids=SUPPORTED_CLIENTS[('activity-ui-11', '0.14')])
+        offered = fake.call_args.args[1]
+        self.assertEqual(tuple(item['id'] for item in offered), PRIMARY_ACTIVITY_IDS)
+        expected_groups = {
+            'grounding': 'Follow a guide', 'paced_breathing': 'Follow a guide',
+            'brain_dump': 'Express', 'one_small_step': 'Move forward',
+            'name_a_feeling': 'Express', 'unsent_letter': 'Express',
+            'reach_out': 'Move forward', 'short_movement': 'Take a break',
+            'one_song_break': 'Take a break',
+        }
+        self.assertEqual({item['id']: item['category'] for item in offered}, expected_groups)
+
     def test_catalog_presentation_covers_every_activity(self):
         catalog = all_interventions()
-        self.assertEqual(len(catalog), 9)
+        self.assertEqual(len(catalog), 13)
         for item in catalog:
             with self.subTest(activity=item['id']):
                 presentation = item['presentation']
-                self.assertIn(presentation['pattern'], ('sort', 'capture', 'steps'))
-                self.assertIn(presentation['input'], ('none', 'next_step', 'draft'))
+                self.assertIn(presentation['pattern'], ('sort', 'capture', 'steps', 'letter', 'grounding', 'breathing'))
+                self.assertIn(presentation['input'], ('none', 'next_step', 'draft', 'choice_or_text', 'letter', 'reflection'))
                 self.assertIsInstance(presentation['optional_timer'], bool)
                 self.assertGreater(item['duration_seconds'], 0)
                 self.assertTrue(item['steps'])
                 self.assertEqual(item, backend.get_intervention(item['id']))
         timers = {item['id']: item['duration_seconds'] for item in catalog if item['presentation']['optional_timer']}
-        self.assertEqual(timers, {'pause_60s': 60, 'short_movement': 300})
+        self.assertEqual(timers, {'short_movement': 300})
 
     def test_explicit_empty_review_allowlist_allows_nothing(self):
         self.assertEqual(eligible_interventions(all_interventions(), allowed_review_states=set()), [])
 
     async def test_eligibility_and_selector_return_only_canonical_eligible_item(self):
-        catalog = eligible_interventions(all_interventions(), excluded_ids={'pause_60s'})
+        catalog = eligible_interventions(primary_interventions(), excluded_ids={'paced_breathing'})
         self.assertEqual(len(catalog), 8)
         provider = AsyncMock(return_value={'output': [{'content': [{'type': 'output_text', 'text':
-            '{"route":"offer_intervention","situation_summary":"Stuck","question":"","offer_reason":"Asked for a step","ranked_ids":["task_reset_60s","pause_60s"]}'}]}]})
+            '{"route":"offer_intervention","situation_summary":"Stuck","question":"","offer_reason":"Asked for a step","ranked_ids":["one_small_step","paced_breathing"]}'}]}]})
         result = await select_support(DecisionInput(user_message='I feel stuck'), catalog, provider)
         self.assertEqual(result['route'], 'offer_intervention')
-        self.assertEqual(result['ranked_ids'], ['task_reset_60s'])
-        self.assertEqual(result['intervention']['id'], 'task_reset_60s')
+        self.assertEqual(result['ranked_ids'], ['one_small_step'])
+        self.assertEqual(result['intervention']['id'], 'one_small_step')
 
     async def test_empty_or_invalid_selector_fails_closed_to_listen(self):
         provider = AsyncMock(return_value={'output': [{'content': [{'type': 'output_text', 'text':
@@ -83,12 +101,247 @@ class RelayContract(unittest.TestCase):
     def register(self, call=None):
         return self.client.post(self.path + '/tool-calls?generation=1', headers=self.headers, json=call or self.call)
 
+    def start_activity(self, intervention_id, *, consented=True):
+        capabilities = {
+            'client_version': 'activity-ui-11',
+            'catalog_version': '0.14',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
+        }
+        return self.client.post(self.path + f'/interventions/{intervention_id}/start', headers=self.headers,
+            json={'consented': consented, 'client_run_id': str(uuid4()),
+                  'client_activity_capabilities': capabilities})
+
+    def test_current_actions_and_talk_catalog_expose_nine_while_legacy_content_remains_readable(self):
+        actions = self.client.get(self.path + '/actions', headers=self.headers).json()['actions']
+        talk_catalog = self.client.get(self.path + '/interventions', headers=self.headers).json()['interventions']
+        self.assertEqual(tuple(item['id'] for item in actions), PRIMARY_ACTIVITY_IDS)
+        self.assertEqual(tuple(item['id'] for item in talk_catalog), PRIMARY_ACTIVITY_IDS)
+        self.assertEqual(len(primary_interventions()), 9)
+        self.assertEqual(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')], frozenset(PRIMARY_ACTIVITY_IDS) | {'task_reset_60s'})
+        self.assertEqual(self.client.get(self.path + '/interventions/task_reset_60s', headers=self.headers).status_code, 200)
+        self.assertEqual(self.client.get(self.path + '/interventions/write_100_words/activity', headers=self.headers).status_code, 200)
+        unsupported = self.client.post(self.path + '/interventions/perspective_shift/start', headers=self.headers,
+            json={'consented': True, 'client_run_id': str(uuid4()), 'client_activity_capabilities': {
+                'client_version': 'activity-ui-11', 'catalog_version': '0.14',
+                'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
+            }})
+        self.assertEqual(unsupported.status_code, 404)
+
+    def test_each_primary_activity_has_compatible_content_and_can_start(self):
+        capabilities = {
+            'client_version': 'activity-ui-11',
+            'catalog_version': '0.14',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
+        }
+        for activity_id in PRIMARY_ACTIVITY_IDS:
+            with self.subTest(activity=activity_id):
+                content = self.client.get(self.path + f'/interventions/{activity_id}/activity', headers=self.headers)
+                self.assertEqual(content.status_code, 200)
+                self.assertEqual(content.json()['catalog_version'], '0.14')
+                started = self.client.post(self.path + f'/interventions/{activity_id}/start', headers=self.headers,
+                    json={'consented': True, 'client_run_id': str(uuid4()), 'client_activity_capabilities': capabilities})
+                self.assertEqual(started.status_code, 200)
+                self.assertEqual(started.json()['action_id'], activity_id)
+
     def relay(self, call=None):
         return self.client.post(self.path + '/tools', headers=self.headers, json=call or self.call)
 
+    def test_activity_capability_gate_and_start_retry_are_idempotent(self):
+        ids = sorted(SUPPORTED_CLIENTS[('activity-ui-1', '0.04')])
+        run_id = str(uuid4())
+        payload = {
+            'consented': True,
+            'client_run_id': run_id,
+            'client_activity_capabilities': {
+                'client_version': 'activity-ui-1',
+                'catalog_version': '0.04',
+                'activity_ids': ids,
+            },
+        }
+        incompatible = {
+            **payload,
+            'client_activity_capabilities': {
+                **payload['client_activity_capabilities'],
+                'catalog_version': '0.05',
+            },
+        }
+        rejected = self.client.post(
+            self.path + '/interventions/task_reset_60s/start',
+            headers=self.headers,
+            json=incompatible,
+        )
+        self.assertEqual(rejected.status_code, 404)
+
+        endpoint = self.path + '/interventions/task_reset_60s/start'
+        first = self.client.post(endpoint, headers=self.headers, json=payload)
+        retry = self.client.post(endpoint, headers=self.headers, json=payload)
+        self.assertEqual(first.status_code, 200)
+        self.assertEqual(retry.status_code, 200)
+        self.assertEqual(first.json()['id'], retry.json()['id'])
+        self.assertEqual(len(backend.sessions[self.session_id]['runs']), 1)
+
+    def test_one_small_step_catalog_and_capability_start(self):
+        capabilities = {
+            'client_version': 'activity-ui-3',
+            'catalog_version': '0.06',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-3', '0.06')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/one_small_step/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json()['title'], 'One Small Step')
+        started = self.client.post(
+            self.path + '/interventions/one_small_step/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['state'], 'started')
+
+    def test_paced_breathing_catalog_and_legacy_alias_start(self):
+        capabilities = {
+            'client_version': 'activity-ui-6',
+            'catalog_version': '0.09',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-6', '0.09')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/paced_breathing/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json()['presentation']['pattern'], 'breathing')
+        legacy = self.client.get(
+            self.path + '/interventions/pause_60s/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(legacy.status_code, 200)
+        self.assertEqual(legacy.json()['id'], 'paced_breathing')
+        started = self.client.post(
+            self.path + '/interventions/pause_60s/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['action_id'], 'paced_breathing')
+
+    def test_reach_out_catalog_and_capability_start(self):
+        capabilities = {
+            'client_version': 'activity-ui-7',
+            'catalog_version': '0.10',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-7', '0.10')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/reach_out/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertFalse(content.json()['requires_person'])
+        self.assertIn('Mira will not send it', content.json()['summary'])
+        started = self.client.post(
+            self.path + '/interventions/reach_out/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['action_id'], 'reach_out')
+
+    def test_short_movement_catalog_and_capability_start(self):
+        capabilities = {
+            'client_version': 'activity-ui-8',
+            'catalog_version': '0.11',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-8', '0.11')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/short_movement/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json()['title'], 'Move / Change Your Scene')
+        self.assertIn('no-movement break', content.json()['summary'])
+        started = self.client.post(
+            self.path + '/interventions/short_movement/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['action_id'], 'short_movement')
+
+    def test_one_song_break_catalog_capability_and_legacy_alias(self):
+        capabilities = {
+            'client_version': 'activity-ui-9',
+            'catalog_version': '0.12',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-9', '0.12')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/one_song_break/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json()['title'], 'One Song Break')
+        self.assertFalse(content.json()['presentation']['optional_timer'])
+        legacy = self.client.get(
+            self.path + '/interventions/one_song_reset/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(legacy.status_code, 200)
+        self.assertEqual(legacy.json()['id'], 'one_song_break')
+        started = self.client.post(
+            self.path + '/interventions/one_song_reset/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['action_id'], 'one_song_break')
+
+    def test_brain_dump_catalog_and_current_typing_capability(self):
+        capabilities = {
+            'client_version': 'activity-ui-11',
+            'catalog_version': '0.14',
+            'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
+        }
+        content = self.client.get(
+            self.path + '/interventions/brain_dump/activity',
+            headers=self.headers,
+        )
+        self.assertEqual(content.status_code, 200)
+        self.assertEqual(content.json()['catalog_version'], '0.14')
+        self.assertEqual(content.json()['presentation']['pattern'], 'capture')
+        started = self.client.post(
+            self.path + '/interventions/brain_dump/start',
+            headers=self.headers,
+            json={
+                'consented': True,
+                'client_run_id': str(uuid4()),
+                'client_activity_capabilities': capabilities,
+            },
+        )
+        self.assertEqual(started.status_code, 200)
+        self.assertEqual(started.json()['action_id'], 'brain_dump')
+
     def finished_feedback_payload(self):
-        run = self.client.post(self.path + '/interventions/pause_60s/start', headers=self.headers,
-            json={'consented': True}).json()
+        run = self.start_activity('pause_60s').json()
         self.client.patch(self.path + f"/action-runs/{run['id']}", headers=self.headers,
             json={'state': 'completed'})
         return {'action_run_id': run['id'], 'rating': 'yes', 'reuse_context': True,
@@ -214,6 +467,20 @@ class RelayContract(unittest.TestCase):
         self.assertEqual([tool['name'] for tool in config['tools']], ['retrieve_shared_context', 'choose_support', 'update_moment_state'])
         self.assertEqual(result.json()['value'], 'short_lived_test_key')
 
+    def test_brain_dump_uses_transcription_only_client_secret(self):
+        fake = AsyncMock(return_value={'value': 'short_lived_transcription_key', 'expires_at': time.time() + 60})
+        with patch.object(backend, 'provider', fake):
+            result = self.client.post(self.path + '/voice/transcription', headers=self.headers, json={})
+        self.assertEqual(result.status_code, 200)
+        config = fake.call_args.kwargs['json']['session']
+        self.assertEqual(config['type'], 'transcription')
+        self.assertIsNone(config['audio']['input']['turn_detection'])
+        self.assertEqual(config['audio']['input']['transcription']['model'], 'gpt-live-transcribe')
+        self.assertNotIn('instructions', config)
+        self.assertNotIn('tools', config)
+        self.assertNotIn('generation', result.json())
+        self.assertEqual(result.json()['value'], 'short_lived_transcription_key')
+
     def test_transcription_upload_forwards_audio_and_returns_text(self):
         fake = AsyncMock(return_value={'text': 'A short synthetic journal note.'})
         audio = b'local-test-audio'
@@ -263,11 +530,9 @@ class RelayContract(unittest.TestCase):
         self.assertNotIn('pause_60s', ids)
         self.assertEqual(decision['route'], 'listen')
 
-        denied = self.client.post(self.path + '/interventions/task_reset_60s/start', headers=self.headers,
-            json={'consented': False})
+        denied = self.start_activity('task_reset_60s', consented=False)
         self.assertEqual(denied.status_code, 422)
-        started = self.client.post(self.path + '/interventions/task_reset_60s/start', headers=self.headers,
-            json={'consented': True})
+        started = self.start_activity('task_reset_60s')
         self.assertEqual(started.status_code, 200)
         run = started.json()
         self.assertEqual(backend.store.retrieve('what am I doing?'), [])
@@ -279,8 +544,7 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(backend.store.feedback(), [])
 
     def test_feedback_only_retrieves_after_explicit_future_context_opt_in(self):
-        run = self.client.post(self.path + '/interventions/task_reset_60s/start', headers=self.headers,
-            json={'consented': True}).json()
+        run = self.start_activity('task_reset_60s').json()
         self.client.patch(self.path + f"/action-runs/{run['id']}", headers=self.headers,
             json={'state': 'completed'})
         saved = self.client.post(self.path + '/feedback', headers=self.headers,
@@ -290,8 +554,7 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(backend.store.retrieve('task reset similar moment')[0]['source_type'], 'feedback')
 
     def test_helpful_lesson_requires_consent_and_is_retrievable_then_deletable(self):
-        run = self.client.post(self.path + '/interventions/task_reset_60s/start', headers=self.headers,
-            json={'consented': True}).json()
+        run = self.start_activity('task_reset_60s').json()
         self.client.patch(self.path + f"/action-runs/{run['id']}", headers=self.headers, json={'state': 'completed'})
         payload = {'action_run_id': run['id'], 'rating': 'yes', 'reuse_context': False,
             'helpful_lesson': 'A short task breakdown helped when overwhelmed.'}
@@ -323,8 +586,7 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(invalid.status_code, 502)
 
     def test_feedback_cannot_be_injected_into_voice_without_opt_in(self):
-        run = self.client.post(self.path + '/interventions/pause_60s/start', headers=self.headers,
-            json={'consented': True}).json()
+        run = self.start_activity('pause_60s').json()
         self.client.patch(self.path + f"/action-runs/{run['id']}", headers=self.headers,
             json={'state': 'completed'})
         self.client.patch(self.path + f"/action-runs/{run['id']}", headers=self.headers, json={'state': 'completed'})
@@ -337,7 +599,7 @@ class RelayContract(unittest.TestCase):
                 json={'feedback_id': feedback['id']})
         self.assertEqual(connected.status_code, 200)
         sent = fake.call_args.kwargs['json']['session']['instructions']
-        self.assertIn('A short pause', sent)
+        self.assertIn('Paced Breathing', sent)
         self.assertEqual(connected.json()['context_source']['source_type'], 'feedback')
 
     def test_text_fallback_uses_and_labels_only_approved_context(self):
@@ -358,9 +620,13 @@ class RelayContract(unittest.TestCase):
         prior_state = {'what_happened': 'Work has been hard.', 'current_need': 'A clear next step', 'what_is_unclear': '',
             'support_mode': 'clarify', 'suggested_action': '', 'previously_helpful': ''}
         payload = {'messages': [{'role': 'user', 'content': 'I am struggling with work.'}], 'feedback_id': None,
-            'moment_state': prior_state}
+            'moment_state': prior_state, 'client_activity_capabilities': {
+                'client_version': 'activity-ui-11', 'catalog_version': '0.14',
+                'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
+            }}
         with patch.object(backend, 'provider', fake):
             pending = self.client.post(self.path + '/text', headers=self.headers, json=payload)
+        self.assertEqual(pending.status_code, 200, pending.text)
         self.assertEqual(pending.json()['context_matches'], [])
         self.assertNotIn('scattered', fake.call_args.kwargs['json']['instructions'])
         self.assertIn('A clear next step', fake.call_args.kwargs['json']['instructions'])

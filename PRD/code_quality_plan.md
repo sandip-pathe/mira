@@ -1,3 +1,5 @@
+<!-- Current implementation path and product-scope details in this restored review are historical. Actions/Continue is approved by the Nine Activities Master Blueprint; use PRD/mira_activity_build_status.md for the current Work Order 00 map. -->
+
 <!-- /autoplan restore point: "C:\\y\\mira\\.gstack\\tmp\\autoplan\\code-quality-restore-20261015.md" -->
 ## Implementation plan
 # Mira product and engineering review

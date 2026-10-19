@@ -5,21 +5,11 @@
 
 ## Authority and scope
 
-The PRD remains authoritative for V0.03 behavior except for the bounded Actions extension explicitly approved in the v1.3 Design Requirements Document (DRD). The DRD authorizes Actions as a third permanent tab, direct access to the existing nine activities, and explicit persistence of unfinished work. The UI specification governs presentation and interaction details; neither document authorizes changes to voice capture, consent, privacy, safety, or clinical scope beyond the DRD's stated extension.
+The Nine Activities Master Blueprint, revision 2.2, now defines the activity catalog, Actions library, Continue behavior, and sequential work orders. The product contracts in `mira_prd.md` remain authoritative for Talk, Journal, privacy, voice, Help, consent, and backend boundaries. Work Order 00 reconciles this plan with those sources; subsequent implementation follows the selected blueprint one order at a time.
 
-Actions has two independent sections: **Choose an activity** contains the fixed nine canonical activities and is not personalized; **Continue** contains only user-explicitly saved unfinished work. Completing an activity does not automatically create a Continue item.
+Actions is the permanent static library described by the blueprint. Continue contains only explicitly saved work, stored locally on this device. Entry origins are `talk`, `actions_library`, and `actions_continue`; server-side start validation still applies. The exact current behavior and differences from target are recorded in `mira_activity_build_status.md`.
 
-## Decisions for this build
-
-- **Continue storage:** device-local persistence. No backend endpoint, cross-device sync, account, reminder, or server-side activity-state storage for Continue. FastAPI remains authoritative for catalog content, eligibility, run validation, and existing feedback/preferences.
-- **Catalog visibility vs. start eligibility:** Actions always exposes all nine canonical catalog activities. Starting any activity, including one chosen in Actions, still passes the existing server-side eligibility and validation rules. Do not filter library visibility by eligibility; communicate a denied/temporarily unavailable start without making the activity disappear.
-- **Continue item scope:** persist only concrete work explicitly saved by the user:
-  - Tiny Next Step / Task Reset: the user-selected action.
-  - Reach Out: the user's prepared draft/action.
-  - Brain Dump: only if the user explicitly chooses to save unfinished content.
-  - Do not persist transient exercises such as grounding, pause, name-a-feeling, or breathing-style activities.
-- **Lifecycle:** browsing or starting an activity creates no Continue item. Saving requires explicit confirmation. Completion does not create another item; a completed Continue item is removed after the local update succeeds. Stopping offers save only for eligible concrete work. Removal is explicit. Store only the fields needed to render and resume the item; do not preserve arbitrary runner state or generic activity history.
-- **Routing:** Do receives a stable origin (`talk`, `actions_library`, or `actions_continue`) and returns to the corresponding surface. Talk offers still require acceptance; Actions selection opens an introduction and requires Start.
+The earlier plan below is retained as historical proposal context only. Its former catalog, product-scope blockers, and implementation sequence are superseded by the blueprint and must not be used to reopen those decisions.
 
 ## Existing implementation
 

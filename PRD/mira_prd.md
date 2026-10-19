@@ -1,7 +1,7 @@
 # Mira Product Requirements
 
-**Status:** Existing Android app. This document defines the V0.03 behavior and completion criteria for improving it. Acceptance remains to be verified.  
-**Date:** 2026-10-15  
+**Status:** Existing Android app. This document defines V0.03 contracts and completion criteria. The approved activity catalog and Actions/Continue extension are specified by the [Nine Activities Master Blueprint](Mira_Nine_Activities_Master_Blueprint_v2.1.md), revision 2.2. Acceptance remains to be verified.
+**Date:** 2026-10-19
 **Audience:** Mira builders; Mpower product and clinical reviewers  
 **Use:** Current evaluation uses private, synthetic data. This operating restriction does not lower the quality required of the app's core workflows. Public use requires separate review.  
 **Engineering plan:** [Product review and implementation plan](product_engineering_review.md). Estimates will follow the agreed implementation slices.
@@ -66,29 +66,32 @@ flowchart TD
 
 Mira offers at most one activity at a time. The person can say no, pause, stop, or return to Talk at any point. Listening is a valid outcome; Mira does not need to produce an activity every time.
 
-## 4. The three surfaces
+## 4. Main surfaces
 
 - **Talk:** Main entry. Voice and text conversation, one useful question at a time, a brief explanation for a suggestion, and permission before starting it.
-- **Do:** A focused screen for the activity currently being tried. It opens from Talk and returns to Talk when finished or stopped; it is not a permanent tab.
+- **Do:** A focused screen for the activity currently being tried. It opens from an accepted Talk offer or the Activities library and returns to its origin when finished or stopped.
 - **You:** Journal, saved memories and preferences, and any activity history the person chose to save. Journal entries remain private unless the person separately shares an excerpt.
+- **Activities:** A permanent, static library of the nine catalog activities, plus a separate Continue shelf containing only work the person explicitly chose to keep. Continue data is device-local. Starting, completing, or browsing an activity does not save it automatically. The full entry, resume, retention, and return behavior is defined in the Nine Activities Master Blueprint.
 
-Open to Talk. Keep the interface calm and simple. Do not add a wellness dashboard, mood tracker, feed, or activity library for browsing.
+Open to Talk. Keep the interface calm and simple. Do not add a wellness dashboard, mood tracker, or feed.
 
-## 5. First catalog
+## 5. Activity catalog
 
-Start with nine neutral prototype activities. The two existing V0 activities remain the first entries. `Listen only`, `Ask a question`, and `Human support` are decision outcomes or routes, not catalog activities.
+Use the nine neutral prototype activities and exact user-facing catalog in the Nine Activities Master Blueprint. This replaces the earlier V0.03 proposal below, including its former activity IDs and names. `Listen only`, `Ask a question`, and `Human support` remain decision outcomes or routes, not catalog activities.
 
 | ID | Activity | How it happens | Needs another person? |
 |---|---|---|---|
-| `task_reset_60s` | Brain dump, sort, choose one manageable task | Guided in the app, then optional real-world task | No |
-| `pause_60s` | Short pause | Guided in the app | No |
-| `name_a_feeling` | Put a name to what is happening | Conversation or short reflection | No |
-| `grounding` | Follow a short, step-by-step grounding exercise | Guided in the app; mental exercise | No |
-| `brain_dump` | Get thoughts out, then choose whether to sort them | In-app writing or voice-to-text | No |
-| `tiny_next_step` | Choose one manageable next action | In-app planning, then real-world action | No |
-| `short_movement` | Try a brief walk or movement break | Real-world action; optional timer | No |
-| `sleep_wind_down` | Follow a short wind-down routine | Guided in the app, then personal routine | No |
-| `reach_out` | Consider contacting someone and prepare what to say | Social action; user sends or says it themselves | Yes |
+| `grounding` | Notice what is around you | Guided sensory noticing | No |
+| `paced_breathing` | Follow a comfortable rhythm | Single-shape visual guide or own pace | No |
+| `brain_dump` | Get it out. Keep it messy. | Temporary in-app writing; optional verified hold-to-speak extension | No |
+| `one_small_step` | Make one thing easier to start | Task slips, bucket sort, and one next action | No |
+| `name_a_feeling` | Find words for this moment | User-selected feeling words and optional thought check | No |
+| `unsent_letter` | Write what you wish you could say | Temporary letter editor and explicit optional save | No |
+| `reach_out` | Find the words to ask someone | Editable message draft; user decides whether to copy or contact | Yes |
+| `short_movement` | Take a small break where you are | User-chosen offline break | No |
+| `one_song_break` | Give yourself one song | User-directed external handoff and return | No |
+
+The blueprint is the detailed activity specification for copy, input, exit, retention, and visual behavior. It extends the existing V0.03 contracts; it does not replace Talk, Journal, voice, privacy, Help, or server consent boundaries in this PRD.
 
 Delivery modes can overlap: an activity may be mental, guided by software, done in the world, or involve another person. Store these as tags and requirements, not as mutually exclusive product categories. Mira may help draft a message, but it must not send one.
 

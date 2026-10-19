@@ -1,9 +1,10 @@
 import { File, Paths } from 'expo-file-system';
+import { ACTIVITY_CATALOG_VERSION } from './activityRegistry';
 
 export type Intervention = {
   presentation: {
-    pattern: 'sort' | 'capture' | 'steps';
-    input: 'none' | 'next_step' | 'draft';
+    pattern: 'sort' | 'capture' | 'steps' | 'letter' | 'grounding' | 'breathing';
+    input: 'none' | 'next_step' | 'draft' | 'choice_or_text' | 'reflection' | 'letter';
     optional_timer: boolean;
   };
   id: string;
@@ -35,7 +36,7 @@ export type SupportDecision = {
   intervention: Intervention | null;
 };
 
-export type ContinueKind = 'next_step' | 'reach_out' | 'brain_dump';
+export type ContinueKind = 'next_step' | 'one_small_step' | 'reach_out' | 'brain_dump' | 'short_movement';
 export type ContinueItem = {
   id: string;
   intervention_id: string;
@@ -43,14 +44,26 @@ export type ContinueItem = {
   title: string;
   content: string;
   created_at: number;
+  schema_version: 0 | 1 | 2;
+  catalog_version: string;
+  source_task?: string;
+  cue?: string;
+  source_run_id?: string;
 };
 
 const CONTINUE_STORAGE_KEY = 'mira.actions.continue.v1';
+const CONTINUE_SCHEMA_VERSION = 2;
+const supportedContinueCatalogVersions = new Set(['0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12', '0.13', '0.14']);
+export function isSupportedContinueCatalogVersion(version: string) {
+  return supportedContinueCatalogVersions.has(version);
+}
 const supportedContinueActivities: Record<string, ContinueKind> = {
   task_reset_60s: 'next_step',
+  one_small_step: 'one_small_step',
   tiny_next_step: 'next_step',
   reach_out: 'reach_out',
   brain_dump: 'brain_dump',
+  short_movement: 'short_movement',
 };
 
 export function getContinueKind(interventionId: string) {
@@ -58,64 +71,112 @@ export function getContinueKind(interventionId: string) {
 }
 
 const continueFile = new File(Paths.document, CONTINUE_STORAGE_KEY + '.json');
+let continueMutationQueue: Promise<unknown> = Promise.resolve();
 
-export async function loadContinueItems(): Promise<ContinueItem[]> {
+async function readContinueItems(): Promise<ContinueItem[]> {
   if (!continueFile.exists) return [];
   try {
     const parsed = JSON.parse(await continueFile.text());
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item): item is ContinueItem =>
-        !!item &&
-        typeof item.id === 'string' &&
-        typeof item.intervention_id === 'string' &&
-        !!getContinueKind(item.intervention_id) &&
-        typeof item.content === 'string' &&
-        item.content.trim().length > 0,
-    );
+    return parsed.flatMap((item): ContinueItem[] => {
+      if (
+        !item ||
+        typeof item.id !== 'string' ||
+        typeof item.intervention_id !== 'string' ||
+        !getContinueKind(item.intervention_id) ||
+        typeof item.content !== 'string' ||
+        !item.content.trim() ||
+        (item.schema_version !== undefined && ![1, CONTINUE_SCHEMA_VERSION].includes(item.schema_version)) ||
+        (item.catalog_version !== undefined && !supportedContinueCatalogVersions.has(item.catalog_version))
+      ) return [];
+      return [{
+        ...item,
+        schema_version: item.schema_version ?? 0,
+        catalog_version: item.catalog_version ?? ACTIVITY_CATALOG_VERSION,
+        ...(typeof item.source_task === 'string' ? { source_task: item.source_task } : {}),
+        ...(typeof item.cue === 'string' ? { cue: item.cue } : {}),
+      } as ContinueItem];
+    });
   } catch {
     return [];
   }
+}
+
+export async function loadContinueItems(): Promise<ContinueItem[]> {
+  await continueMutationQueue.catch(() => {});
+  return readContinueItems();
 }
 
 async function writeContinueItems(items: ContinueItem[]) {
   continueFile.write(JSON.stringify(items));
 }
 
-export async function saveContinueItem(intervention: Intervention, content: string) {
+export async function saveContinueItem(
+  intervention: Intervention,
+  content: string,
+  sourceRunId: string,
+  details?: { source_task?: string; cue?: string },
+) {
   const kind = getContinueKind(intervention.id);
   const value = content.trim();
-  if (!kind || !value) throw new Error('This activity has no saveable follow-through item.');
-  const items = await loadContinueItems();
-  const item: ContinueItem = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    intervention_id: intervention.id,
-    kind,
-    title: intervention.title,
-    content: value,
-    created_at: Date.now(),
-  };
-  await writeContinueItems([item, ...items]);
-  return item;
+  if (!kind || !value || !sourceRunId)
+    throw new Error('This activity has no saveable follow-through item.');
+  return mutateContinueItems((items) => {
+    const prior = items.find((item) => item.source_run_id === sourceRunId);
+    if (prior) {
+      const item = { ...prior, content: value, ...details };
+      return { items: items.map((entry) => entry.id === prior.id ? item : entry), result: item };
+    }
+    const item: ContinueItem = {
+      id: sourceRunId,
+      source_run_id: sourceRunId,
+      intervention_id: intervention.id,
+      kind,
+      title: intervention.title,
+      content: value,
+      created_at: Date.now(),
+      schema_version: CONTINUE_SCHEMA_VERSION,
+      catalog_version: ACTIVITY_CATALOG_VERSION,
+      ...details,
+    };
+    return { items: [item, ...items], result: item };
+  });
 }
 
 export async function updateContinueItem(
   id: string,
-  patch: Partial<Pick<ContinueItem, 'content'>>,
+  patch: Partial<Pick<ContinueItem, 'content' | 'source_task' | 'cue'>>,
 ) {
-  const items = await loadContinueItems();
-  const next = items.map((item) => (item.id === id ? { ...item, ...patch } : item));
-  if (!next.some((item) => item.id === id)) return false;
-  await writeContinueItems(next);
-  return true;
+  return mutateContinueItems((items) => {
+    if (!items.some((item) => item.id === id)) return { items, result: false };
+    return {
+      items: items.map((item) => (item.id === id ? { ...item, ...patch } : item)),
+      result: true,
+    };
+  });
 }
 
 export async function removeContinueItem(id: string) {
-  await writeContinueItems((await loadContinueItems()).filter((item) => item.id !== id));
+  await mutateContinueItems((items) => ({
+    items: items.filter((item) => item.id !== id),
+    result: undefined,
+  }));
 }
 
 export async function clearContinueItems() {
-  await writeContinueItems([]);
+  await mutateContinueItems(() => ({ items: [], result: undefined }));
+}
+
+function mutateContinueItems<T>(
+  update: (items: ContinueItem[]) => { items: ContinueItem[]; result: T },
+): Promise<T> {
+  const operation = continueMutationQueue.then(async () => {
+    const next = update(await readContinueItems());
+    await writeContinueItems(next.items);
+    return next.result;
+  });
+  continueMutationQueue = operation.then(() => undefined, () => undefined);
+  return operation;
 }
 
 const loaded = new Map<string, Intervention>();

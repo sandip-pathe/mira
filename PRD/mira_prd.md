@@ -6,6 +6,8 @@
 **Use:** Current evaluation uses private, synthetic data. This operating restriction does not lower the quality required of the app's core workflows. Public use requires separate review.  
 **Engineering plan:** [Product review and implementation plan](product_engineering_review.md). Estimates will follow the agreed implementation slices.
 
+**Data ownership update:** The user's later offline-first decision supersedes any earlier server-persistence wording in this V0 document. Private Journal entries, drafts, excerpts, preferences, activity progress, and voice-note references stay on-device. The server is limited to explicitly requested AI/provider workers and operational session capabilities. See the [offline-first plan and execution ledger](mira_offline_first_plan.md) for the implemented boundary and migration limitations.
+
 > The proposal called this V0.02, but the repository already defines V0.02 as the installed fixed-action demo. V0.03 is the next-build label so the two scopes stay clear.
 
 ## 1. Product

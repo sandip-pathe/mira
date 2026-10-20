@@ -1,5 +1,9 @@
 import { randomUUID } from 'expo-crypto';
-import { File, Paths } from 'expo-file-system';
+import {
+  mutateDeviceCollection,
+  readDeviceCollection,
+  type CollectionSource,
+} from './storage/collectionStore';
 
 export type SavedLetter = {
   id: string;
@@ -9,8 +13,6 @@ export type SavedLetter = {
   createdAt: number;
   updatedAt: number;
 };
-
-const archiveFile = new File(Paths.document, 'mira.saved-letters.v1.json');
 
 function validLetter(value: unknown): value is SavedLetter {
   if (!value || typeof value !== 'object') return false;
@@ -25,23 +27,21 @@ function validLetter(value: unknown): value is SavedLetter {
   );
 }
 
-export async function loadSavedLetters(): Promise<SavedLetter[]> {
-  if (!archiveFile.exists) return [];
-  try {
-    const value: unknown = JSON.parse(await archiveFile.text());
-    return Array.isArray(value)
-      ? value.filter(validLetter).sort((a, b) => b.updatedAt - a.updatedAt)
-      : [];
-  } catch {
-    throw new Error('Saved letters could not be opened.');
-  }
-}
+const letterSource: CollectionSource<SavedLetter> = {
+  table: 'saved_letters',
+  legacyFilename: 'mira.saved-letters.v1.json',
+  decode(value) {
+    if (!Array.isArray(value) || !value.every(validLetter)) {
+      throw new Error(
+        'Saved letters could not be imported safely. Your original file is unchanged.',
+      );
+    }
+    return value;
+  },
+};
 
-async function writeSavedLetters(letters: SavedLetter[]) {
-  const stagedFile = new File(Paths.document, 'mira.saved-letters.v1.next');
-  stagedFile.create({ overwrite: true });
-  stagedFile.write(JSON.stringify(letters));
-  await stagedFile.move(archiveFile, { overwrite: true });
+export async function loadSavedLetters(): Promise<SavedLetter[]> {
+  return (await readDeviceCollection(letterSource)).sort((a, b) => b.updatedAt - a.updatedAt);
 }
 
 export async function saveLetter(input: {
@@ -53,25 +53,29 @@ export async function saveLetter(input: {
   if (input.body.length > 12000 || input.title.length > 100 || input.recipient.length > 100) {
     throw new Error('Letter is too long to save.');
   }
-  const letters = await loadSavedLetters();
-  const previous = input.id ? letters.find((letter) => letter.id === input.id) : undefined;
-  const now = Date.now();
-  const letter: SavedLetter = {
-    id: previous?.id ?? randomUUID(),
-    title: input.title.trim() || 'Unsent letter',
-    recipient: input.recipient.trim(),
-    body: input.body,
-    createdAt: previous?.createdAt ?? now,
-    updatedAt: now,
-  };
-  await writeSavedLetters([letter, ...letters.filter((item) => item.id !== letter.id)]);
-  return letter;
+  return mutateDeviceCollection(letterSource, (letters) => {
+    const previous = input.id ? letters.find((letter) => letter.id === input.id) : undefined;
+    if (input.id && !previous) throw new Error('This saved letter no longer exists.');
+    const now = Date.now();
+    const letter: SavedLetter = {
+      id: previous?.id ?? randomUUID(),
+      title: input.title.trim() || 'Unsent letter',
+      recipient: input.recipient.trim(),
+      body: input.body,
+      createdAt: previous?.createdAt ?? now,
+      updatedAt: now,
+    };
+    return { items: [letter, ...letters.filter((item) => item.id !== letter.id)], result: letter };
+  });
 }
 
-export async function deleteSavedLetter(id: string) {
-  await writeSavedLetters((await loadSavedLetters()).filter((letter) => letter.id !== id));
+export function deleteSavedLetter(id: string) {
+  return mutateDeviceCollection(letterSource, (letters) => ({
+    items: letters.filter((letter) => letter.id !== id),
+    result: undefined,
+  }));
 }
 
-export async function clearSavedLetters() {
-  await writeSavedLetters([]);
+export function clearSavedLetters() {
+  return mutateDeviceCollection(letterSource, () => ({ items: [], result: undefined }));
 }

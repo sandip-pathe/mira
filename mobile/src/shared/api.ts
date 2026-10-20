@@ -5,7 +5,6 @@ export type Message = { role: 'user' | 'assistant'; content: string };
 
 let activeSession: DemoSession | undefined;
 let creatingSession: Promise<DemoSession> | undefined;
-let serverInstanceId: string | undefined;
 
 function resolveApiOrigin() {
   const hostUri = Constants.expoConfig?.hostUri;
@@ -39,6 +38,7 @@ export async function request<T>(
   session?: DemoSession,
   body?: unknown,
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  options?: { signal?: AbortSignal },
 ): Promise<T> {
   const verb = method ?? (body === undefined ? 'GET' : 'POST');
   const response = await fetch(API_URL + path, {
@@ -48,7 +48,7 @@ export async function request<T>(
       ...(session ? { Authorization: `Bearer ${session.capability}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-    signal: AbortSignal.timeout(50000),
+    signal: options?.signal ?? AbortSignal.timeout(50000),
   });
   if (!response.ok)
     throw new ApiError(
@@ -69,11 +69,7 @@ export async function createSession(): Promise<DemoSession> {
 }
 
 export async function getDemoSession(): Promise<DemoSession> {
-  const healthPromise = request<{ server_instance_id: string }>('/health');
-  const cachedSessionValid = Boolean(
-    activeSession && activeSession.expires_at > Date.now() / 1000 + 30,
-  );
-  if (!cachedSessionValid) {
+  if (!activeSession || activeSession.expires_at <= Date.now() / 1000 + 30) {
     if (!creatingSession) {
       creatingSession = createSession()
         .then((value) => {
@@ -84,19 +80,15 @@ export async function getDemoSession(): Promise<DemoSession> {
           creatingSession = undefined;
         });
     }
-    const [health, session] = await Promise.all([healthPromise, creatingSession]);
-    if (serverInstanceId !== health.server_instance_id) {
-      serverInstanceId = health.server_instance_id;
-      activeSession = session;
-    }
-    return session;
+    return creatingSession;
   }
-  const health = await healthPromise;
-  if (serverInstanceId !== health.server_instance_id) {
+  return activeSession;
+}
+
+/** Renew once only after a worker confirms that the cached capability is invalid. */
+export async function renewDemoSession(rejected: DemoSession): Promise<DemoSession> {
+  if (activeSession?.session_id === rejected.session_id && activeSession.capability === rejected.capability)
     activeSession = undefined;
-    creatingSession = undefined;
-    serverInstanceId = health.server_instance_id;
-  }
   if (activeSession && activeSession.expires_at > Date.now() / 1000 + 30) return activeSession;
   if (!creatingSession) {
     creatingSession = createSession()
@@ -109,4 +101,20 @@ export async function getDemoSession(): Promise<DemoSession> {
       });
   }
   return creatingSession;
+}
+
+export async function requestWithRenewal<T>(
+  path: string,
+  session: DemoSession,
+  body?: unknown,
+  method?: 'GET' | 'POST' | 'PATCH' | 'DELETE',
+  options?: { signal?: AbortSignal },
+): Promise<T> {
+  try {
+    return await request<T>(path, session, body, method, options);
+  } catch (error) {
+    if (!(error instanceof ApiError) || error.status !== 401 || options?.signal?.aborted) throw error;
+    const renewed = await renewDemoSession(session);
+    return request<T>(path, renewed, body, method, options);
+  }
 }

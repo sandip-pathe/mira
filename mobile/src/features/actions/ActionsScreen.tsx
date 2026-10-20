@@ -3,56 +3,24 @@ import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-import { getDemoSession, request } from '../../shared/api';
-import {
-  ContinueItem,
-  Intervention,
-  loadContinueItems,
-  rememberIntervention,
-  removeContinueItem,
-} from '../../shared/interventions';
-import { ActionButton, Eyebrow, HelpButton, Surface, colors, ui } from '../../components/ui';
-import { isCompatibleActivity, RegisteredActivityId } from '../../shared/activityRegistry';
+import { ContinueItem, loadContinueItems, removeContinueItem } from '../../shared/interventions';
+import { ActionButton, HelpButton, Surface, colors, ui } from '../../components/ui';
 import { emitUrgentHelp } from '../../shared/demoEvents';
+import { activityGroups, getBundledActivities } from '../do/catalog';
+import { storageErrorMessage } from '../../shared/storage/database';
 
-const groups: { title: string; ids: RegisteredActivityId[] }[] = [
-  { title: 'Express', ids: ['brain_dump', 'unsent_letter', 'name_a_feeling'] },
-  { title: 'Move forward', ids: ['one_small_step', 'reach_out'] },
-  { title: 'Take a break', ids: ['short_movement', 'one_song_break'] },
-  { title: 'Follow a guide', ids: ['grounding', 'paced_breathing'] },
-];
+const catalog = getBundledActivities();
 
 export default function ActionsScreen() {
-  const [catalog, setCatalog] = React.useState<Intervention[]>([]);
   const [items, setItems] = React.useState<ContinueItem[]>([]);
-  const [status, setStatus] = React.useState('Loading activities…');
+  const [status, setStatus] = React.useState('');
 
   const refresh = React.useCallback(async () => {
+    setStatus('');
     try {
       setItems(await loadContinueItems());
-    } catch {
-      setStatus('Saved items could not be loaded on this device.');
-    }
-    try {
-      const session = await getDemoSession();
-      const result = await request<{ actions: Intervention[] }>(
-        `/sessions/${session.session_id}/actions`,
-        session,
-      );
-      const ordered = groups.flatMap((group) =>
-        group.ids
-          .map((id) => result.actions.find((item) => item.id === id))
-          .filter((item): item is Intervention => !!item && isCompatibleActivity(item)),
-      );
-      ordered.forEach(rememberIntervention);
-      setCatalog(ordered);
-      setStatus(
-        ordered.length === 9
-          ? ''
-          : 'Some activities could not be loaded. Connect to Mira and try again.',
-      );
-    } catch {
-      setStatus('Mira is temporarily offline. Connect to load the activity list.');
+    } catch (error) {
+      setStatus(storageErrorMessage(error, 'Saved items could not be loaded on this device.'));
     }
   }, []);
 
@@ -166,18 +134,56 @@ export default function ActionsScreen() {
         )}
         <View style={{ gap: 14 }}>
           <Text style={ui.heading}>Choose an activity</Text>
-          {groups
-            .filter((group) => group.ids.some((id) => catalog.some((item) => item.id === id)))
-            .map((group) => (
-              <View key={group.title} style={{ gap: 9 }}>
-                <Text style={ui.label}>{group.title}</Text>
-                {group.title === 'Express' && (
+          {activityGroups.map((group) => (
+            <View key={group.title} style={{ gap: 9 }}>
+              <Text style={ui.label}>{group.title}</Text>
+              {group.title === 'Express' && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Journal. Recent entries and new entry"
+                  onPress={() => router.push('/you')}
+                >
+                  <Surface style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+                    <View
+                      style={{
+                        width: 44,
+                        height: 44,
+                        borderRadius: 15,
+                        backgroundColor: colors.accentSoft,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <MaterialDesignIcons
+                        name="book-open-page-variant-outline"
+                        size={22}
+                        color={colors.accent}
+                      />
+                    </View>
+                    <View style={{ flex: 1, gap: 4 }}>
+                      <Text style={ui.label}>Journal</Text>
+                      <Text style={ui.muted}>Recent entries and a new entry</Text>
+                    </View>
+                    <MaterialDesignIcons name="chevron-right" size={22} color={colors.muted} />
+                  </Surface>
+                </Pressable>
+              )}
+              {group.ids.map((id) => {
+                const intervention = catalog.find((item) => item.id === id)!;
+                return (
                   <Pressable
+                    key={id}
                     accessibilityRole="button"
-                    accessibilityLabel="Journal. Recent entries and new entry"
-                    onPress={() => router.push('/you')}
+                    accessibilityLabel={`${intervention.title}. ${intervention.summary}`}
+                    onPress={() => open(id, 'actions_library')}
                   >
-                    <Surface style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
+                    <Surface
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 13,
+                      }}
+                    >
                       <View
                         style={{
                           width: 44,
@@ -189,94 +195,40 @@ export default function ActionsScreen() {
                         }}
                       >
                         <MaterialDesignIcons
-                          name="book-open-page-variant-outline"
+                          name={
+                            id === 'grounding'
+                              ? 'eye-outline'
+                              : id === 'brain_dump'
+                                ? 'notebook-edit-outline'
+                                : id === 'task_reset_60s' || id === 'one_small_step'
+                                  ? 'checkbox-marked-circle-outline'
+                                  : id === 'name_a_feeling'
+                                    ? 'emoticon-outline'
+                                    : id === 'write_100_words' || id === 'unsent_message'
+                                      ? 'email-edit-outline'
+                                      : id === 'reach_out'
+                                        ? 'message-text-outline'
+                                        : id === 'short_movement'
+                                          ? 'walk'
+                                          : id === 'one_song_break' || id === 'one_song_reset'
+                                            ? 'music-note-outline'
+                                            : 'account-switch-outline'
+                          }
                           size={22}
                           color={colors.accent}
                         />
                       </View>
                       <View style={{ flex: 1, gap: 4 }}>
-                        <Text style={ui.label}>Journal</Text>
-                        <Text style={ui.muted}>Recent entries and a new entry</Text>
+                        <Text style={ui.label}>{intervention.title}</Text>
+                        <Text style={ui.muted}>{intervention.summary}</Text>
                       </View>
                       <MaterialDesignIcons name="chevron-right" size={22} color={colors.muted} />
                     </Surface>
                   </Pressable>
-                )}
-                {group.ids.map((id) => {
-                  const intervention = catalog.find((item) => item.id === id);
-                  return (
-                    <Pressable
-                      key={id}
-                      accessibilityRole="button"
-                      accessibilityLabel={
-                        intervention ? `${intervention.title}. ${intervention.summary}` : id
-                      }
-                      onPress={() => intervention && open(id, 'actions_library')}
-                      disabled={!intervention}
-                    >
-                      <Surface
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          gap: 13,
-                          opacity: intervention ? 1 : 0.65,
-                        }}
-                      >
-                        <View
-                          style={{
-                            width: 44,
-                            height: 44,
-                            borderRadius: 15,
-                            backgroundColor: colors.accentSoft,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                          }}
-                        >
-                          <MaterialDesignIcons
-                            name={
-                              id === 'grounding'
-                                ? 'eye-outline'
-                                : id === 'brain_dump'
-                                  ? 'notebook-edit-outline'
-                                  : id === 'task_reset_60s' || id === 'one_small_step'
-                                    ? 'checkbox-marked-circle-outline'
-                                    : id === 'name_a_feeling'
-                                      ? 'emoticon-outline'
-                                      : id === 'write_100_words' || id === 'unsent_message'
-                                        ? 'email-edit-outline'
-                                        : id === 'reach_out'
-                                          ? 'message-text-outline'
-                                          : id === 'short_movement'
-                                            ? 'walk'
-                                            : id === 'one_song_break' || id === 'one_song_reset'
-                                              ? 'music-note-outline'
-                                              : 'account-switch-outline'
-                            }
-                            size={22}
-                            color={colors.accent}
-                          />
-                        </View>
-                        <View style={{ flex: 1, gap: 4 }}>
-                          <Text style={ui.label}>
-                            {intervention?.title ?? id.replaceAll('_', ' ')}
-                          </Text>
-                          <Text style={ui.muted}>
-                            {intervention?.summary ?? 'Activity details load when Mira is online.'}
-                          </Text>
-                        </View>
-                        {intervention && (
-                          <MaterialDesignIcons
-                            name="chevron-right"
-                            size={22}
-                            color={colors.muted}
-                          />
-                        )}
-                      </Surface>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            ))}
+                );
+              })}
+            </View>
+          ))}
         </View>
         {!!status && (
           <Text accessibilityLiveRegion="polite" style={ui.muted}>

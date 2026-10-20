@@ -1,7 +1,8 @@
 import type { Intervention } from './interventions';
+import catalog from '../../assets/catalog/activities.json';
 
 export const ACTIVITY_CLIENT_VERSION = 'activity-ui-11';
-export const ACTIVITY_CATALOG_VERSION = '0.14';
+export const ACTIVITY_CATALOG_VERSION = catalog.catalog_version;
 
 export const activityRegistry = {
   brain_dump: { pattern: 'capture', group: 'Express' },
@@ -22,28 +23,15 @@ export const activityRegistry = {
 
 export type RegisteredActivityId = keyof typeof activityRegistry;
 export const registeredActivityIds = Object.keys(activityRegistry) as RegisteredActivityId[];
-export const primaryActivityIds = [
-  'grounding',
-  'paced_breathing',
-  'brain_dump',
-  'one_small_step',
-  'name_a_feeling',
-  'unsent_letter',
-  'reach_out',
-  'short_movement',
-  'one_song_break',
-] as const satisfies readonly RegisteredActivityId[];
+export const primaryActivityIds = catalog.primary_activity_ids as RegisteredActivityId[];
 const currentActivityIds: RegisteredActivityId[] = [...primaryActivityIds, 'task_reset_60s'];
 
-const legacyIdMap: Record<string, RegisteredActivityId> = {
-  tiny_next_step: 'task_reset_60s',
-  pause_60s: 'paced_breathing',
-  one_song_reset: 'one_song_break',
-};
+const legacyIdMap = catalog.aliases as Record<string, RegisteredActivityId>;
 
 export function canonicalActivityId(id: string): RegisteredActivityId | undefined {
-  if (id in activityRegistry) return id as RegisteredActivityId;
-  return legacyIdMap[id];
+  if (Object.hasOwn(legacyIdMap, id)) return legacyIdMap[id];
+  if (Object.hasOwn(activityRegistry, id)) return id as RegisteredActivityId;
+  return undefined;
 }
 
 export function isCompatibleActivity(value: Intervention): boolean {

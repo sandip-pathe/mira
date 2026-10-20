@@ -1,33 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 import { randomUUID } from 'expo-crypto';
-import { ApiError, DemoSession, getDemoSession, request } from '../../../shared/api';
+import { getDemoSession, requestWithRenewal } from '../../../shared/api';
 import {
   ContinueItem,
   getContinueKind,
-  getRememberedIntervention,
-  Intervention,
   isSupportedContinueCatalogVersion,
   loadContinueItems,
-  rememberIntervention,
   removeContinueItem,
   saveContinueItem,
   updateContinueItem,
 } from '../../../shared/interventions';
-import { Rating } from '../components/ActivityOutcome';
+import type { Rating } from '../components/ActivityOutcome';
+import { canonicalActivityId } from '../../../shared/activityRegistry';
+import { getBundledIntervention } from '../catalog';
 import {
-  activityCapabilities,
-  canonicalActivityId,
-  isCompatibleActivity,
-} from '../../../shared/activityRegistry';
-
-type Run = {
-  id: string;
-  action_id: string;
-  state: 'started' | 'completed' | 'skipped' | 'stopped';
-  pendingSync?: boolean;
-  session: DemoSession;
-};
+  createLocalActivityRun,
+  finishLocalActivityRun,
+  type LocalActivityRun,
+} from '../activityEngine';
+import { saveActivityPreference } from '../../actions/data/preferenceRepository';
+import { storageErrorMessage } from '../../../shared/storage/database';
 
 export function useInterventionRun({
   id,
@@ -38,11 +31,20 @@ export function useInterventionRun({
   origin?: 'talk' | 'actions_library' | 'actions_continue';
   continueItemId?: string;
 }) {
-  const clientRunId = useRef(randomUUID()).current;
-  const [intervention, setIntervention] = useState<Intervention>();
-  const [activeId, setActiveId] = useState('');
-  const [run, setRun] = useState<Run>();
-  const [status, setStatus] = useState('Loading this activityâ€¦');
+  const [clientRunId] = useState(randomUUID);
+  const [intervention] = useState(() => getBundledIntervention(id));
+  const activeId = intervention?.id ?? '';
+  const [run, setRun] = useState<LocalActivityRun>();
+  const activeRun = useRef<LocalActivityRun | undefined>(undefined);
+  const [status, setStatus] = useState(() => {
+    if (!intervention)
+      return 'This activity link is invalid or no longer supported. Return to where you came from.';
+    if (origin === 'actions_continue')
+      return continueItemId
+        ? 'Loading saved activity...'
+        : 'This saved activity link is incomplete. Your saved items are still available in Continue.';
+    return `Ready when you are. Start, skip, or return to ${origin === 'talk' ? 'Talk' : 'Actions'}.`;
+  });
   const [busy, setBusy] = useState(false);
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState('');
@@ -53,7 +55,9 @@ export function useInterventionRun({
   }>();
   const [tinyStep, setTinyStep] = useState('');
   const [smallStepMode, setSmallStepMode] = useState<'many' | 'known'>();
-  const [taskSlips, setTaskSlips] = useState<{ id: string; text: string; bucket: 'now' | 'later' | 'not_now' }[]>([]);
+  const [taskSlips, setTaskSlips] = useState<
+    { id: string; text: string; bucket: 'now' | 'later' | 'not_now' }[]
+  >([]);
   const [selectedTask, setSelectedTask] = useState('');
   const [smallStepCue, setSmallStepCue] = useState('');
   const [reflection, setReflection] = useState('');
@@ -63,11 +67,13 @@ export function useInterventionRun({
   const [rating, setRating] = useState<Rating>();
   const [tried, setTried] = useState<boolean>();
   const [phase, setPhase] = useState<'loading' | 'ready' | 'active' | 'paused' | 'outcome'>(
-    'loading',
+    intervention && origin !== 'actions_continue' ? 'ready' : 'loading',
   );
   const finished = phase === 'outcome';
   const readyToStart = phase === 'ready';
-  const [seconds, setSeconds] = useState(0);
+  const [seconds, setSeconds] = useState(
+    intervention?.presentation.optional_timer ? intervention.duration_seconds : 0,
+  );
   const [timerState, setTimerState] = useState<'idle' | 'running' | 'paused'>('idle');
   const timerRunning = timerState === 'running';
   const timerPaused = timerState === 'paused';
@@ -82,182 +88,139 @@ export function useInterventionRun({
   const operationPending = useRef(false);
   const talkAutoStartAttempted = useRef(false);
   const mounted = useRef(true);
-  const latestRun = useRef<{ run?: Run; phase: typeof phase }>({ run, phase });
-  latestRun.current = { run, phase };
 
-  const initialize = useCallback(async () => {
-    const requestedId = canonicalActivityId(id);
-    if (!requestedId) {
-      setStatus('This activity link is invalid or no longer supported. Return to where you came from.');
-      return;
-    }
-    if (origin === 'actions_continue' && !continueItemId) {
-      setStatus('This saved activity link is incomplete. Your saved items are still available in Continue.');
-      return;
-    }
-    let session: DemoSession | undefined;
-    let content: Intervention | undefined = getRememberedIntervention(requestedId);
-    try {
-      session = await getDemoSession();
-      content = await request<Intervention>(
-        `/sessions/${session.session_id}/interventions/${requestedId}/activity`,
-        session,
-      );
-      rememberIntervention(content);
-    } catch {
-      /* Use activity text already loaded by Talk when the service is offline. */
-    }
-    if (!mounted.current) return;
-    if (!content) {
-      setStatus('This activity is unavailable. Return to Talk and try again.');
-      return;
-    }
-    if (!isCompatibleActivity(content)) {
-      setStatus('This activity needs a compatible app version. Return to where you came from.');
-      return;
-    }
-    setActiveId(content.id);
-    setIntervention(content);
-    if (
-      !content.presentation ||
-      !['sort', 'capture', 'steps', 'letter', 'grounding', 'breathing'].includes(content.presentation.pattern) ||
-      !content.steps.length
-    ) {
-      setStatus('This activity needs updated content. Connect to Mira and try again.');
-      return;
-    }
-    setSeconds(content.presentation.optional_timer ? content.duration_seconds : 0);
-    if (origin === 'actions_continue' && continueItemId) {
-      try {
-        const item = (await loadContinueItems()).find((value) => value.id === continueItemId);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (origin !== 'actions_continue' || !continueItemId || !intervention) return;
+    let current = true;
+    void loadContinueItems()
+      .then((items) => {
+        if (!current) return;
+        const item = items.find((value) => value.id === continueItemId);
         if (
-          item &&
-          isSupportedContinueCatalogVersion(item.catalog_version) &&
-          canonicalActivityId(item.intervention_id) === content.id &&
-          item.schema_version <= 2
+          !item ||
+          !isSupportedContinueCatalogVersion(item.catalog_version) ||
+          canonicalActivityId(item.intervention_id) !== activeId ||
+          item.kind !== getContinueKind(activeId) ||
+          !Number.isInteger(item.schema_version) ||
+          item.schema_version < 0 ||
+          item.schema_version > 2
         ) {
-          setContinueItem(item);
-          setContinueSaved(true);
-          if (item.kind === 'next_step' || item.kind === 'one_small_step') setTinyStep(item.content);
-          else setDraft(item.content);
-          if (item.kind === 'one_small_step') {
-            setSelectedTask(item.source_task ?? '');
-            setSmallStepCue(item.cue ?? '');
-            setStep(3);
-          }
-          if (content.presentation.pattern === 'sort')
-            setGroups({ now: [item.content], later: [], ignore: [] });
-        } else {
-          setStatus('This saved item is invalid or needs a different app version. It remains in Continue.');
-          return;
-        }
-      } catch {
-        if (!mounted.current) return;
-        setLocalStatus('This saved item could not be loaded.');
-      }
-    }
-    if (!mounted.current) return;
-    setPhase('ready');
-    setStatus(
-      `Ready when you are. Start, skip, or return to ${origin === 'talk' ? 'Talk' : 'Actions'}.`,
-    );
-  }, [id, origin, continueItemId]);
-
-  const startActivity = useCallback(async () => {
-    if (phase === 'ready' && !busy && !operationPending.current) {
-      operationPending.current = true;
-      setBusy(true);
-      try {
-        const session = await getDemoSession();
-        const requestedId = canonicalActivityId(id)!;
-        const created = await request<Omit<Run, 'session'>>(
-          `/sessions/${session.session_id}/interventions/${requestedId}/start`,
-          session,
-          {
-            consented: true,
-            client_run_id: clientRunId,
-            client_activity_capabilities: activityCapabilities(),
-          },
-        );
-        if (!mounted.current) {
-          await request(
-            `/sessions/${session.session_id}/action-runs/${created.id}`,
-            session,
-            { state: 'stopped' },
-            'PATCH',
-          ).catch(() => {});
-          return;
-        }
-        setRun({ ...created, session });
-        setPhase('active');
-        setStatus('Started. Stop whenever you like.');
-      } catch {
-        if (mounted.current)
           setStatus(
-            'Mira could not confirm this activity can start. Check the connection or try again shortly.',
+            'This saved item is invalid or needs a different app version. It remains in Continue.',
           );
-      } finally {
-        operationPending.current = false;
-        if (mounted.current) setBusy(false);
-      }
-    }
-  }, [phase, busy, id, clientRunId]);
+          return;
+        }
+        setContinueItem(item);
+        setContinueSaved(true);
+        if (item.kind === 'next_step' || item.kind === 'one_small_step') setTinyStep(item.content);
+        else setDraft(item.content);
+        if (item.kind === 'one_small_step') {
+          setSelectedTask(item.source_task ?? '');
+          setSmallStepCue(item.cue ?? '');
+          setStep(3);
+        }
+        if (intervention.presentation.pattern === 'sort') {
+          setGroups({ now: [item.content], later: [], ignore: [] });
+        }
+        const created = createLocalActivityRun(clientRunId, activeId);
+        activeRun.current = created;
+        setRun(created);
+        setPhase('active');
+        setStatus('Your saved item is ready. Continue at your own pace.');
+      })
+      .catch((error) => {
+        if (current)
+          setStatus(
+            storageErrorMessage(
+              error,
+              'This saved item could not be opened. Return to Continue and try again.',
+            ),
+          );
+      });
+    return () => {
+      current = false;
+    };
+  }, [activeId, clientRunId, continueItemId, intervention, origin]);
+
+  const startActivity = useCallback(() => {
+    if (phase !== 'ready' || busy || operationPending.current || !intervention || activeRun.current)
+      return;
+    const created = createLocalActivityRun(clientRunId, activeId);
+    activeRun.current = created;
+    setRun(created);
+    setPhase('active');
+    setStatus('Started. Stop whenever you like.');
+  }, [phase, busy, intervention, clientRunId, activeId]);
 
   useEffect(() => {
     if (
       origin !== 'talk' ||
       phase !== 'ready' ||
-      ['paced_breathing', 'reach_out', 'short_movement', 'one_song_break'].includes(canonicalActivityId(id) ?? '') ||
+      ['paced_breathing', 'reach_out', 'short_movement', 'one_song_break'].includes(
+        canonicalActivityId(id) ?? '',
+      ) ||
       talkAutoStartAttempted.current
-    ) return;
+    )
+      return;
     talkAutoStartAttempted.current = true;
     void startActivity();
   }, [id, origin, phase, startActivity]);
 
-  async function finishRun(next: Exclude<Run['state'], 'started'>) {
-    if (!run || busy || operationPending.current || (phase !== 'active' && phase !== 'paused'))
+  async function finishRun(next: Exclude<LocalActivityRun['state'], 'started'>) {
+    const current = activeRun.current;
+    if (
+      !current ||
+      current.state !== 'started' ||
+      busy ||
+      operationPending.current ||
+      (phase !== 'active' && phase !== 'paused')
+    )
       return;
     operationPending.current = true;
+    const completed = finishLocalActivityRun(current, next);
+    activeRun.current = completed;
+    setRun(completed);
     setBusy(true);
     setTimerState('idle');
-    let pendingSync = false;
     try {
-      const session = run.session;
-      await request(
-        `/sessions/${session.session_id}/action-runs/${run.id}`,
-        session,
-        { state: next },
-        'PATCH',
-      );
-    } catch {
-      pendingSync = true;
-    }
-    if (continueItem && origin === 'actions_continue' && next === 'completed') {
-      setContinueCompletionPending(true);
-    } else if (continueItem && activeId !== 'brain_dump') {
-      try {
-        const updated = await updateContinueItem(continueItem.id, {
-          content: continueItem.kind === 'short_movement'
-            ? continueItem.content
-            : continueItem.kind === 'next_step'
-              ? tinyStep
-              : draft,
-        });
-        if (!updated) throw new Error('Saved item no longer exists.');
-      } catch {
-        setLocalStatus(
-          'Your latest changes could not be saved. The earlier Continue item remains available.',
-        );
+      if (continueItem && origin === 'actions_continue' && next === 'completed') {
+        setContinueCompletionPending(true);
+      } else if (continueItem && activeId !== 'brain_dump') {
+        try {
+          const updated = await updateContinueItem(continueItem.id, {
+            content:
+              continueItem.kind === 'short_movement'
+                ? continueItem.content
+                : continueItem.kind === 'next_step' || continueItem.kind === 'one_small_step'
+                  ? tinyStep
+                  : draft,
+            ...(continueItem.kind === 'one_small_step'
+              ? { source_task: selectedTask, cue: smallStepCue }
+              : {}),
+          });
+          if (!updated) throw new Error('Saved item no longer exists.');
+        } catch {
+          if (mounted.current)
+            setLocalStatus(
+              'Your latest changes could not be saved. The earlier Continue item remains available.',
+            );
+        }
       }
+      if (!mounted.current) return;
+      setTried(undefined);
+      setPhase('outcome');
+      setStatus('How did this go?');
+    } finally {
+      operationPending.current = false;
+      if (mounted.current) setBusy(false);
     }
-    setRun({ ...run, state: next, pendingSync });
-    setTried(undefined);
-    setPhase('outcome');
-    setBusy(false);
-    operationPending.current = false;
-    setStatus(
-      pendingSync ? 'This outcome stays in this session. How did this go?' : 'How did this go?',
-    );
   }
 
   async function keepInActions(content: string, details?: { source_task?: string; cue?: string }) {
@@ -285,9 +248,11 @@ export function useInterventionRun({
         setContinueItem(item);
       }
       setContinueSaved(true);
-      setLocalStatus('Saved on this device in Actions â†’ Continue.');
-    } catch {
-      setLocalStatus('This item was not saved. Check device storage and try again.');
+      setLocalStatus('Saved on this device in Actions > Continue.');
+    } catch (error) {
+      setLocalStatus(
+        storageErrorMessage(error, 'This item was not saved. Check device storage and try again.'),
+      );
     } finally {
       operationPending.current = false;
       setBusy(false);
@@ -303,7 +268,14 @@ export function useInterventionRun({
     const isExisting = !!continueItem;
     Alert.alert(
       confirmation?.title ?? (isExisting ? 'Update this Actions item?' : 'Keep this in Actions?'),
-      confirmation?.message ?? [details?.source_task ? `Task: ${details.source_task}` : '', `First move: ${content.trim()}`, details?.cue ? `When: ${details.cue}` : ''].filter(Boolean).join('\n'),
+      confirmation?.message ??
+        [
+          details?.source_task ? `Task: ${details.source_task}` : '',
+          `First move: ${content.trim()}`,
+          details?.cue ? `When: ${details.cue}` : '',
+        ]
+          .filter(Boolean)
+          .join('\n'),
       [
         { text: 'Not now', style: 'cancel' },
         {
@@ -315,37 +287,17 @@ export function useInterventionRun({
   }
 
   function pauseActivity() {
+    if (phase !== 'active' || activeRun.current?.state !== 'started') return;
     setPhase('paused');
     if (seconds > 0) setTimerState('paused');
     setStatus('Paused. Continue when you are ready.');
   }
 
   function resumeActivity() {
+    if (phase !== 'paused' || activeRun.current?.state !== 'started') return;
     setPhase('active');
     setStatus('Activity resumed.');
   }
-
-  useEffect(() => {
-    mounted.current = true;
-    return () => {
-      mounted.current = false;
-      const current = latestRun.current;
-      if (current.run?.state !== 'started' || !['active', 'paused'].includes(current.phase)) return;
-      void request(
-        `/sessions/${current.run.session.session_id}/action-runs/${current.run.id}`,
-        current.run.session,
-        { state: 'stopped' },
-        'PATCH',
-      ).catch(() => {});
-    };
-  }, []);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      void initialize();
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [initialize]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
@@ -376,15 +328,15 @@ export function useInterventionRun({
       .map((item) => item.trim())
       .filter(Boolean);
     if (!items.length || items.length > 30) {
-      setStatus('Add 1â€“30 short lines first.');
+      setStatus('Add 1-30 short lines first.');
       return;
     }
     operationPending.current = true;
     setBusy(true);
-    setStatus('Sorting your listâ€¦');
+    setStatus('Sorting your list...');
     try {
-      const session = run?.session ?? (await getDemoSession());
-      const result = await request<{
+      const session = await getDemoSession();
+      const result = await requestWithRenewal<{
         now: string[];
         later: string[];
         ignore: string[];
@@ -420,77 +372,52 @@ export function useInterventionRun({
   }
 
   async function savePreference(allow: boolean) {
-    if (!run || !rating || saved === true || busy || operationPending.current) return;
+    if (
+      !run ||
+      run.state === 'started' ||
+      !rating ||
+      saved === true ||
+      busy ||
+      operationPending.current
+    )
+      return;
     operationPending.current = true;
     setBusy(true);
     setReuse(allow);
     try {
       if (!allow) {
         await resolveCompletedContinue();
-        if (!run.pendingSync) {
-          try {
-            const session = run.session;
-            await request(`/sessions/${session.session_id}/feedback`, session, {
-              action_run_id: run.id,
-              rating,
-              reuse_context: false,
-            });
-          } catch {
-            /* The answer remains session-only; no preference was saved. */
-          }
-        }
         setSaved(true);
         setFeedbackRetry(false);
         setFeedbackStatus('No preference was saved. Your answer stays in this session.');
         return;
       }
-      const session = run.session;
-      if (session.expires_at <= Date.now() / 1000) {
-        setFeedbackRetry(false);
-        setFeedbackStatus('This session ended. The preference was not saved.');
-        setSaved(false);
-        return;
-      }
-      if (run.pendingSync) {
-        await request(
-          `/sessions/${session.session_id}/action-runs/${run.id}`,
-          session,
-          { state: run.state },
-          'PATCH',
-        );
-        setRun({ ...run, pendingSync: false });
-      }
-      const result = await request<{ id: string | null; saved: boolean }>(
-        `/sessions/${session.session_id}/feedback`,
-        session,
-        {
-          action_run_id: run.id,
-          rating,
-          reuse_context: true,
-          helpful_lesson: `Mira may suggest ${intervention?.title ?? activeId} again in a similar moment.`,
-        },
+      const result = await saveActivityPreference(
+        run,
+        rating,
+        `Mira may suggest ${intervention?.title ?? activeId} again in a similar moment.`,
       );
-      setSaved(result.saved);
-      setFeedbackRetry(!result.saved);
+      if (!mounted.current) return;
+      setSaved(true);
+      setFeedbackRetry(false);
       setFeedbackStatus(
-        result.saved
-          ? 'Preference saved. You can review or remove it in You.'
-          : 'This preference was not saved. Try again.',
+        result.reuse_context
+          ? 'Preference saved on this device. You can review or remove it in Journal.'
+          : 'This preference was previously changed. You can review it in Journal.',
       );
-      if (result.saved) await resolveCompletedContinue();
+      await resolveCompletedContinue();
     } catch (error) {
-      const unavailableRun =
-        error instanceof ApiError && (error.status === 401 || error.status === 409);
-      setFeedbackRetry(!unavailableRun);
-      if (unavailableRun) setSaved(false);
+      if (!mounted.current) return;
+      setFeedbackRetry(true);
       setFeedbackStatus(
-        unavailableRun
-          ? 'This activity session is no longer available for saving. The preference was not saved.'
-          : 'Mira is temporarily offline. This preference was not saved. Try again.',
+        storageErrorMessage(
+          error,
+          'This preference was not saved. Check device storage and try again.',
+        ),
       );
     } finally {
       operationPending.current = false;
-      setBusy(false);
+      if (mounted.current) setBusy(false);
     }
   }
 

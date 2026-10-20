@@ -1,5 +1,5 @@
 import { AppState } from 'react-native';
-import { getDemoSession, request } from './api';
+import { getDemoSession, requestWithRenewal } from './api';
 import { requestMicrophonePermission } from './voice';
 
 export type TranscriptCaptureState = 'idle' | 'permission' | 'connecting' | 'starting' | 'recording' | 'transcribing' | 'failed';
@@ -119,7 +119,7 @@ export class TranscriptCapture {
       if (AppState.currentState !== 'active') throw new Error('App is not active.');
       const session = await getDemoSession();
       if (epoch !== this.epoch || !this.held) return;
-      const secret = await request<{ value: string }>(
+      const secret = await requestWithRenewal<{ value: string }>(
         `/sessions/${session.session_id}/voice/transcription`, session, {}, 'POST',
       );
       if (epoch !== this.epoch || !this.held) return;

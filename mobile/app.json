@@ -12,6 +12,7 @@
     },
     "android": {
       "package": "com.sandi.mira",
+      "allowBackup": false,
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
@@ -54,8 +55,10 @@
         }
       ],
       "./plugins/withPrivateDemoHttp",
+      "./plugins/withDeviceOnlyData",
       "expo-router",
-      "expo-font"
+      "expo-font",
+      "expo-sqlite"
     ],
     "extra": {
       "eas": {

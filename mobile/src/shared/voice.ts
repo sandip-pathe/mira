@@ -1,8 +1,9 @@
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
-import { DemoSession, Message, request } from './api';
+import { ApiError, DemoSession, Message, renewDemoSession, request } from './api';
 import { SupportDecision } from './interventions';
 import type { ContextMatch, MomentState } from '../features/talk/conversation';
 import { activityCapabilities } from './activityRegistry';
+import { currentConsentRevision, selectTalkContext } from '../features/talk/data/contextRepository';
 
 export type VoiceTransportState =
   | 'disconnected'
@@ -28,8 +29,46 @@ type Callbacks = {
   decision: (decision: SupportDecision) => void;
   moment: (state: MomentState) => void;
   context: (matches: ContextMatch[], noMatch?: boolean) => void;
+  declinedInterventions: () => string[];
   urgentHelp: () => void;
 };
+
+const momentModes = new Set<MomentState['support_mode']>([
+  'listen_more', 'clarify', 'offer_action', 'continue_action', 'check_outcome', 'suggest_human_support',
+]);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+function exactKeys(value: Record<string, unknown>, keys: string[]) {
+  return Object.keys(value).length === keys.length && keys.every((key) => key in value);
+}
+function parseToolArguments(name: string, raw: string): Record<string, unknown> {
+  if (raw.length > 5000) throw new Error('Tool arguments are too large.');
+  const value: unknown = JSON.parse(raw);
+  if (!isRecord(value)) throw new Error('Tool arguments are invalid.');
+  if (name === 'retrieve_shared_context') {
+    if (!exactKeys(value, ['query', 'max_results']) || typeof value.query !== 'string' ||
+        !value.query.trim() || value.query.length > 500 || value.max_results !== 1)
+      throw new Error('Context query is invalid.');
+  } else if (name === 'choose_support') {
+    if (!exactKeys(value, ['user_message', 'situation_summary', 'current_need']) ||
+        typeof value.user_message !== 'string' || value.user_message.length > 2000 ||
+        typeof value.situation_summary !== 'string' || value.situation_summary.length > 500 ||
+        typeof value.current_need !== 'string' || value.current_need.length > 240)
+      throw new Error('Support request is invalid.');
+  } else if (name === 'update_moment_state') {
+    const keys = ['what_happened', 'current_need', 'what_is_unclear', 'support_mode', 'suggested_action', 'previously_helpful'];
+    const max: Record<string, number> = {
+      what_happened: 240, current_need: 160, what_is_unclear: 160,
+      suggested_action: 160, previously_helpful: 160,
+    };
+    if (!exactKeys(value, keys) || !momentModes.has(value.support_mode as MomentState['support_mode']) ||
+        keys.some((key) => key !== 'support_mode' &&
+          (typeof value[key] !== 'string' || (value[key] as string).length > max[key])))
+      throw new Error('Moment update is invalid.');
+  } else throw new Error('Unknown tool.');
+  return value;
+}
 
 export async function requestMicrophonePermission(context: 'talk' | 'brain_dump' = 'talk') {
   const title = context === 'talk' ? 'Use your microphone in Talk?' : 'Use your microphone in Brain Dump?';
@@ -104,6 +143,8 @@ export class Voice {
   private audioMeterGeneration = 0;
   private remoteAudioTrack: any;
   private session?: DemoSession;
+  private connectController?: AbortController;
+  private toolAbortControllers = new Set<AbortController>();
 
   constructor(private callbacks: Callbacks) {}
 
@@ -114,13 +155,14 @@ export class Voice {
   async connect(
     session: DemoSession,
     history: Message[],
-    feedbackId?: string,
     momentState?: unknown,
     reconnecting = false,
     permissionGranted = false,
   ) {
     this.close(false);
     const epoch = this.epoch;
+    const connectController = new AbortController();
+    this.connectController = connectController;
     this.session = session;
     this.callbacks.transport(reconnecting ? 'reconnecting' : 'connecting');
     this.timeout = setTimeout(() => {
@@ -184,42 +226,57 @@ export class Voice {
         event.track.enabled = !this.suppressed;
         this.startAudioMeter(pc, event.track, 'inbound');
       };
-      const secretPromise = request<{
+      let activeSession = session;
+      const voiceRequest = () => request<{
         value: string;
         generation: number;
-        context_source?: {
-          id: string;
-          source_type: 'feedback';
-          source_id: string;
-          label: string;
-          excerpt: string;
-        } | null;
-      }>(`/sessions/${session.session_id}/voice`, session, {
-        feedback_id: feedbackId ?? null,
+      }>(`/sessions/${activeSession.session_id}/voice`, activeSession, {
         moment_state: momentState ?? null,
         client_activity_capabilities: activityCapabilities(),
-      });
+      }, 'POST', { signal: connectController.signal });
       const offerPromise = (async () => {
         const offer = await pc.createOffer({});
         await pc.setLocalDescription(offer);
         return offer;
       })();
-      const [secret, offer] = await Promise.all([secretPromise, offerPromise]);
-      if (secret.context_source) this.callbacks.context([secret.context_source]);
+      const offer = await offerPromise;
+      let secret: Awaited<ReturnType<typeof voiceRequest>>;
+      try {
+        secret = await voiceRequest();
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401 || epoch !== this.epoch) throw error;
+        activeSession = await renewDemoSession(activeSession);
+        if (epoch !== this.epoch || connectController.signal.aborted) return;
+        this.session = activeSession;
+        secret = await voiceRequest();
+      }
       if (epoch !== this.epoch) return;
+      this.session = activeSession;
       this.generation = secret.generation;
-      const response = await fetch('https://api.openai.com/v1/realtime/calls', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${secret.value}`, 'Content-Type': 'application/sdp' },
-        body: offer.sdp,
-        signal: AbortSignal.timeout(25000),
-      });
+      const openAiController = new AbortController();
+      const abortOpenAi = () => openAiController.abort();
+      connectController.signal.addEventListener('abort', abortOpenAi, { once: true });
+      const openAiTimeout = setTimeout(abortOpenAi, 25000);
+      let response: Response;
+      try {
+        response = await fetch('https://api.openai.com/v1/realtime/calls', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${secret.value}`, 'Content-Type': 'application/sdp' },
+          body: offer.sdp,
+          signal: openAiController.signal,
+        });
+      } finally {
+        clearTimeout(openAiTimeout);
+        connectController.signal.removeEventListener('abort', abortOpenAi);
+      }
       if (epoch !== this.epoch) return;
       if (!response.ok) throw new Error('Mira is temporarily offline.');
       await pc.setRemoteDescription(
         new RTCSessionDescription({ type: 'answer', sdp: await response.text() }),
       );
+      if (this.connectController === connectController) this.connectController = undefined;
     } catch (error) {
+      if (this.connectController === connectController) this.connectController = undefined;
       if (epoch === this.epoch)
         this.fail(
           error instanceof Error
@@ -320,9 +377,15 @@ export class Voice {
     });
   }
 
+  private cancelToolWork() {
+    this.toolAbortControllers.forEach((controller) => controller.abort());
+    this.toolAbortControllers.clear();
+  }
+
   async press() {
     if (!this.ready || this.held || AppState.currentState !== 'active') return;
     this.turn++;
+    this.cancelToolWork();
     this.held = true;
     this.captureReady = false;
     const holdAttempt = ++this.holdAttempt;
@@ -405,6 +468,7 @@ export class Voice {
 
   cancel() {
     this.turn++;
+    this.cancelToolWork();
     this.holdAttempt++;
     void this.stopCapture();
     this.held = false;
@@ -561,56 +625,73 @@ export class Voice {
   }
 
   private async relay(event: any) {
-    if (!this.session || this.suppressed || this.seenCalls.has(event.call_id)) return;
+    if (!this.session || this.suppressed || this.seenCalls.has(event?.call_id)) return;
+    if (typeof event.call_id !== 'string' || event.call_id.length > 128 ||
+        !/^[A-Za-z0-9_-]+$/.test(event.call_id)) return;
     this.seenCalls.add(event.call_id);
-    const epoch = this.epoch,
-      turn = this.turn;
-    const session = this.session;
+    const epoch = this.epoch, turn = this.turn, session = this.session;
+    const controller = new AbortController();
+    this.toolAbortControllers.add(controller);
+    const timeout = setTimeout(() => controller.abort(), 12000);
     this.toolJobs++;
     let output: unknown;
     try {
-      const call = {
-        call_id: event.call_id,
-        name: event.name,
-        arguments: JSON.parse(event.arguments),
-      };
-      await request(
-        `/sessions/${session.session_id}/tool-calls?generation=${this.generation}`,
-        session,
-        call,
-      );
-      if (epoch !== this.epoch || turn !== this.turn) return;
-      const response = await request<{ call_id: string; result: any }>(
-        `/sessions/${session.session_id}/tools`,
-        session,
-        call,
-      );
-      if (epoch !== this.epoch || turn !== this.turn) return;
-      if (response.call_id !== event.call_id) throw new Error('Mismatched call ID');
-      output = response.result;
-      if (response.result.decision) this.callbacks.decision(response.result.decision);
-      if (response.result.moment_state) this.callbacks.moment(response.result.moment_state);
-      if (response.result.matches)
-        this.callbacks.context(response.result.matches, response.result.no_match);
-    } catch {
-      output = {
-        error: 'tool_unavailable',
-        instruction: 'Continue without memory or an activity suggestion.',
-      };
+      const args = parseToolArguments(event.name, event.arguments);
+      if (event.name === 'retrieve_shared_context') {
+        const selected = await selectTalkContext(args.query as string);
+        const currentRevision = await currentConsentRevision();
+        if (epoch !== this.epoch || turn !== this.turn) return;
+        const matches = currentRevision === selected.revision ? selected.matches : [];
+        output = { matches, no_match: !matches.length };
+        this.callbacks.context(matches, !matches.length);
+      } else if (event.name === 'update_moment_state') {
+        const moment = args as unknown as MomentState;
+        this.callbacks.moment(moment);
+        output = { moment_state: moment };
+      } else {
+        const call = { call_id: event.call_id, name: event.name, arguments: args };
+        await request(
+          `/sessions/${session.session_id}/tool-calls?generation=${this.generation}`,
+          session,
+          call,
+          undefined,
+          { signal: controller.signal },
+        );
+        if (epoch !== this.epoch || turn !== this.turn) return;
+        const query = `${args.user_message} ${args.situation_summary} ${args.current_need}`;
+        const approved = await selectTalkContext(query);
+        const revision = await currentConsentRevision();
+        if (epoch !== this.epoch || turn !== this.turn) return;
+        if (revision !== approved.revision) throw new Error('Consent changed during support request.');
+        const response = await request<{ call_id: string; result: any }>(
+          `/sessions/${session.session_id}/tools`,
+          session,
+          { call, approved_preferences: approved.preferences, declined_interventions: this.callbacks.declinedInterventions(), consent_revision: revision },
+          undefined,
+          { signal: controller.signal },
+        );
+        if (epoch !== this.epoch || turn !== this.turn) return;
+        if (response.call_id !== event.call_id) throw new Error('Mismatched call ID');
+        output = response.result;
+        if (response.result.decision) this.callbacks.decision(response.result.decision);
+      }
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401 && epoch === this.epoch) {
+        this.fail('Voice capability expired. Reconnectingâ€¦', true);
+        return;
+      }
+      output = { error: 'tool_unavailable', instruction: 'Continue without saved context or an activity suggestion.' };
       if (epoch === this.epoch && turn === this.turn)
         this.callbacks.error('Tool unavailable. Continuing without its result.');
     } finally {
+      clearTimeout(timeout);
+      this.toolAbortControllers.delete(controller);
       if (epoch === this.epoch) {
         this.toolJobs--;
         if (turn === this.turn && !this.suppressed && output !== undefined) {
-          this.send({
-            type: 'conversation.item.create',
-            item: {
-              type: 'function_call_output',
-              call_id: event.call_id,
-              output: JSON.stringify(output),
-            },
-          });
+          this.send({ type: 'conversation.item.create', item: {
+            type: 'function_call_output', call_id: event.call_id, output: JSON.stringify(output),
+          } });
           this.continueAfterTools = true;
           this.continueTools();
         }
@@ -625,6 +706,10 @@ export class Voice {
   }
 
   close(notify = true) {
+    this.connectController?.abort();
+    this.connectController = undefined;
+    this.toolAbortControllers.forEach((controller) => controller.abort());
+    this.toolAbortControllers.clear();
     void this.stopCapture();
     this.muteOutput(true);
     this.epoch++;

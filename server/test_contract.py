@@ -1,3 +1,4 @@
+import json
 import time
 import sqlite3
 from concurrent.futures import ThreadPoolExecutor
@@ -143,8 +144,11 @@ class RelayContract(unittest.TestCase):
                 self.assertEqual(started.status_code, 200)
                 self.assertEqual(started.json()['action_id'], activity_id)
 
-    def relay(self, call=None):
-        return self.client.post(self.path + '/tools', headers=self.headers, json=call or self.call)
+    def relay(self, call=None, *, preferences=None, declines=None, revision=0):
+        return self.client.post(self.path + '/tools', headers=self.headers, json={
+            'call': call or self.call, 'approved_preferences': preferences or [],
+            'declined_interventions': declines or [], 'consent_revision': revision,
+        })
 
     def test_activity_capability_gate_and_start_retry_are_idempotent(self):
         ids = sorted(SUPPORTED_CLIENTS[('activity-ui-1', '0.04')])
@@ -424,6 +428,9 @@ class RelayContract(unittest.TestCase):
             'intervention': backend.get_intervention('task_reset_60s')}
         with patch.object(backend, 'choose_support', new=AsyncMock(return_value=decision)):
             self.assertEqual(self.register().status_code, 200)
+            pending = backend.sessions[self.session_id]['pending']['call_demo']
+            self.assertNotIn('call', pending)
+            self.assertEqual(len(pending['digest']), 64)
             result = self.relay()
             self.assertEqual(result.status_code, 200)
             self.assertEqual(result.json()['call_id'], 'call_demo')
@@ -431,9 +438,24 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(self.relay().status_code, 409)
         self.assertEqual(self.register().status_code, 409)
 
+    def test_voice_worker_uses_only_device_supplied_preferences(self):
+        backend.sessions[self.session_id]['compatible_activity_ids'] = set(PRIMARY_ACTIVITY_IDS)
+        output = {'route': 'listen', 'situation_summary': '', 'question': '', 'offer_reason': '', 'ranked_ids': []}
+        fake = AsyncMock(return_value={'output': [{'content': [{'type': 'output_text', 'text': json.dumps(output)}]}]})
+        preference = {'intervention_id': 'pause_60s', 'rating': 'yes', 'preference': 'A pause helped me reset.'}
+        with patch.object(backend, 'provider', fake), patch.object(backend.store, 'feedback',
+                side_effect=AssertionError('worker must not query saved server preferences')):
+            self.assertEqual(self.register().status_code, 200)
+            result = self.relay(preferences=[preference], declines=['pause_60s'], revision=8)
+        self.assertEqual(result.status_code, 200, result.text)
+        received = json.loads(fake.call_args.kwargs['json']['input'])['conversation']
+        self.assertEqual(received['preferences'][0]['intervention_id'], 'pause_60s')
+        self.assertNotIn('pause_60s', fake.call_args.kwargs['json']['text']['format']['schema']['properties']['ranked_ids']['items']['enum'])
+
     def test_capability_expiry_and_mismatch(self):
-        self.assertEqual(self.client.post(self.path + '/tools', json=self.call).status_code, 401)
-        self.assertEqual(self.client.post('/sessions/' + str(uuid4()) + '/tools', headers=self.headers, json=self.call).status_code, 401)
+        relay = {'call': self.call, 'approved_preferences': [], 'declined_interventions': [], 'consent_revision': 0}
+        self.assertEqual(self.client.post(self.path + '/tools', json=relay).status_code, 401)
+        self.assertEqual(self.client.post('/sessions/' + str(uuid4()) + '/tools', headers=self.headers, json=relay).status_code, 401)
         backend.sessions[self.session_id]['expires_at'] = time.time() - 1
         self.assertEqual(self.register().status_code, 401)
 
@@ -450,10 +472,9 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(self.register(bad).status_code, 422)
         self.assertEqual(self.client.post(self.path + '/tool-calls?generation=2', headers=self.headers, json=self.call).status_code, 409)
 
-    def test_memory_is_empty_until_implemented_and_approved(self):
+    def test_local_context_tool_is_not_relayed_to_server(self):
         call = {'call_id': 'call_memory', 'name': 'retrieve_shared_context', 'arguments': {'query': 'work', 'max_results': 1}}
-        self.assertEqual(self.register(call).status_code, 200)
-        self.assertEqual(self.relay(call).json()['result'], {'matches': [], 'no_match': True})
+        self.assertEqual(self.register(call).status_code, 422)
         bad = {**call, 'call_id': 'call_other', 'arguments': {'query': 'work', 'max_results': 1, 'user_id': 'someone'}}
         self.assertEqual(self.register(bad).status_code, 422)
 
@@ -502,14 +523,12 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(backend.store.retrieve('work tasks'), [])
         lookup = {'call_id': 'memory_before_approval', 'name': 'retrieve_shared_context',
             'arguments': {'query': 'work tasks', 'max_results': 1}}
-        self.assertEqual(self.register(lookup).status_code, 200)
-        self.assertEqual(self.relay(lookup).json()['result'], {'matches': [], 'no_match': True})
+        self.assertEqual(self.register(lookup).status_code, 422)
         self.assertEqual(self.client.post(self.path + f"/memory/{memory.json()['id']}/approve",
             headers=self.headers).status_code, 200)
         self.assertEqual(backend.store.retrieve('work tasks')[0]['source_type'], 'journal')
         lookup['call_id'] = 'memory_after_approval'
-        self.assertEqual(self.register(lookup).status_code, 200)
-        self.assertFalse(self.relay(lookup).json()['result']['no_match'])
+        self.assertEqual(self.register(lookup).status_code, 422)
         self.assertEqual(self.client.post(self.path + f"/memory/{memory.json()['id']}/revoke",
             headers=self.headers).status_code, 200)
         self.assertEqual(backend.store.retrieve('work tasks'), [])
@@ -519,11 +538,11 @@ class RelayContract(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()['interventions']), 9)
         self.assertEqual(self.client.get(self.path + '/interventions/not-approved', headers=self.headers).status_code, 404)
-        self.assertEqual(self.client.post(self.path + '/interventions/pause_60s/decline', headers=self.headers).json(), {'declined': True})
         fake_selector = AsyncMock(return_value={'output': [{'content': [{'type': 'output_text', 'text':
             '{"route":"offer_intervention","situation_summary":"","question":"","offer_reason":"","ranked_ids":[]}'}]}]})
         with patch.object(backend, 'provider', fake_selector):
-            awaitable_result = backend.choose_support({'session_id': self.session_id, 'user_message': 'Try something'})
+            awaitable_result = backend.choose_support({'user_message': 'Try something'},
+                declined_interventions={'pause_60s'})
             import asyncio
             decision = asyncio.run(awaitable_result)
         ids = fake_selector.call_args.kwargs['json']['text']['format']['schema']['properties']['ranked_ids']['items']['enum']
@@ -570,8 +589,7 @@ class RelayContract(unittest.TestCase):
         state = {'what_happened': 'Work feels like too much.', 'current_need': 'One small step', 'what_is_unclear': '',
             'support_mode': 'offer_action', 'suggested_action': 'Task reset', 'previously_helpful': ''}
         call = {'call_id': 'moment_state', 'name': 'update_moment_state', 'arguments': state}
-        self.assertEqual(self.register(call).status_code, 200)
-        self.assertEqual(self.relay(call).json()['result']['moment_state'], state)
+        self.assertEqual(self.register(call).status_code, 422)
         bad_state = {**state, 'support_mode': 'diagnose'}
         self.assertEqual(self.register({**call, 'call_id': 'bad_state', 'arguments': bad_state}).status_code, 422)
         lines = ['Email the team', 'Open the document']
@@ -597,10 +615,8 @@ class RelayContract(unittest.TestCase):
         with patch.object(backend, 'provider', fake):
             connected = self.client.post(self.path + '/voice', headers=self.headers,
                 json={'feedback_id': feedback['id']})
-        self.assertEqual(connected.status_code, 200)
-        sent = fake.call_args.kwargs['json']['session']['instructions']
-        self.assertIn('Paced Breathing', sent)
-        self.assertEqual(connected.json()['context_source']['source_type'], 'feedback')
+        self.assertEqual(connected.status_code, 422)
+        fake.assert_not_awaited()
 
     def test_text_fallback_uses_and_labels_only_approved_context(self):
         entry = self.client.post(self.path + '/journal', headers=self.headers,
@@ -619,23 +635,57 @@ class RelayContract(unittest.TestCase):
         ])
         prior_state = {'what_happened': 'Work has been hard.', 'current_need': 'A clear next step', 'what_is_unclear': '',
             'support_mode': 'clarify', 'suggested_action': '', 'previously_helpful': ''}
-        payload = {'messages': [{'role': 'user', 'content': 'I am struggling with work.'}], 'feedback_id': None,
+        payload = {'messages': [{'role': 'user', 'content': 'I am struggling with work.'}],
+            'context_matches': [], 'approved_preferences': [], 'consent_revision': 0,
             'moment_state': prior_state, 'client_activity_capabilities': {
                 'client_version': 'activity-ui-11', 'catalog_version': '0.14',
                 'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')]),
             }}
-        with patch.object(backend, 'provider', fake):
+        with patch.object(backend, 'provider', fake), patch.object(backend.store, 'retrieve',
+                side_effect=AssertionError('Talk context must be selected by the device')), patch.object(backend.store,
+                'feedback', side_effect=AssertionError('preferences must be selected by the device')):
             pending = self.client.post(self.path + '/text', headers=self.headers, json=payload)
         self.assertEqual(pending.status_code, 200, pending.text)
         self.assertEqual(pending.json()['context_matches'], [])
         self.assertNotIn('scattered', fake.call_args.kwargs['json']['instructions'])
         self.assertIn('A clear next step', fake.call_args.kwargs['json']['instructions'])
         self.client.post(self.path + f"/memory/{memory['id']}/approve", headers=self.headers)
-        with patch.object(backend, 'provider', fake):
+        with patch.object(backend, 'provider', fake), patch.object(backend.store, 'retrieve',
+                side_effect=AssertionError('Talk context must be selected by the device')), patch.object(backend.store,
+                'feedback', side_effect=AssertionError('preferences must be selected by the device')):
             approved = self.client.post(self.path + '/text', headers=self.headers, json=payload)
-        self.assertEqual(approved.json()['context_matches'][0]['source_type'], 'journal')
-        self.assertIn('scattered', fake.call_args.kwargs['json']['instructions'])
+        self.assertEqual(approved.json()['context_matches'], [])
+        self.assertNotIn('scattered', fake.call_args.kwargs['json']['instructions'])
         self.assertEqual(approved.json()['moment_state']['support_mode'], 'clarify')
+
+    def test_text_uses_phone_selected_context_and_preferences_without_private_lookup(self):
+        decision = {'route': 'listen', 'situation_summary': '', 'question': '',
+            'offer_reason': '', 'ranked_ids': []}
+        reply = {'reply': 'What feels most useful right now?', 'what_happened': '',
+            'current_need': '', 'what_is_unclear': '', 'support_mode': 'listen_more',
+            'suggested_action': '', 'previously_helpful': ''}
+        fake = AsyncMock(side_effect=[
+            {'output': [{'content': [{'type': 'output_text', 'text': json.dumps(decision)}]}]},
+            {'output': [{'content': [{'type': 'output_text', 'text': json.dumps(reply)}]}]},
+        ])
+        payload = {'messages': [{'role': 'user', 'content': 'Work is hard today.'}],
+            'context_matches': [{'id': 'local-memory', 'source_type': 'journal',
+                'source_id': 'local-entry', 'excerpt': 'Work has felt scattered.',
+                'label': 'Journal excerpt'}],
+            'approved_preferences': [{'intervention_id': 'pause_60s', 'rating': 'yes',
+                'preference': 'A short pause helped me reset.'}],
+            'consent_revision': 12,
+            'client_activity_capabilities': {'client_version': 'activity-ui-11',
+                'catalog_version': '0.14',
+                'activity_ids': sorted(SUPPORTED_CLIENTS[('activity-ui-11', '0.14')])}}
+        with patch.object(backend, 'provider', fake), patch.object(backend.store, 'retrieve',
+                side_effect=AssertionError('new client must select context locally')):
+            response = self.client.post(self.path + '/text', headers=self.headers, json=payload)
+        self.assertEqual(response.status_code, 200, response.text)
+        self.assertEqual(response.json()['context_matches'][0]['id'], 'local-memory')
+        self.assertIn('Work has felt scattered.', fake.call_args_list[1].kwargs['json']['instructions'])
+        decision_input = json.loads(fake.call_args_list[0].kwargs['json']['input'])['conversation']
+        self.assertEqual(decision_input['preferences'][0]['intervention_id'], 'pause_60s')
 
 
 if __name__ == '__main__':

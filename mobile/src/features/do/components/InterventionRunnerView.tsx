@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { ActionButton, ui } from '../../../components/ui';
 import { ActivityHeader } from './ActivityHeader';
 import { ActivityOutcome } from './ActivityOutcome';
@@ -35,18 +35,31 @@ export function InterventionRunnerView({
   onBack: () => void;
   onTalkTransfer: (text: string) => boolean;
 }) {
-  if (!run.intervention || run.phase === 'loading')
+  if (!run.intervention || run.phase === 'loading') {
+    const loading = run.status.toLowerCase().startsWith('loading');
     return (
-      <View style={{ gap: 14 }}>
-        <Text accessibilityLiveRegion="polite" style={ui.muted}>
-          {run.status}
-        </Text>
-        <ActionButton
-          label={`Back to ${origin === 'talk' ? 'Talk' : 'Actions'}`}
-          onPress={onBack}
-        />
+      <View style={{ flex: 1, paddingHorizontal: 22, paddingTop: 24 }}>
+        {loading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+            <ActivityIndicator color="#3C805E" />
+            <Text accessibilityLiveRegion="polite" style={[ui.muted, { textAlign: 'center' }]}>
+              Opening activity…
+            </Text>
+          </View>
+        ) : (
+          <View style={{ gap: 14 }}>
+            <Text accessibilityLiveRegion="polite" style={ui.muted}>
+              {run.status}
+            </Text>
+            <ActionButton
+              label={`Back to ${origin === 'talk' ? 'Talk' : 'Actions'}`}
+              onPress={onBack}
+            />
+          </View>
+        )}
       </View>
     );
+  }
   return (
     <ScrollView
       contentContainerStyle={{

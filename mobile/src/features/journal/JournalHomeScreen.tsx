@@ -12,14 +12,30 @@ import { useJournal } from './JournalProvider';
 export default function JournalHomeScreen() {
   const journal = useJournal();
   const {
-    journalSessions, memories, feedback, busy, loading, status, error, background, foreground,
-    subtle, palette, memoryAction, feedbackAction,
-    startJournal, openJournal, refreshJournalSessions,
+    journalSessions,
+    memories,
+    feedback,
+    busy,
+    loading,
+    status,
+    error,
+    background,
+    foreground,
+    subtle,
+    palette,
+    memoryAction,
+    feedbackAction,
+    startJournal,
+    openJournal,
+    refreshJournalSessions,
+    deleteJournal,
   } = journal;
 
-  useFocusEffect(React.useCallback(() => {
-    void refreshJournalSessions().catch(() => {});
-  }, [refreshJournalSessions]));
+  useFocusEffect(
+    React.useCallback(() => {
+      void refreshJournalSessions().catch(() => {});
+    }, [refreshJournalSessions]),
+  );
 
   function startNewEntry() {
     startJournal();
@@ -74,38 +90,52 @@ export default function JournalHomeScreen() {
               <Text style={[ui.heading, { color: foreground, marginTop: 4 }]}>Recent sessions</Text>
               {journalSessions.length === 0 ? (
                 <View style={[styles.emptyCard, { borderColor: `${foreground}30` }]}>
-                  <Text style={{ color: foreground, fontWeight: '600' }}>No saved sessions yet</Text>
+                  <Text style={{ color: foreground, fontWeight: '600' }}>No sessions yet</Text>
                   <Text style={{ color: subtle, lineHeight: 20 }}>
-                    Your entries appear here after you save a session.
+                    Your saved writing and drafts appear here on this device.
                   </Text>
                 </View>
-              ) : journalSessions.map((item) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  onPress={() => openExistingEntry(item.id)}
-                >
-                  <View style={[styles.sessionCard, {
-                    backgroundColor: `${foreground}08`, borderColor: `${foreground}20`,
-                  }]}>
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-                      <Text style={{ color: foreground, fontSize: 16, fontWeight: '700', flex: 1 }}>
-                        {item.title}
+              ) : (
+                journalSessions.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    accessibilityRole="button"
+                    onPress={() => openExistingEntry(item.id)}
+                    onLongPress={() => !busy && deleteJournal(item.id)}
+                    accessibilityHint="Long press to delete this session"
+                  >
+                    <View
+                      style={[
+                        styles.sessionCard,
+                        {
+                          backgroundColor: `${foreground}08`,
+                          borderColor: `${foreground}20`,
+                        },
+                      ]}
+                    >
+                      <View
+                        style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}
+                      >
+                        <Text
+                          style={{ color: foreground, fontSize: 16, fontWeight: '700', flex: 1 }}
+                        >
+                          {item.title}
+                        </Text>
+                        <Text style={{ color: subtle, fontSize: 12 }}>
+                          {item.saved ? 'SAVED' : 'DRAFT'}
+                        </Text>
+                      </View>
+                      <Text numberOfLines={2} style={{ color: subtle, lineHeight: 21 }}>
+                        {item.preview || item.initial_prompt}
                       </Text>
                       <Text style={{ color: subtle, fontSize: 12 }}>
-                        {item.saved ? 'SAVED' : 'DRAFT'}
+                        {item.entry_count} {item.entry_count === 1 ? 'entry' : 'entries'} ·{' '}
+                        {new Date(item.updated_at * 1000).toLocaleDateString()}
                       </Text>
                     </View>
-                    <Text numberOfLines={2} style={{ color: subtle, lineHeight: 21 }}>
-                      {item.preview || item.initial_prompt}
-                    </Text>
-                    <Text style={{ color: subtle, fontSize: 12 }}>
-                      {item.entry_count} {item.entry_count === 1 ? 'entry' : 'entries'} ·{' '}
-                      {new Date(item.updated_at * 1000).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </Pressable>
-              ))}
+                  </Pressable>
+                ))
+              )}
               <MemorySections
                 selectedEntry={undefined}
                 excerpt=""
@@ -127,7 +157,10 @@ export default function JournalHomeScreen() {
           </ScrollView>
         )}
         {!!status && (
-          <Text accessibilityLiveRegion="polite" style={[styles.status, { color: error ? colors.danger : subtle }]}>
+          <Text
+            accessibilityLiveRegion="polite"
+            style={[styles.status, { color: error ? colors.danger : subtle }]}
+          >
             {status}
           </Text>
         )}

@@ -1,4 +1,8 @@
-import { File, Paths } from 'expo-file-system';
+import {
+  mutateDeviceCollection,
+  readDeviceCollection,
+  type CollectionSource,
+} from './storage/collectionStore';
 import { ACTIVITY_CATALOG_VERSION } from './activityRegistry';
 
 export type Intervention = {
@@ -36,7 +40,8 @@ export type SupportDecision = {
   intervention: Intervention | null;
 };
 
-export type ContinueKind = 'next_step' | 'one_small_step' | 'reach_out' | 'brain_dump' | 'short_movement';
+export type ContinueKind =
+  'next_step' | 'one_small_step' | 'reach_out' | 'brain_dump' | 'short_movement';
 export type ContinueItem = {
   id: string;
   intervention_id: string;
@@ -53,7 +58,19 @@ export type ContinueItem = {
 
 const CONTINUE_STORAGE_KEY = 'mira.actions.continue.v1';
 const CONTINUE_SCHEMA_VERSION = 2;
-const supportedContinueCatalogVersions = new Set(['0.04', '0.05', '0.06', '0.07', '0.08', '0.09', '0.10', '0.11', '0.12', '0.13', '0.14']);
+const supportedContinueCatalogVersions = new Set([
+  '0.04',
+  '0.05',
+  '0.06',
+  '0.07',
+  '0.08',
+  '0.09',
+  '0.10',
+  '0.11',
+  '0.12',
+  '0.13',
+  '0.14',
+]);
 export function isSupportedContinueCatalogVersion(version: string) {
   return supportedContinueCatalogVersions.has(version);
 }
@@ -70,45 +87,44 @@ export function getContinueKind(interventionId: string) {
   return supportedContinueActivities[interventionId];
 }
 
-const continueFile = new File(Paths.document, CONTINUE_STORAGE_KEY + '.json');
-let continueMutationQueue: Promise<unknown> = Promise.resolve();
-
-async function readContinueItems(): Promise<ContinueItem[]> {
-  if (!continueFile.exists) return [];
-  try {
-    const parsed = JSON.parse(await continueFile.text());
-    if (!Array.isArray(parsed)) return [];
-    return parsed.flatMap((item): ContinueItem[] => {
+const continueSource: CollectionSource<ContinueItem> = {
+  table: 'continue_items',
+  legacyFilename: CONTINUE_STORAGE_KEY + '.json',
+  decode(value) {
+    if (!Array.isArray(value)) throw new Error('Saved items could not be opened.');
+    return value.map((item): ContinueItem => {
       if (
         !item ||
         typeof item.id !== 'string' ||
+        !item.id ||
         typeof item.intervention_id !== 'string' ||
         !getContinueKind(item.intervention_id) ||
+        typeof item.title !== 'string' ||
         typeof item.content !== 'string' ||
         !item.content.trim() ||
-        (item.schema_version !== undefined && ![1, CONTINUE_SCHEMA_VERSION].includes(item.schema_version)) ||
-        (item.catalog_version !== undefined && !supportedContinueCatalogVersions.has(item.catalog_version))
-      ) return [];
-      return [{
+        typeof item.created_at !== 'number' ||
+        !Number.isFinite(item.created_at) ||
+        (item.schema_version !== undefined &&
+          ![0, 1, CONTINUE_SCHEMA_VERSION].includes(item.schema_version)) ||
+        (item.catalog_version !== undefined &&
+          !supportedContinueCatalogVersions.has(item.catalog_version)) ||
+        !Object.values(supportedContinueActivities).includes(item.kind)
+      ) {
+        throw new Error(
+          'Saved items could not be imported safely. Your original file is unchanged.',
+        );
+      }
+      return {
         ...item,
         schema_version: item.schema_version ?? 0,
         catalog_version: item.catalog_version ?? ACTIVITY_CATALOG_VERSION,
-        ...(typeof item.source_task === 'string' ? { source_task: item.source_task } : {}),
-        ...(typeof item.cue === 'string' ? { cue: item.cue } : {}),
-      } as ContinueItem];
+      } as ContinueItem;
     });
-  } catch {
-    return [];
-  }
-}
+  },
+};
 
-export async function loadContinueItems(): Promise<ContinueItem[]> {
-  await continueMutationQueue.catch(() => {});
-  return readContinueItems();
-}
-
-async function writeContinueItems(items: ContinueItem[]) {
-  continueFile.write(JSON.stringify(items));
+export function loadContinueItems(): Promise<ContinueItem[]> {
+  return readDeviceCollection(continueSource);
 }
 
 export async function saveContinueItem(
@@ -125,7 +141,7 @@ export async function saveContinueItem(
     const prior = items.find((item) => item.source_run_id === sourceRunId);
     if (prior) {
       const item = { ...prior, content: value, ...details };
-      return { items: items.map((entry) => entry.id === prior.id ? item : entry), result: item };
+      return { items: items.map((entry) => (entry.id === prior.id ? item : entry)), result: item };
     }
     const item: ContinueItem = {
       id: sourceRunId,
@@ -170,13 +186,7 @@ export async function clearContinueItems() {
 function mutateContinueItems<T>(
   update: (items: ContinueItem[]) => { items: ContinueItem[]; result: T },
 ): Promise<T> {
-  const operation = continueMutationQueue.then(async () => {
-    const next = update(await readContinueItems());
-    await writeContinueItems(next.items);
-    return next.result;
-  });
-  continueMutationQueue = operation.then(() => undefined, () => undefined);
-  return operation;
+  return mutateDeviceCollection(continueSource, update);
 }
 
 const loaded = new Map<string, Intervention>();

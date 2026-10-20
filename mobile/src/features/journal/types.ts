@@ -21,8 +21,25 @@ export type JournalSessionSummary = {
   saved: boolean;
   preview?: string | null;
   entry_count: number;
+  attachment_count?: number;
 };
 export type JournalSession = JournalSessionSummary & { messages: JournalMessage[] };
+export type JournalVoiceNote = { id: string; uri: string; created_at: number };
+export type JournalPresentation = { palette: { light: string; dark: string }; fontSize: number };
+export type JournalDraftSnapshot = {
+  id: string;
+  prompt: string;
+  text: string;
+  revision: number;
+  presentation: JournalPresentation;
+};
+export type LocalJournalSession = JournalSession & {
+  entries: JournalEntry[];
+  voice_notes: JournalVoiceNote[];
+  draft: string;
+  revision: number;
+  presentation: JournalPresentation;
+};
 export type MemoryItem = {
   id: string;
   source_entry_id: string;
@@ -36,4 +53,5 @@ export type FeedbackItem = {
   rating: string;
   reuse_context: number;
   helpful_lesson?: string | null;
+  storage?: 'device';
 };

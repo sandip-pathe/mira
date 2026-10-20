@@ -39,6 +39,7 @@ export function useJournalRecording(options: Options) {
   const active = useRef(true);
   const capturing = useRef(false);
   const operating = useRef(false);
+  const working = useRef<Promise<void> | undefined>(undefined);
   const retained = useRef<string | undefined>(undefined);
   const stopping = useRef<Promise<string | undefined> | undefined>(undefined);
   const generation = useRef(0);
@@ -112,17 +113,22 @@ export function useJournalRecording(options: Options) {
     if (operating.current || stopping.current) return;
     operating.current = true;
     setBusy(true);
-    try {
-      await work();
-    } catch (error) {
-      if (active.current)
-        callbacks.current.setStatus(
-          error instanceof Error ? error.message : 'Recording failed. Try again.',
-        );
-    } finally {
-      operating.current = false;
-      if (active.current) setBusy(false);
-    }
+    const job = (async () => {
+      try {
+        await work();
+      } catch (error) {
+        if (active.current)
+          callbacks.current.setStatus(
+            error instanceof Error ? error.message : 'Recording failed. Try again.',
+          );
+      } finally {
+        operating.current = false;
+        if (active.current) setBusy(false);
+      }
+    })();
+    working.current = job;
+    await job;
+    if (working.current === job) working.current = undefined;
   }
 
   function start() {
@@ -186,5 +192,12 @@ export function useJournalRecording(options: Options) {
     return path;
   }
 
-  return { recording, busy, uri, start, stop, discard, keep };
+  async function discardPending() {
+    generation.current += 1;
+    await working.current;
+    if (capturing.current || stopping.current) await stopCapture();
+    return discard();
+  }
+
+  return { recording, busy, uri, start, stop, discard, keep, discardPending };
 }

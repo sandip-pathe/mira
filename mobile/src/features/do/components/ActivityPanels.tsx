@@ -45,7 +45,7 @@ export function ReadyPanel({
       <ActionButton label="Skip" variant="secondary" onPress={onBack} />
       {origin === 'actions_continue' && (
         <Text style={ui.muted}>
-          This item was saved on this device. Start is still checked by Mira when online.
+          This item was saved on this device. You can continue without a connection.
         </Text>
       )}
       <ActionButton label={`Return to ${destination}`} variant="quiet" onPress={onBack} />

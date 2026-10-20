@@ -56,15 +56,16 @@ export function MoveScenePanel({
   onBack: () => void;
 }) {
   const active = run.activeId === 'short_movement';
-  const [stage, setStageState] = React.useState<Stage>('intro');
-  const [choice, setChoice] = React.useState<Choice>();
-  const [custom, setCustom] = React.useState('');
+  const [resumeChoice] = React.useState(() => run.continueSaved ? restoreChoice(run.draft) : undefined);
+  const [stage, setStageState] = React.useState<Stage>(resumeChoice ? 'prepare' : run.phase === 'active' ? 'choose' : 'intro');
+  const [choice, setChoice] = React.useState<Choice | undefined>(resumeChoice?.choice);
+  const [custom, setCustom] = React.useState(resumeChoice?.custom ?? '');
   const [showElapsed, setShowElapsed] = React.useState(false);
   const [elapsed, setElapsed] = React.useState<string>();
   const [startRequested, setStartRequested] = React.useState(false);
-  const stageRef = React.useRef<Stage>('intro');
-  const choiceRef = React.useRef<Choice | undefined>(undefined);
-  const customRef = React.useRef('');
+  const stageRef = React.useRef<Stage>(resumeChoice ? 'prepare' : run.phase === 'active' ? 'choose' : 'intro');
+  const choiceRef = React.useRef<Choice | undefined>(resumeChoice?.choice);
+  const customRef = React.useRef(resumeChoice?.custom ?? '');
   const startWallRef = React.useRef<number | undefined>(undefined);
   const startMonotonicRef = React.useRef<number | undefined>(undefined);
   const lastAppStateRef = React.useRef(AppState.currentState);

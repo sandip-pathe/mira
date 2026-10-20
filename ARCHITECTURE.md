@@ -41,13 +41,13 @@ flowchart TD
 | `mobile/src/api.ts` | Finds the backend address and attaches the demo session's bearer token. |
 | `mobile/src/ui.tsx` | Shared colors, styles, and UI components. |
 
-Conversation and activity UI state live in React memory. Journal drafts survive a temporary connection failure while the app remains open; they are not durable local storage.
+Conversation and activity UI state live in React memory. Journal drafts and explicitly saved private records are stored on-device through the local SQLite repository. Online worker requests receive only the bounded content needed for that request.
 
 ## 3. Backend: what runs on the computer
 
-**`server/app.py`** is a single FastAPI service. It creates demo sessions, configures voice sessions, validates tool calls, calls OpenAI, and exposes Journal, memory, action, and feedback endpoints.
+**`server/app.py`** is a FastAPI worker service. It creates short-lived demo sessions, configures voice sessions, validates tool calls, and calls OpenAI. Journal follow-up, sorting, transcription, and Talk are stateless workers; the private-data routes are retired and old clients receive an update-required response.
 
-**`server/store.py`** reads and writes SQLite. Context retrieval uses keyword matching and simple scoring; there is no vector database.
+The app runtime does not instantiate `server/store.py` or open a private database. The legacy test database was deleted without import at the user's direction.
 
 | API group | Purpose |
 | --- | --- |
@@ -181,9 +181,9 @@ After an activity, the person can save a rating privately or opt into future use
 | Situation | User-facing behavior |
 | --- | --- |
 | Voice disconnects | Retry voice or continue with text, carrying confirmed conversation and moment state. |
-| Backend or OpenAI unavailable | Show temporarily offline. Keep the current Journal draft and previously loaded activities usable; new replies and saves need connectivity. |
+| Backend or OpenAI unavailable | Show temporarily offline. Keep Journal and previously loaded activity content usable; local saves and lifecycle actions continue offline. |
 | Journal transcription fails | Retry the recording or discard it. Text remains editable. |
-| Activity runs offline | Continue locally; feedback remains unsaved until a successful save after reconnecting. |
+| Activity runs offline | Continue locally; explicit activity preferences remain on-device. |
 | Person asks for human help | Show the support placeholder and urgent-help card. No clinician is connected or monitoring the demo. |
 
 The immediate-danger demo uses a scripted trigger to stop the normal flow and show the help card. It is not reliable crisis screening.

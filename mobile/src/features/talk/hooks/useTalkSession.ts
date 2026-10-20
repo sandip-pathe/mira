@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { getDemoSession, Message, request } from '../../../shared/api';
+import { ApiError, getDemoSession, Message, renewDemoSession, request } from '../../../shared/api';
 import { onContextRevoked, onDemoReset, onUrgentHelp } from '../../../shared/demoEvents';
 import { Intervention, SupportDecision, rememberIntervention } from '../../../shared/interventions';
 import { blankMoment, ContextMatch, MomentState, proposalResponse } from '../conversation';
@@ -9,6 +9,7 @@ import { Voice, VoiceState, VoiceTransportState, VoiceTurnState } from '../../..
 import { acknowledgeTalkTransfer, peekTalkTransfer } from '../../../shared/talkTransfer';
 import { activityCapabilities } from '../../../shared/activityRegistry';
 import { consumeQuietTalkReturn } from '../../../shared/musicHandoff';
+import { currentConsentRevision, selectTalkContext } from '../data/contextRepository';
 
 export function useTalkSession() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -37,12 +38,15 @@ export function useTalkSession() {
   const connectPending = useRef(false);
   const focusedRef = useRef(false);
   const talkIntent = useRef(false);
+  const voiceRequested = useRef(false);
   const reconnectAttempts = useRef(0);
   const currentContext = useRef({ messages, moment });
   useEffect(() => {
     currentContext.current = { messages, moment };
   }, [messages, moment]);
   const textAttempt = useRef(0);
+  const textRequest = useRef<AbortController | undefined>(undefined);
+  const declinedInterventions = useRef(new Set<string>());
   const callbacksRef = useRef<
     | {
         message: (message: Message) => void;
@@ -78,6 +82,7 @@ export function useTalkSession() {
     }
   }, []);
   const stopVoice = useCallback(() => {
+    voiceRequested.current = false;
     connectAttempt.current += 1;
     connectPending.current = false;
     voiceRef.current?.close();
@@ -120,7 +125,7 @@ export function useTalkSession() {
     }));
   }, []);
 
-  const declineProposal = useCallback(async () => {
+  const declineProposal = useCallback(() => {
     const intervention = proposalRef.current?.intervention;
     proposalRef.current = undefined;
     setProposal(undefined);
@@ -129,18 +134,8 @@ export function useTalkSession() {
       support_mode: 'listen_more',
       suggested_action: '',
     }));
-    if (!intervention) return;
-    try {
-      const session = await getSession();
-      await request(
-        `/sessions/${session.session_id}/interventions/${intervention.id}/decline`,
-        session,
-        {},
-      );
-    } catch {
-      /* The choice is still respected in this conversation. */
-    }
-  }, [getSession]);
+    if (intervention) declinedInterventions.current.add(intervention.id);
+  }, []);
 
   const handleVoiceMessage = useCallback(
     (message: Message) => {
@@ -203,6 +198,7 @@ export function useTalkSession() {
         } else if (noMatch)
           setContextNotice('No relevant shared context matched. Mira is continuing without it.');
       },
+      declinedInterventions: () => [...declinedInterventions.current],
       urgentHelp: () => setUrgent(true),
     });
     voiceRef.current = voice;
@@ -219,10 +215,13 @@ export function useTalkSession() {
 
   const clearLocalDemo = useCallback(() => {
     textAttempt.current += 1;
+    textRequest.current?.abort();
+    textRequest.current = undefined;
     talkIntent.current = false;
     stopVoice();
     setSending(false);
     setMessages([]);
+    declinedInterventions.current.clear();
     setContextMatches([]);
     setContextNotice('');
     setText('');
@@ -248,10 +247,13 @@ export function useTalkSession() {
   useEffect(() => {
     const unsubscribe = onContextRevoked(() => {
       textAttempt.current += 1;
+      textRequest.current?.abort();
+      textRequest.current = undefined;
       talkIntent.current = false;
       stopVoice();
       setSending(false);
       setMessages([]);
+      setFailedText('');
       setContextMatches([]);
       setContextNotice('');
       setMoment(blankMoment());
@@ -267,6 +269,7 @@ export function useTalkSession() {
       if (connectPending.current) return;
       const voice = voiceRef.current;
       if (!voice) return;
+      voiceRequested.current = true;
       connectPending.current = true;
       const attempt = ++connectAttempt.current;
       setError('');
@@ -281,7 +284,6 @@ export function useTalkSession() {
         await voice.connect(
           session,
           currentContext.current.messages,
-          undefined,
           currentContext.current.moment,
           reconnecting,
           true,
@@ -348,8 +350,6 @@ export function useTalkSession() {
       } else if (quietMusicReturn) {
         setQuietReturnMessage('Music may still be playing. Voice is paused; resume it when you are ready.');
         updateTextMode(true);
-      } else if (!textModeRef.current) {
-        void connect();
       }
       let wasBackgrounded = false;
       const subscription = AppState.addEventListener('change', (nextState) => {
@@ -358,6 +358,7 @@ export function useTalkSession() {
           voiceRef.current?.cancel();
         } else if (
           wasBackgrounded &&
+          voiceRequested.current &&
           !textModeRef.current &&
           ['disconnected', 'reconnecting', 'error'].includes(connectionRef.current)
         ) {
@@ -373,7 +374,7 @@ export function useTalkSession() {
         subscription.remove();
         stopVoice();
       };
-    }, [activeVoice, connect, stopVoice, updateTextMode]),
+      }, [activeVoice, connect, stopVoice, updateTextMode]),
   );
 
   async function sendText(retryContent?: string) {
@@ -406,25 +407,52 @@ export function useTalkSession() {
     setError('');
     setFailedText('');
     const attempt = ++textAttempt.current;
+    textRequest.current?.abort();
+    const requestController = new AbortController();
+    textRequest.current = requestController;
+    const requestTimeout = setTimeout(() => requestController.abort(), 45000);
     const next = retryContent ? messages : [...messages, { role: 'user' as const, content }];
     if (!retryContent) {
       setMessages(next);
       setText('');
     }
     try {
-      const current = await getSession();
+      let current = await getSession();
       if (attempt !== textAttempt.current) return;
-      const result = await request<{
+      const prepareBody = async () => {
+        const approvedContext = await selectTalkContext(content);
+        const revision = await currentConsentRevision();
+        if (revision !== approvedContext.revision) throw new Error('Shared context changed. Retry to use current consent.');
+        return {
+          messages: next,
+          context_matches: approvedContext.matches,
+          approved_preferences: approvedContext.preferences,
+          consent_revision: revision,
+          declined_interventions: [...declinedInterventions.current],
+          moment_state: moment,
+          client_activity_capabilities: activityCapabilities(),
+        };
+      };
+      let body = await prepareBody();
+      if (attempt !== textAttempt.current) return;
+      const path = `/sessions/${current.session_id}/text`;
+      type TextReply = {
         text: string;
         moment_state: MomentState;
         context_matches: ContextMatch[];
         decision: SupportDecision;
-      }>(`/sessions/${current.session_id}/text`, current, {
-        messages: next,
-        feedback_id: null,
-        moment_state: moment,
-        client_activity_capabilities: activityCapabilities(),
-      });
+      };
+      let result: TextReply;
+      try {
+        result = await request<TextReply>(path, current, body, undefined, { signal: requestController.signal });
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.status !== 401 || attempt !== textAttempt.current || requestController.signal.aborted) throw error;
+        current = await renewDemoSession(current);
+        if (attempt !== textAttempt.current) return;
+        body = await prepareBody();
+        if (attempt !== textAttempt.current) return;
+        result = await request<TextReply>(`/sessions/${current.session_id}/text`, current, body, undefined, { signal: requestController.signal });
+      }
       if (attempt !== textAttempt.current) return;
       activeVoice?.addTextMessages([
         { role: 'user', content },
@@ -446,42 +474,19 @@ export function useTalkSession() {
           : 'No relevant shared context matched. Mira is continuing without it.',
       );
       handleDecision(result.decision);
-    } catch (e) {
+    } catch {
       if (attempt === textAttempt.current) {
         setFailedText(content);
         setWaitingForReply(false);
       }
     } finally {
+      clearTimeout(requestTimeout);
+      if (textRequest.current === requestController) textRequest.current = undefined;
       if (attempt === textAttempt.current) setSending(false);
     }
   }
 
   const ready = connectionState === 'ready';
-  const statusText = textMode
-    ? 'Text mode'
-    : sessionEnded
-    ? 'Voice ended'
-    : connectionState === 'connecting'
-      ? 'Getting voice ready…'
-      : connectionState === 'reconnecting'
-        ? 'Reconnecting…'
-        : connectionState === 'error'
-          ? 'Voice needs attention'
-        : turnState === 'starting'
-          ? 'Turning microphone on…'
-        : turnState === 'recording'
-          ? 'Listening'
-          : turnState === 'finalizing'
-            ? 'Sending…'
-          : turnState === 'processing'
-            ? 'Thinking'
-            : turnState === 'speaking'
-              ? 'Speaking'
-              : turnState === 'failed' || error
-                ? 'That turn didn’t go through'
-              : connectionState === 'ready'
-                ? 'Voice ready'
-                : 'Voice is off';
   const controlCaption = textMode
     ? 'Text mode'
     : sessionEnded

@@ -8,3 +8,7 @@ ios/
 !.env.example
 *.log
 tests/
+**/server/**
+*.db
+*.db-*
+*.sqlite*

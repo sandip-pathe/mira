@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-import { File } from 'expo-file-system';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActionButton, Eyebrow, ui, colors } from '../../components/ui';
 import { FeedbackSection } from './components/FeedbackSection';
@@ -38,7 +37,7 @@ export default function JournalEntryScreen() {
     excerpt,
     setExcerpt,
     voiceNotes,
-    setVoiceNotes,
+    deleteVoiceNote,
     selectedPrompt,
     draft,
     setDraft,
@@ -55,7 +54,6 @@ export default function JournalEntryScreen() {
     background,
     foreground,
     subtle,
-    closeJournal,
     saveCurrentSession,
     saveEntry,
     saveExcerpt,
@@ -64,6 +62,9 @@ export default function JournalEntryScreen() {
     saveVoiceNote,
     choosePrompt,
     deleteEntry,
+    followUpRetry,
+    retryFollowUp,
+    followingUp,
   } = journal;
 
   useFocusEffect(React.useCallback(() => () => closeRef.current(), []));
@@ -109,50 +110,52 @@ export default function JournalEntryScreen() {
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            {messages.map((message) =>
-              message.role === 'assistant' ? (
-                <View key={message.id} style={styles.exchange}>
-                  <Text style={[styles.promptText, { color: foreground, fontSize: fontSize + 3 }]}>
-                    {message.content}
-                  </Text>
-                </View>
-              ) : (
-                (() => {
-                  const entry = entries.find((item) => item.id === message.entry_id);
-                  return (
-                    <View key={message.id} style={styles.exchange}>
-                      <Pressable
-                        onLongPress={() => !currentSaved && entry && deleteEntry(entry)}
-                        delayLongPress={450}
-                        accessibilityHint={
-                          !currentSaved ? 'Long press to delete this entry' : undefined
-                        }
-                      >
-                        <Text style={[styles.entryText, { color: foreground, fontSize }]}>
-                          {message.content}
-                        </Text>
-                        <Text style={[styles.entryDate, { color: subtle }]}>
-                          {new Date(message.created_at * 1000).toLocaleDateString()}
-                        </Text>
-                      </Pressable>
-                      {entry && (
+            {messages
+              .filter((message) => currentSaved || entries.length > 0 || message.entry_id)
+              .map((message) =>
+                message.role === 'assistant' ? (
+                  <View key={message.id} style={styles.exchange}>
+                    <Text
+                      style={[styles.promptText, { color: foreground, fontSize: fontSize + 3 }]}
+                    >
+                      {message.content}
+                    </Text>
+                  </View>
+                ) : (
+                  (() => {
+                    const entry = entries.find((item) => item.id === message.entry_id);
+                    return (
+                      <View key={message.id} style={styles.exchange}>
                         <Pressable
-                          onPress={() => {
-                            setSelectedEntry(entry);
-                            setExcerpt(entry.text.slice(0, 500));
-                          }}
-                          style={styles.changePrompt}
+                          onLongPress={() => !busy && entry && deleteEntry(entry)}
+                          delayLongPress={450}
+                          accessibilityHint={'Long press to delete this entry'}
                         >
-                          <Text style={[styles.changePromptText, { color: subtle }]}>
-                            Choose excerpt for Talk
+                          <Text style={[styles.entryText, { color: foreground, fontSize }]}>
+                            {message.content}
+                          </Text>
+                          <Text style={[styles.entryDate, { color: subtle }]}>
+                            {new Date(message.created_at * 1000).toLocaleDateString()}
                           </Text>
                         </Pressable>
-                      )}
-                    </View>
-                  );
-                })()
-              ),
-            )}
+                        {entry && (
+                          <Pressable
+                            onPress={() => {
+                              setSelectedEntry(entry);
+                              setExcerpt(entry.text.slice(0, 500));
+                            }}
+                            style={styles.changePrompt}
+                          >
+                            <Text style={[styles.changePromptText, { color: subtle }]}>
+                              Choose excerpt for Talk
+                            </Text>
+                          </Pressable>
+                        )}
+                      </View>
+                    );
+                  })()
+                ),
+              )}
 
             {!currentSaved ? (
               <View style={styles.activeExchange}>
@@ -179,6 +182,7 @@ export default function JournalEntryScreen() {
                   accessibilityLabel="Journal response"
                   multiline
                   value={draft}
+                  maxLength={12000}
                   onChangeText={setDraft}
                   editable={!busy && !audio.recording}
                   placeholder="Start writing..."
@@ -210,10 +214,15 @@ export default function JournalEntryScreen() {
                   </Pressable>
                   {audio.uri && (
                     <View style={{ flexDirection: 'row', gap: 8 }}>
-                      <ActionButton label="Save voice note" onPress={saveVoiceNote} />
+                      <ActionButton
+                        label="Save voice note"
+                        disabled={busy}
+                        onPress={() => void saveVoiceNote()}
+                      />
                       <ActionButton
                         label="Discard"
                         variant="quiet"
+                        disabled={busy}
                         onPress={() => audio.discard()}
                       />
                     </View>
@@ -234,11 +243,7 @@ export default function JournalEntryScreen() {
                     uri={note.uri}
                     createdAt={note.created_at}
                     onDelete={() => {
-                      try {
-                        const file = new File(note.uri);
-                        if (file.exists) file.delete();
-                      } catch {}
-                      setVoiceNotes((items) => items.filter((item) => item.id !== note.id));
+                      if (!busy) void deleteVoiceNote(note.id);
                     }}
                   />
                 ))}
@@ -261,10 +266,24 @@ export default function JournalEntryScreen() {
               recording={audio.recording}
               onAction={(id, action, enabled) => void feedbackAction(id, action, enabled)}
             />
+            {followUpRetry && (
+              <ActionButton
+                label="Retry follow-up"
+                variant="quiet"
+                disabled={busy || followingUp}
+                onPress={() => void retryFollowUp()}
+              />
+            )}
             <ActionButton
               label="Save session"
               variant="quiet"
-              disabled={busy || audio.recording || currentSaved || !entries.length}
+              disabled={
+                busy ||
+                audio.recording ||
+                !!audio.uri ||
+                currentSaved ||
+                (!entries.length && !draft.trim() && !voiceNotes.length)
+              }
               onPress={() => void saveAndReturn()}
             />
             <View style={{ height: 110 }} />

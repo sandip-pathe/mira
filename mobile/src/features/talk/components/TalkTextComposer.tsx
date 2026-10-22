@@ -1,104 +1,54 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import React from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { useTheme } from '../../../components/ui';
 
-export function TalkTextComposer({
-  text,
-  onChangeText,
-  onSend,
-  sending,
-  onSwitchToVoice,
-}: {
+export function TalkTextComposer({ text, onChangeText, onSend, sending, onSwitchToVoice }: {
   text: string;
   onChangeText: (value: string) => void;
   onSend: () => void;
   sending: boolean;
   onSwitchToVoice: () => void;
 }) {
-  const [inputHeight, setInputHeight] = useState(44);
-  const hasText = !!text.trim();
-
+  const { colors, typography } = useTheme();
+  const { fontScale } = useWindowDimensions();
+  const [inputHeight, setInputHeight] = React.useState(48);
+  const maximumHeight = Math.max(96, Math.ceil(96 * fontScale));
+  const disabled = !text.trim() || sending;
   return (
-    <View style={styles.row}>
-      <View style={styles.composer}>
+    <View style={[styles.area, { backgroundColor: colors.canvas }]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Switch to voice" onPress={onSwitchToVoice} style={({ pressed }) => [styles.voice, pressed && { backgroundColor: colors.soft }]}>
+        <MaterialDesignIcons name="microphone-outline" size={20} color={colors.primary} />
+        <Text style={[typography.button, { color: colors.primary }]}>Switch to voice</Text>
+      </Pressable>
+      <View style={[styles.composer, { backgroundColor: colors.surface, borderColor: colors.line }]}>
         <TextInput
-          accessibilityLabel="Text message"
+          accessibilityLabel="Message to Mira"
           value={text}
           onChangeText={onChangeText}
           multiline
-          scrollEnabled={inputHeight >= 88}
-          onContentSizeChange={(event) =>
-            setInputHeight(Math.min(88, Math.max(44, event.nativeEvent.contentSize.height)))
-          }
-          style={[styles.input, { height: inputHeight }]}
-          placeholder="Write a message"
-          placeholderTextColor="#26312E"
+          scrollEnabled={inputHeight >= maximumHeight}
+          onContentSizeChange={({ nativeEvent }) => setInputHeight(Math.max(48, nativeEvent.contentSize.height))}
+          style={[typography.body, styles.input, { color: colors.ink, height: Math.min(maximumHeight, inputHeight) }]}
+          placeholder="Write a message…"
+          placeholderTextColor={colors.muted}
+          selectionColor={colors.primary}
+          cursorColor={colors.primary}
           textAlignVertical="center"
           returnKeyType="default"
         />
+        <Pressable accessibilityRole="button" accessibilityLabel="Send message" accessibilityState={{ disabled, busy: sending }} disabled={disabled} onPress={onSend} style={({ pressed }) => [styles.send, { backgroundColor: disabled ? colors.disabled : pressed ? colors.pressed : colors.primary }]}>
+          {sending ? <ActivityIndicator color={colors.disabledInk} /> : <MaterialDesignIcons name="arrow-up" size={24} color={disabled ? colors.disabledInk : colors.onPrimary} />}
+        </Pressable>
       </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={hasText ? 'Send message' : 'Switch to voice mode'}
-        accessibilityState={{ disabled: hasText && sending, busy: sending }}
-        disabled={hasText && sending}
-        onPress={hasText ? onSend : onSwitchToVoice}
-        style={styles.sendButton}
-      >
-        {hasText ? (
-          <Text style={styles.sendIcon}>{sending ? '…' : '➤'}</Text>
-        ) : (
-          <MaterialDesignIcons name="microphone" size={32} color="#F6f6f6" />
-        )}
-      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    width: '100%',
-    maxWidth: 660,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 8,
-    backgroundColor: '#F2F3EC',
-    gap: 8,
-  },
-  composer: {
-    flex: 1,
-    minHeight: 50,
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingLeft: 14,
-    paddingRight: 6,
-    paddingVertical: 3,
-    gap: 6,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#D3D9D1',
-    backgroundColor: '#FFFDF9',
-  },
-  input: {
-    flex: 1,
-    minHeight: 44,
-    maxHeight: 88,
-    paddingTop: 10,
-    paddingBottom: 8,
-    fontSize: 16,
-    lineHeight: 22,
-    color: '#203A35',
-  },
-  sendButton: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#397D5E',
-  },
-  sendIcon: { color: '#FFFFFF', fontSize: 17, lineHeight: 21, fontWeight: '700' },
+  area: { width: '100%', maxWidth: 660, alignSelf: 'center', paddingHorizontal: 22, paddingTop: 4, paddingBottom: 18, gap: 4 },
+  voice: { minHeight: 48, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8, borderRadius: 16 },
+  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, borderWidth: 1, borderRadius: 24, paddingLeft: 16, paddingRight: 4, paddingVertical: 4 },
+  input: { flex: 1, minHeight: 48, paddingVertical: 12 },
+  send: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
 });

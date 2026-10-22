@@ -1,31 +1,17 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Message } from '../../../shared/api';
+import type { Message } from '../../../shared/api';
+import { useTheme } from '../../../components/ui';
 
 export function ConversationMessages({ messages }: { messages: Message[] }) {
-  const currentExchangeStart = messages.reduce(
-    (latest, message, index) => (message.role === 'user' ? index : latest),
-    Math.max(0, messages.length - 1),
-  );
-  return (
-    <>
-      {messages.map((message, index) => (
-        <View
-          key={`${index}-${message.role}`}
-          style={[styles.message, index < currentExchangeStart && styles.previousMessage]}
-        >
-          <Text style={[styles.body, message.role === 'user' && styles.userBody]}>
-            {message.content}
-          </Text>
-        </View>
-      ))}
-    </>
-  );
+  const { colors, typography } = useTheme();
+  return <>
+    {messages.map((message, index) => <View key={index + '-' + message.role} style={[styles.message, { alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start', backgroundColor: message.role === 'user' ? colors.soft : colors.surface }]}>
+      <Text style={[typography.body, { color: colors.ink }]}>{message.content}</Text>
+    </View>)}
+  </>;
 }
 
 const styles = StyleSheet.create({
-  message: { paddingHorizontal: 6, paddingVertical: 8 },
-  previousMessage: { opacity: 0.6 },
-  body: { fontSize: 18, lineHeight: 27, color: '#263F3A' },
-  userBody: { fontWeight: '700' },
+  message: { maxWidth: '92%', paddingHorizontal: 16, paddingVertical: 14, borderRadius: 18 },
 });

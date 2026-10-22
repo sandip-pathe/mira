@@ -1,0 +1,436 @@
+{
+  "retrieved_at": "2026-10-20T17:43:45.723471+00:00",
+  "groups": [
+    {
+      "id": "finch-reflection",
+      "title": "Finch: browse to reflection",
+      "source_url": "https://revyl.com/atlas/finch/",
+      "platform": "iOS; source build/date unknown",
+      "evidence_kind": "mapped flow screenshots",
+      "assets": [
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/finch/activities-hub.png",
+          "label": "1 Activities hub",
+          "local_path": "references/finch-reflection/01.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "6ba07c8411f56620e450cebdbfd23d7835b75645a08faf5e90aaa903e2db2bca",
+          "retrieved_at": "2026-10-20T17:43:34.544623+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/finch/activity-reflections-calm.png",
+          "label": "2 Reflection prompts",
+          "local_path": "references/finch-reflection/02.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "d4744b6da8e4cb4b3475304ddd50c991ac13988f4923ecab030e72b369710581",
+          "retrieved_at": "2026-10-20T17:43:34.484354+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/finch/reflection-editor.png",
+          "label": "3 Empty editor",
+          "local_path": "references/finch-reflection/03.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "19f73fbeb980018d7b41a064fdd94859fa8b8286ed5361ee6646f515cb5bf3e0",
+          "retrieved_at": "2026-10-20T17:43:34.281247+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/finch/reflection-editor-filled.png",
+          "label": "4 Written entry",
+          "local_path": "references/finch-reflection/04.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "d2dd819a88d71c3803c69c6ff8f8583fa6f1e92df6b4cf2485bd2bbd560e7f0c",
+          "retrieved_at": "2026-10-20T17:43:34.281247+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/finch/reflection-save-reward.png",
+          "label": "5 Save reward",
+          "local_path": "references/finch-reflection/05.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "5bbed9a932cfe90dd1d7e03d7c34b50fe5e4700bf4c60c0a3926733879e6ad42",
+          "retrieved_at": "2026-10-20T17:43:35.442472+00:00"
+        }
+      ],
+      "strip_path": "references/finch-reflection/strip.jpg",
+      "mira_surfaces": "Talk · Activities · Journal",
+      "observations": "Illustration gives way to a focused prompt and spacious editor. Action choices use icons plus labels. Completion is a separate sheet. The reward economy and long onboarding are not requirements for Mira."
+    },
+    {
+      "id": "duolingo-states",
+      "title": "Duolingo: lesson input and completion",
+      "source_url": "https://revyl.com/atlas/duolingo/",
+      "platform": "iOS; source build/date unknown",
+      "evidence_kind": "related exercise states; not one continuous recording",
+      "assets": [
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/duolingo/lesson-image-select.png",
+          "label": "1 Image selection",
+          "local_path": "references/duolingo-states/01.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "0f6472af9ee17452c57cc19661a99234f4b07a0fc671b13ed8f8417f44b8c115",
+          "retrieved_at": "2026-10-20T17:43:35.751859+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/duolingo/lesson-word-bank.png",
+          "label": "2 Word selection",
+          "local_path": "references/duolingo-states/02.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "21a66fae25fedd547a5400a90ccb576b7cf643465768a6001abb55798f5a4f56",
+          "retrieved_at": "2026-10-20T17:43:35.673956+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/duolingo/lesson-listen.png",
+          "label": "3 Listening",
+          "local_path": "references/duolingo-states/03.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "95f9f5e014f551fd5e2c6509cb5a91ba8bc6e2f0fec70d486b30bf63a8715070",
+          "retrieved_at": "2026-10-20T17:43:35.750537+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/duolingo/lesson-speaking.png",
+          "label": "4 Speaking",
+          "local_path": "references/duolingo-states/04.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "e080f1591b9c1072f8412020f1bfb47fed88027383f9eff3005a199b41ace946",
+          "retrieved_at": "2026-10-20T17:43:36.686861+00:00"
+        },
+        {
+          "url": "https://pub-b85a7585b1c04c99aa7d0eca27c0d3dd.r2.dev/duolingo/lesson-complete.png",
+          "label": "5 Returned to path",
+          "local_path": "references/duolingo-states/05.png",
+          "width": 1290,
+          "height": 2796,
+          "sha256": "51975efbb761acd3f17a1cfe8b343aa0bfb4b833b7b9d42a12c488c20b9977e6",
+          "retrieved_at": "2026-10-20T17:43:36.818987+00:00"
+        }
+      ],
+      "strip_path": "references/duolingo-states/strip.jpg",
+      "mira_surfaces": "Supplement: input modes",
+      "observations": "Images, listening and speaking use distinct instructions and controls. The source calls the final image completion, but it actually shows the path screen; it is labeled here by what is visible."
+    },
+    {
+      "id": "dayone-editor",
+      "title": "Day One: contextual Android editor",
+      "source_url": "https://dayoneapp.com/guides/day-one-for-android/editing-and-formatting-entries-in-day-one-for-android/",
+      "platform": "Android; official guide images dated July 2026",
+      "evidence_kind": "documented editor states; selection is a separate branch",
+      "assets": [
+        {
+          "url": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=442%2C1024&quality=80&ssl=1",
+          "label": "1 default toolbar",
+          "alt": "Day One Android editor default toolbar showing Add attachment, Add media, AI, and Formatting buttons",
+          "local_path": "references/dayone-editor/01.png",
+          "width": 442,
+          "height": 1024,
+          "sha256": "ed454a7500337d189e2e13d5802cf801281f442a73e0d5edffadd16ca1409271",
+          "retrieved_at": "2026-10-20T17:43:35.885535+00:00"
+        },
+        {
+          "url": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=442%2C1024&quality=80&ssl=1",
+          "label": "2 tap formatting button",
+          "alt": "Tapping the Formatting button in the Day One Android editor toolbar",
+          "local_path": "references/dayone-editor/02.png",
+          "width": 442,
+          "height": 1024,
+          "sha256": "5b2b72fb4956cfd4aaaea0cd129241af4aac3b9653f28da2f74809a43cfa20f8",
+          "retrieved_at": "2026-10-20T17:43:36.111826+00:00"
+        },
+        {
+          "url": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=509%2C1024&quality=80&ssl=1",
+          "label": "3 tap heading dropdown",
+          "alt": "Formatting bar open in the Day One Android editor with the Heading dropdown highlighted",
+          "local_path": "references/dayone-editor/03.png",
+          "width": 509,
+          "height": 1024,
+          "sha256": "76928842e05ea8af2fcd90393b190b183fff60fcaf95be0deef8943506e60f5c",
+          "retrieved_at": "2026-10-20T17:43:36.949148+00:00"
+        },
+        {
+          "url": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=509%2C1024&quality=80&ssl=1",
+          "label": "4 heading picker sheet",
+          "alt": "Heading picker bottom sheet showing Title, Subtitle, Heading, Subheading, Section, and Subsection options",
+          "local_path": "references/dayone-editor/04.png",
+          "width": 509,
+          "height": 1024,
+          "sha256": "79d8078702fe1aa39a111bab7dd17ee64332155eb4ee04ec100f90475455a058",
+          "retrieved_at": "2026-10-20T17:43:37.107013+00:00"
+        },
+        {
+          "url": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=442%2C1024&quality=80&ssl=1",
+          "label": "5 selection toolbar",
+          "alt": "Day One Android editor selection toolbar with Bold, Italic, Underline, Italic, Strikethrough, Link, Inline code, and Highlight options after selecting text",
+          "local_path": "references/dayone-editor/05.png",
+          "width": 442,
+          "height": 1024,
+          "sha256": "4d52e4c3402604ad606696aedb65752203cc9a3c6f83f95d4d26690c35e36dd4",
+          "retrieved_at": "2026-10-20T17:43:37.035470+00:00"
+        }
+      ],
+      "strip_path": "references/dayone-editor/strip.jpg",
+      "mira_surfaces": "Journal",
+      "observations": "The writing surface and toolbar change with editing context. Keyboard-visible screenshots show the tools just above the keyboard; the heading chooser is a separate sheet. This is not evidence that every formatting tool belongs in Mira."
+    },
+    {
+      "id": "howwefeel-store",
+      "title": "How We Feel: store reference set",
+      "source_url": "https://play.google.com/store/apps/details?id=org.howwefeel.moodmeter&hl=en&gl=in",
+      "platform": "Android Google Play listing; build not identified",
+      "evidence_kind": "marketing screenshots; not sequential flow evidence",
+      "assets": [
+        {
+          "url": "https://play-lh.googleusercontent.com/OGpcIOJSZAWSL1sORRSe8METfYuPdUpScbYnTOGWwDeMMOMlcNrjPvpbTRHZH3PvcrKTDFWLYPedONN4fyiCIg",
+          "label": "1 Store panel",
+          "local_path": "references/howwefeel-store/01.png",
+          "width": 288,
+          "height": 512,
+          "sha256": "f65faa58c25c1d9d484539841212abe96601e0f485a3f2752901e3d28835fdb9",
+          "retrieved_at": "2026-10-20T17:43:37.119100+00:00"
+        },
+        {
+          "url": "https://play-lh.googleusercontent.com/Zd1ZNpbRMsh9XnoP5ADN59Bicf6fmXGfumpRy5hIKhESSCARwZ1Pjz_gnfhi36X_P6C3gFsF6EMd1-YjFVaJfoE",
+          "label": "2 Store panel",
+          "local_path": "references/howwefeel-store/02.png",
+          "width": 288,
+          "height": 512,
+          "sha256": "c2a1ee43753ac1c4ee59ddebd6a7547205cdcc79fc964562e63b71524528671f",
+          "retrieved_at": "2026-10-20T17:43:37.686656+00:00"
+        },
+        {
+          "url": "https://play-lh.googleusercontent.com/M2kk41q0JedU5cRxu42MQ69VPnuSbT-UKLcLIhLJjsg4J3FnUnVHNZT3iFJT2QIqDZammDIlmr-x333DBsg-lQ",
+          "label": "3 Store panel",
+          "local_path": "references/howwefeel-store/03.png",
+          "width": 288,
+          "height": 512,
+          "sha256": "d32c71378084fe7823145173d6af2f9f12264b8784d1479bb0d6fc0fca536dc8",
+          "retrieved_at": "2026-10-20T17:43:37.601457+00:00"
+        },
+        {
+          "url": "https://play-lh.googleusercontent.com/OBXXsstIxBgHv5FVEh-A_rKJVS19OV7QunpGE45IgTBFRd9Vzau6i3KP2rWGv7x0uetNJJhzAqJQrBeLl_2E",
+          "label": "4 Store panel",
+          "local_path": "references/howwefeel-store/04.png",
+          "width": 288,
+          "height": 512,
+          "sha256": "6dd098659fec4247d18c2aefd077741e4f1a68e0428fdb0013c911a28c562fa5",
+          "retrieved_at": "2026-10-20T17:43:37.786049+00:00"
+        },
+        {
+          "url": "https://play-lh.googleusercontent.com/6CPWPa_sCCBsQHNYTgD3VbwR34sA-m5E_fwI0EFj_t_Ty-VxtY-ARBnmAU5N8AwOX8CWHDiTpuaEV3a2e-TWw8k",
+          "label": "5 Store panel",
+          "local_path": "references/howwefeel-store/05.png",
+          "width": 288,
+          "height": 512,
+          "sha256": "23a2e279d5d63ed8c898dd1a8210fa4000a718b03b834c6070eb8a0445363568",
+          "retrieved_at": "2026-10-20T17:43:37.780436+00:00"
+        }
+      ],
+      "strip_path": "references/howwefeel-store/strip.jpg",
+      "mira_surfaces": "Supplement: color and shape language",
+      "observations": "The store set shows an expressive shape vocabulary and a consistent visual world. It is marketing imagery with historical dates visible, not a verified current flow or a reason to force dark mode."
+    },
+    {
+      "id": "whatsapp-features",
+      "title": "WhatsApp: documented voice feedback",
+      "source_url": "https://about.fb.com/news/2022/03/new-voice-message-features-on-whatsapp/",
+      "platform": "Official historical feature announcement, March 2022",
+      "evidence_kind": "feature graphics; not sequential flow evidence",
+      "assets": [
+        {
+          "url": "https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?resize=890%2C501",
+          "label": "1 Voice feature graphic",
+          "local_path": "references/whatsapp-features/01.png",
+          "width": 890,
+          "height": 501,
+          "sha256": "d5315736eb4039cd63e1e2f67a58e320e34c61aa57d329193227dff95cbd864c",
+          "retrieved_at": "2026-10-20T17:43:37.770462+00:00"
+        },
+        {
+          "url": "https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?resize=890%2C501",
+          "label": "2 Voice feature graphic",
+          "local_path": "references/whatsapp-features/02.png",
+          "width": 890,
+          "height": 501,
+          "sha256": "71d9abe8024c31203b240ad246415606c130db5c7adf0bc49779dc0d9d6eb625",
+          "retrieved_at": "2026-10-20T17:43:38.610425+00:00"
+        }
+      ],
+      "strip_path": "references/whatsapp-features/strip.jpg",
+      "mira_surfaces": "Supplement: Talk voice feedback",
+      "observations": "Official feature diagrams document waveform, pause/resume and preview. Only two static graphics were available here; this is not a recording sequence and does not authorize mic locking in Mira."
+    },
+    {
+      "id": "keep-voice",
+      "title": "Google Keep: historical voice capture",
+      "source_url": "https://blog.google/products-and-platforms/products/workspace/8-tips-help-you-keep-google-keep/",
+      "platform": "Android demonstration; official article 2017",
+      "evidence_kind": "keyframes from official animated GIF; GIF cadence is not device performance",
+      "assets": [
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "0.00s",
+          "local_path": "references/keep-voice/01.png",
+          "source_frame_time_ms": 0,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/01-display-crop.png"
+        },
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "2.20s",
+          "local_path": "references/keep-voice/02.png",
+          "source_frame_time_ms": 2200,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/02-display-crop.png"
+        },
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "4.40s",
+          "local_path": "references/keep-voice/03.png",
+          "source_frame_time_ms": 4400,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/03-display-crop.png"
+        },
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "6.60s",
+          "local_path": "references/keep-voice/04.png",
+          "source_frame_time_ms": 6600,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/04-display-crop.png"
+        },
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "8.80s",
+          "local_path": "references/keep-voice/05.png",
+          "source_frame_time_ms": 8800,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/05-display-crop.png"
+        },
+        {
+          "url": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+          "label": "10.80s",
+          "local_path": "references/keep-voice/06.png",
+          "source_frame_time_ms": 10800,
+          "width": 1000,
+          "height": 563,
+          "display_crop": [
+            380,
+            40,
+            625,
+            523
+          ],
+          "display_path": "references/keep-voice/06-display-crop.png"
+        }
+      ],
+      "motion_path": "references/keep-voice/source.gif",
+      "source_duration_ms": 11030,
+      "source_frame_count": 331,
+      "strip_path": "references/keep-voice/strip.jpg",
+      "mira_surfaces": "Talk · Activities · Journal",
+      "observations": "The existing note collection leads to an explicit capture dialog, then visible text/audio output and a return to the collection. The 2017 demo is evidence of the sequence, not current Keep styling or performance."
+    },
+    {
+      "id": "duolingo-feedback",
+      "title": "Duolingo: answer and character feedback",
+      "source_url": "https://blog.duolingo.com/building-character/",
+      "platform": "official historical demonstration; article 2021",
+      "evidence_kind": "keyframes from official animated GIF; GIF cadence is not device performance",
+      "assets": [
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "0.00s",
+          "local_path": "references/duolingo-feedback/01.png",
+          "source_frame_time_ms": 0,
+          "width": 321,
+          "height": 661
+        },
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "0.90s",
+          "local_path": "references/duolingo-feedback/02.png",
+          "source_frame_time_ms": 900,
+          "width": 321,
+          "height": 661
+        },
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "1.83s",
+          "local_path": "references/duolingo-feedback/03.png",
+          "source_frame_time_ms": 1830,
+          "width": 321,
+          "height": 661
+        },
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "2.76s",
+          "local_path": "references/duolingo-feedback/04.png",
+          "source_frame_time_ms": 2760,
+          "width": 321,
+          "height": 661
+        },
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "3.69s",
+          "local_path": "references/duolingo-feedback/05.png",
+          "source_frame_time_ms": 3690,
+          "width": 321,
+          "height": 661
+        },
+        {
+          "url": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+          "label": "4.50s",
+          "local_path": "references/duolingo-feedback/06.png",
+          "source_frame_time_ms": 4500,
+          "width": 321,
+          "height": 661
+        }
+      ],
+      "motion_path": "references/duolingo-feedback/source.gif",
+      "source_duration_ms": 4620,
+      "source_frame_count": 154,
+      "strip_path": "references/duolingo-feedback/strip.jpg",
+      "mira_surfaces": "Talk · Activities · Journal",
+      "observations": "Answer selection, enabled Check, localized character reaction, and Continue are visibly different states. Borrow responsive acknowledgment and a coherent character world, not scores or a right/wrong model for feelings."
+    }
+  ]
+}

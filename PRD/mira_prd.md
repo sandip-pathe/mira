@@ -1,5 +1,7 @@
 # Mira Product Requirements
 
+**Demo capability direction (2026-10-20):** We do not want to hold back on technology or capabilities. The pitch/demo should demonstrate Mira's actual potential through useful AI assistance, distinctive visuals, expressive interaction, sound, and touch where they improve the experience. Production readiness and later hardening must not become blanket reasons to simplify the product into passive worksheets. Resolve specific issues with concrete implementation choices; track later hardening separately. The separate [activity upgrade plan](mira_activity_upgrade_plan.md) reviews and develops the proposed next version; its implementation steps are planned work, not completed features.
+
 **Status:** Existing Android app. This document defines V0.03 contracts and completion criteria. The approved activity catalog and Actions/Continue extension are specified by the [Nine Activities Master Blueprint](Mira_Nine_Activities_Master_Blueprint_v2.1.md), revision 2.2. Acceptance remains to be verified.
 **Date:** 2026-10-19
 **Audience:** Mira builders; Mpower product and clinical reviewers  
@@ -157,43 +159,35 @@ Memory remains limited to useful preferences, for example “usually wants to ta
 
 ## 9. Backend and AI design
 
-Keep one FastAPI service. Separate the three responsibilities into files so catalog edits, model changes, and eligibility rules can be reviewed independently:
+The phone owns product state and private saved data. FastAPI is a worker boundary for explicitly requested online operations. It does not own Journal, preference, activity, or conversation storage.
 
 ```text
 server/
-  app.py                         API routes, session, consent, orchestration
-  store.py                       existing SQLite persistence
+  app.py                         worker routes, temporary session, orchestration
   interventions/
-    catalog.py                   versioned canonical activity data
-    decision.py                  replaceable selector interface and GPT adapter
-    eligibility.py               deterministic eligibility checks
+    catalog.py                   selector's canonical activity definitions
+    decision.py                  structured support selection
+    eligibility.py               deterministic selector eligibility
 ```
 
 ```mermaid
 sequenceDiagram
-    participant App as Expo app
-    participant API as FastAPI
-    participant Rules as Eligibility module
-    participant AI as Decision adapter
-    participant Catalog as Catalog data
-    participant DB as SQLite
-    App->>API: Current turn and session capability
-    API->>API: Load only approved context and run fixed safety boundary
-    API->>Rules: Filter catalog against current constraints
-    Rules-->>API: Eligible catalog entries
-    API->>AI: Context plus eligible entries
-    AI-->>API: Structured route and ranked IDs
-    API->>Rules: Validate returned IDs again
-    API->>Catalog: Load canonical activity content
-    API-->>App: Listen, clarify, support route, or one offer
-    App->>App: Ask permission, then show Do experience
-    App->>API: Feedback and separate save-preference choice
-    API->>DB: Save only permitted data
+    participant App as Phone app
+    participant Local as Device SQLite
+    participant API as FastAPI worker
+    participant AI as OpenAI
+    App->>Local: Select only relevant, consented context
+    App->>API: Requested operation + bounded context
+    API->>API: Check expiring session capability
+    API->>AI: Process this request
+    AI-->>API: Text / structured result / credential
+    API-->>App: Return worker result
+    App->>Local: Save private data locally when appropriate
 ```
 
-The decision adapter is the only model-specific boundary. Use GPT for V0.03. Keep the input/output contract independent of GPT so a later model such as Jev can replace it without changing catalog data or eligibility. Do not build Jev, agents, a second service, or a model comparison now.
+The phone bundles activity content and runs activity lifecycles. It chooses any relevant Journal excerpts or opted-in activity preferences locally, then sends only bounded selected context with a user-requested Talk worker call. The server validates requests and the model's structured selector result against the eligible catalog. An offer never starts an activity; the person confirms on the phone.
 
-FastAPI continues to own session checks, consent, catalog validation, persistence, and tool execution. The model never supplies a user ID, bypasses consent, or writes directly to SQLite. Keep the existing server-side API key and expiring session capability rules.
+FastAPI keeps an expiring demo capability and temporary tool-call bookkeeping in process memory. It has no account system or private-data database. Current worker routes include `/text`, `/voice`, `/voice/transcription`, `/tool-calls`, `/tools`, `/journal-follow-up`, `/transcriptions`, and `/task-reset/organize`. Old private-data endpoints return an update-required response. The long-lived OpenAI API key stays on the server; provider-side processing and retention are separate from Mira's server-storage policy.
 
 ## 10. Voice, privacy, and help boundaries
 
@@ -201,7 +195,7 @@ FastAPI continues to own session checks, consent, catalog validation, persistenc
 - Mic is off by default. Preserve explicit hold-to-talk: set `turn_detection: null`, enable the mic only while held, clear the input buffer on press, cancel and clear Mira's output when interrupted, then commit input and request a response on release. No automatic voice detection.
 - If voice disconnects, preserve the visible conversation and offer Retry voice or Continue with text through the existing OpenAI/FastAPI path. If the provider or server is unavailable, say Mira is temporarily offline; keep Journal drafts and previously loaded activity content usable.
 - Do not retain raw Talk transcripts or raw voice audio. Journal voice transcripts are editable before save. Journal entries are private by default; the person selects and edits an excerpt, then separately approves it before Talk can retrieve it. Show the source. Revocation or deletion blocks future retrieval.
-- Use one synthetic demo user with no account creation. Keep the existing demo reset so saved Journal, memory, and activity data can be cleared.
+- Use a short-lived demo capability with no account creation. Keep private data on-device; local deletion and revocation are handled by the app.
 - Use synthetic, non-urgent data for the demo. Do not log journal text, saved preference text, voice content, or credentials.
 - Keep the existing persistent Help control and accurately labeled support placeholder. No Mpower connection, clinician directory, live handoff, monitoring, or reliable crisis detection is included.
 - Preserve the exact scripted emergency demo behavior from V0.02: only the recognized sentence `I am in immediate danger and need emergency help now.` stops voice output and shows “This demo is not crisis support and is not connected to Mpower. Contact local emergency services or someone you trust now.” This is not general crisis detection. Do not replace it with an AI safety classifier or claim comprehensive screening.
@@ -225,7 +219,7 @@ FastAPI continues to own session checks, consent, catalog validation, persistenc
 V0.03 is ready for a private demo when:
 
 - A person can start in Talk by voice or text and reach listen, clarify, one activity offer, or the help route.
-- GPT can propose and rank only IDs from the eligible catalog; FastAPI rejects invalid IDs and returns canonical steps.
+- GPT can propose and rank only IDs from the eligible catalog; FastAPI validates the selection and the phone resolves canonical activity content from its bundle.
 - Mira asks permission before the Do experience. The person can decline, pause, stop, and return to Talk.
 - At least one experience from each reusable Do pattern works; catalog data selects the activity content.
 - Feedback asks whether the activity was tried, whether it helped, and whether it may be suggested again.

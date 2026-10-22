@@ -1,0 +1,293 @@
+{
+  "schemaVersion": 1,
+  "status": "RN-00 assets and RN-01 fonts prepared; RN-03 Talk, RN-04 Activities and RN-05 Journal artwork wiring implemented; phone rendering review pending",
+  "assets": [
+    {
+      "source": "ui-lab/design/logo-options/04-casual-signature.png",
+      "sha256": "64d4bcccc6fc745a4839b216e2756803977c2c8588a84cf23cc40d481da31fad",
+      "bytes": 368647,
+      "plannedNativePath": "mobile/assets/brand/mira-signature.png",
+      "status": "Copied unchanged and connected to native Talk in RN-03; phone rendering pending",
+      "width": 1942,
+      "height": 809,
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "nativePath": "mobile/assets/brand/mira-signature.png",
+      "nativeSha256": "64d4bcccc6fc745a4839b216e2756803977c2c8588a84cf23cc40d481da31fad"
+    },
+    {
+      "source": "ui-lab/design/step-04/assets/illustrations/a-plate.png",
+      "sha256": "7cb577b0d73f13e5da4528d05fb766c04c3c333dd1e4af22b699326eacfd7b92",
+      "bytes": 1467777,
+      "plannedNativePath": "mobile/assets/brand/little-company-plate.png",
+      "status": "Copied unchanged and connected to native Talk, Activities and Journal in RN-03 through RN-05; phone rendering pending",
+      "width": 2172,
+      "height": 724,
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "nativePath": "mobile/assets/brand/little-company-plate.png",
+      "nativeSha256": "7cb577b0d73f13e5da4528d05fb766c04c3c333dd1e4af22b699326eacfd7b92"
+    },
+    {
+      "source": "ui-lab/design/step-06/assets/mascot-poses.png",
+      "sha256": "c53e0a652369e1f070dd3d9695a2378622c05ff9f1f5e9f824b63ffd0f6eb5f2",
+      "bytes": 1675584,
+      "plannedNativePath": "mobile/assets/brand/mascot-poses.png",
+      "status": "Copied unchanged and connected to native Talk in RN-03; phone rendering pending",
+      "width": 2172,
+      "height": 724,
+      "bitDepth": 8,
+      "pngColorType": 6,
+      "nativePath": "mobile/assets/brand/mascot-poses.png",
+      "nativeSha256": "c53e0a652369e1f070dd3d9695a2378622c05ff9f1f5e9f824b63ffd0f6eb5f2"
+    },
+    {
+      "source": "ui-lab/design/step-04/assets/fonts/nunitosans-variable.ttf",
+      "sha256": "f934d7142fb4784bf828da485b7dcbd90c0c80d514e9d49a5da0ed3a1ae2491d",
+      "bytes": 571240,
+      "plannedNativePath": null,
+      "status": "Static native weights prepared from this source; variable source retained in Lab"
+    },
+    {
+      "source": "ui-lab/design/step-04/assets/fonts/nunitosans-OFL.txt",
+      "sha256": "efbb0c9e864cef973982d9a17567e6be5c3d1759695574586f3f18c7ecca064b",
+      "bytes": 4393,
+      "plannedNativePath": "mobile/assets/fonts/NunitoSans-OFL.txt",
+      "status": "Copied to native unchanged; runtime wiring pending",
+      "nativePath": "mobile/assets/fonts/NunitoSans-OFL.txt",
+      "nativeSha256": "efbb0c9e864cef973982d9a17567e6be5c3d1759695574586f3f18c7ecca064b"
+    }
+  ],
+  "artRegions": {
+    "originalCompanion": {
+      "sourceAsset": 1,
+      "viewBox": [
+        0,
+        0,
+        724,
+        724
+      ],
+      "use": "Talk welcome, ready, retry, ended",
+      "nativeStatus": "Used by native Talk in RN-03; phone review pending"
+    },
+    "activityMotif": {
+      "sourceAsset": 1,
+      "viewBox": [
+        724,
+        0,
+        724,
+        724
+      ],
+      "use": "Activities library intro",
+      "nativeStatus": "Used by native Activities library in RN-04; phone review pending"
+    },
+    "journalMotif": {
+      "sourceAsset": 1,
+      "viewBox": [
+        1448,
+        0,
+        724,
+        724
+      ],
+      "use": "Journal blank/home",
+      "nativeStatus": "Used by native Journal home and editor in RN-05; phone review pending"
+    },
+    "listening": {
+      "sourceAsset": 2,
+      "viewBox": [
+        0,
+        0,
+        724,
+        724
+      ],
+      "use": "Talk actual user capture",
+      "nativeStatus": "Used by native Talk in RN-03; phone review pending"
+    },
+    "thinking": {
+      "sourceAsset": 2,
+      "viewBox": [
+        724,
+        0,
+        724,
+        724
+      ],
+      "use": "Talk waiting",
+      "nativeStatus": "Used by native Talk in RN-03; phone review pending"
+    },
+    "speaking": {
+      "sourceAsset": 2,
+      "viewBox": [
+        1448,
+        0,
+        724,
+        724
+      ],
+      "use": "Talk actual reply audio",
+      "nativeStatus": "Used by native Talk in RN-03; phone review pending"
+    }
+  },
+  "wordmark": {
+    "sourceAsset": 0,
+    "nativeTintColor": "#315A45",
+    "container": [
+      92,
+      42
+    ],
+    "resizeMode": "contain",
+    "note": "Source is blue; native alpha tint gives the approved forest. Keep original lettering and transparency. Dark-surface backing, if needed, requires visual review.",
+    "nativeStatus": "Implemented in TalkHeader.tsx using locked forest alpha tint; phone and dark-surface review pending"
+  },
+  "fonts": {
+    "sourceAsset": 3,
+    "licenseAsset": 4,
+    "nativeFormat": "Static TTF for Expo SDK 57",
+    "preparation": "Instantiate matching weights from the licensed variable source or acquire matching official static files; retain source and license. Do not assume variable native support from SDK 58 docs.",
+    "weights": [
+      {
+        "weight": 400,
+        "family": "NunitoSans-Regular",
+        "plannedNativePath": "mobile/assets/fonts/NunitoSans-Regular.ttf",
+        "status": "Prepared static TTF; root runtime loading configured in RN-01; device rendering pending",
+        "nativePath": "mobile/assets/fonts/NunitoSans-Regular.ttf",
+        "runtimeAlias": "NunitoSans-Regular",
+        "axes": {
+          "wght": 400,
+          "wdth": 100.0,
+          "opsz": 12.0,
+          "YTLC": 500.0
+        },
+        "bytes": 113424,
+        "sha256": "6dcfd135eb447ccfc6ec0367d7a6a72a7214903c47b7fdd6c06fada407b88ee7",
+        "internalNames": {
+          "1": "Nunito Sans Normal",
+          "2": "Regular",
+          "4": "Nunito Sans Normal",
+          "6": "NunitoSans-Normal",
+          "16": "Nunito Sans",
+          "17": "Normal"
+        },
+        "glyphCount": 1104
+      },
+      {
+        "weight": 500,
+        "family": "NunitoSans-Medium",
+        "plannedNativePath": "mobile/assets/fonts/NunitoSans-Medium.ttf",
+        "status": "Prepared static TTF; root runtime loading configured in RN-01; device rendering pending",
+        "nativePath": "mobile/assets/fonts/NunitoSans-Medium.ttf",
+        "runtimeAlias": "NunitoSans-Medium",
+        "axes": {
+          "wght": 500,
+          "wdth": 100.0,
+          "opsz": 12.0,
+          "YTLC": 500.0
+        },
+        "bytes": 113548,
+        "sha256": "7244aa5c02c72dc9895c2d733d2c8bb77838794d25e775872b660e7b71767eb7",
+        "internalNames": {
+          "1": "Nunito Sans Normal Medium",
+          "2": "Regular",
+          "4": "Nunito Sans Normal Medium",
+          "6": "NunitoSans-NormalMedium",
+          "16": "Nunito Sans",
+          "17": "Normal Medium"
+        },
+        "glyphCount": 1104
+      },
+      {
+        "weight": 600,
+        "family": "NunitoSans-SemiBold",
+        "plannedNativePath": "mobile/assets/fonts/NunitoSans-SemiBold.ttf",
+        "status": "Prepared static TTF; root runtime loading configured in RN-01; device rendering pending",
+        "nativePath": "mobile/assets/fonts/NunitoSans-SemiBold.ttf",
+        "runtimeAlias": "NunitoSans-SemiBold",
+        "axes": {
+          "wght": 600,
+          "wdth": 100.0,
+          "opsz": 12.0,
+          "YTLC": 500.0
+        },
+        "bytes": 113596,
+        "sha256": "a6d937dac9c0ee4a3a4ab221746a82fe8c89ef240c37d284e8ac97ec565ca13d",
+        "internalNames": {
+          "1": "Nunito Sans Normal SemiBold",
+          "2": "Regular",
+          "4": "Nunito Sans Normal SemiBold",
+          "6": "NunitoSans-NormalSemiBold",
+          "16": "Nunito Sans",
+          "17": "Normal SemiBold"
+        },
+        "glyphCount": 1104
+      },
+      {
+        "weight": 700,
+        "family": "NunitoSans-Bold",
+        "plannedNativePath": "mobile/assets/fonts/NunitoSans-Bold.ttf",
+        "status": "Prepared static TTF; root runtime loading configured in RN-01; device rendering pending",
+        "nativePath": "mobile/assets/fonts/NunitoSans-Bold.ttf",
+        "runtimeAlias": "NunitoSans-Bold",
+        "axes": {
+          "wght": 700,
+          "wdth": 100.0,
+          "opsz": 12.0,
+          "YTLC": 500.0
+        },
+        "bytes": 113608,
+        "sha256": "5ee407544cd6e9da1480f83fd94ee28f1626d3ae0c1ac6e11ca72a7e0f78756a",
+        "internalNames": {
+          "1": "Nunito Sans Normal",
+          "2": "Bold",
+          "4": "Nunito Sans Normal Bold",
+          "6": "NunitoSans-NormalBold",
+          "16": "Nunito Sans",
+          "17": "Normal Bold"
+        },
+        "glyphCount": 1104
+      }
+    ],
+    "tool": "fontTools 4.61.1",
+    "method": "instantiateVariableFont with every axis pinned and updateFontNames=True; original source timestamp retained",
+    "sourceAxisDefaults": {
+      "wght": 200,
+      "wdth": 100,
+      "opsz": 12,
+      "YTLC": 500
+    },
+    "preparedDate": "2026-10-21",
+    "runtimeLoading": {
+      "configuredDate": "2026-10-21",
+      "loader": "expo-font useFonts in mobile/src/app/_layout.tsx",
+      "fontMap": "mobile/src/components/ui/typography.ts",
+      "gate": "Navigation waits for font loading success or a reported error; error uses system-font text roles",
+      "renderedOnDevice": false
+    }
+  },
+  "renderingRules": [
+    "Asset indices are zero based in the assets array.",
+    "Copy source sheets unchanged and render viewBox regions with installed react-native-svg; reserve dimensions before image paint.",
+    "Retain alpha and natural aspect ratio. Avoid visible rectangular backplates or opaque image backgrounds.",
+    "Do not tint the clay image sheets: olive, cream, and peach are part of the accepted materials.",
+    "Native icon package is already installed; do not ship the Lab icon font as a second copy.",
+    "No B/C art, blue/black alternative wordmark, or unrelated font assets belong in the native handoff."
+  ],
+  "existingActivityArt": {
+    "directory": "mobile/src/features/activities/art/",
+    "files": [
+      "ThoughtThreads.tsx",
+      "LetterEnvelope.tsx",
+      "NoticeNameArtwork.tsx",
+      "SmallStepScene.tsx",
+      "ReachOutArtwork.tsx",
+      "MoveSceneArtwork.tsx",
+      "SoundscapeScene.tsx",
+      "GroundingScene.tsx",
+      "BreathingOrb.tsx"
+    ],
+    "action": "Keep existing geometry, state meaning, animation timing and interactions during foundation propagation. Bind decorative brand colors to theme art roles; keep semantic color distinctions. Bespoke redesign remains open."
+  },
+  "provenance": [
+    "ui-lab/design/step-04/artwork-provenance.md",
+    "ui-lab/design/step-06/artwork-and-motion.md",
+    "ui-lab/design/logo-options/blue-wordmarks.md"
+  ],
+  "nativeBundleTotalBytes": 3970577
+}

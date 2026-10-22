@@ -10,6 +10,8 @@ Mira's main experience is a private audio-call-style session: talk, receive an o
 
 > **Scope update (2026-10-19):** This October 14 baseline is superseded on activity catalog, Actions navigation, and Continue behavior by the selected [Nine Activities Master Blueprint](PRD/Mira_Nine_Activities_Master_Blueprint_v2.1.md), revision 2.2. The blueprint's nine-slot catalog and permanent Activities library are the target. This document continues to guide visual judgment and preserves the Talk, Journal, voice, privacy, Help, consent, and safety contracts; it does not reopen the superseded catalog or navigation decisions.
 
+> **Demo capability direction (2026-10-20):** We do not want to hold back on technology or capabilities. Distinctive activity visuals, useful AI assistance, expressive motion, sound, and touch are encouraged when they make Mira more capable and compelling. "Calm" does not mean empty, generic, or mechanically restrained. Production hardening belongs in its own later workstream rather than driving every demo design decision. See the separate [activity upgrade plan](PRD/mira_activity_upgrade_plan.md).
+
 ## 1. Authority and decision status
 
 This document consolidates the supplied `CURRENT_UX.md`, `mira_prd.md`, the proposed design research plan, and the design decisions in our conversation. It specifies the design target without claiming that the target already exists or has passed user testing.

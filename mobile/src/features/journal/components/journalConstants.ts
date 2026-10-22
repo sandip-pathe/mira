@@ -29,7 +29,7 @@ export const PROMPT_GROUPS: PromptGroup[] = [
 ];
 
 export const COLOR_PAIRS: ColorPair[] = [
-  { dark: '#1E1E1E', light: '#F5F5F5' },
+  { dark: '#1E1E1E', light: '#F7F1E7' },
   { dark: '#222831', light: '#EEEEEE' },
   { dark: '#0B3D91', light: '#AEC6FF' },
   { dark: '#0E4D45', light: '#A8E6CF' },

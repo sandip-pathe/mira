@@ -1,0 +1,1510 @@
+[
+  {
+    "id": "R001",
+    "included": true,
+    "themes": [
+      "agency",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R002",
+    "included": true,
+    "themes": [
+      "reliability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R003",
+    "included": false,
+    "reason": "Unspecified bug; insufficient description for a design implication."
+  },
+  {
+    "id": "R004",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R005",
+    "included": true,
+    "themes": [
+      "agency",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R006",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R007",
+    "included": false,
+    "reason": "New therapist-like chat feature request rather than friction in an existing flow."
+  },
+  {
+    "id": "R008",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R009",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "agency"
+    ]
+  },
+  {
+    "id": "R010",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R011",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R012",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R013",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R014",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R015",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R016",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R017",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R018",
+    "included": false,
+    "reason": "Advertising/AI-art ethics opinion; outside the three interface surfaces."
+  },
+  {
+    "id": "R019",
+    "included": true,
+    "themes": [
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R020",
+    "included": true,
+    "themes": [
+      "agency",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R021",
+    "included": false,
+    "reason": "Price only."
+  },
+  {
+    "id": "R022",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R023",
+    "included": true,
+    "themes": [
+      "reliability",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R024",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R025",
+    "included": true,
+    "themes": [
+      "reliability",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R026",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "agency"
+    ]
+  },
+  {
+    "id": "R027",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R028",
+    "included": false,
+    "reason": "Cancellation/billing only."
+  },
+  {
+    "id": "R029",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R030",
+    "included": false,
+    "reason": "AI advertising/art ethics opinion, not the in-app interaction."
+  },
+  {
+    "id": "R031",
+    "included": false,
+    "reason": "AI advertising/art ethics opinion, not the in-app interaction."
+  },
+  {
+    "id": "R032",
+    "included": true,
+    "themes": [
+      "reliability",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R033",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R034",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R035",
+    "included": true,
+    "themes": [
+      "agency",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R036",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R037",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R038",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R039",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R040",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R041",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R042",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R043",
+    "included": true,
+    "themes": [
+      "reliability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R044",
+    "included": true,
+    "themes": [
+      "reliability",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R045",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R046",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R047",
+    "included": false,
+    "reason": "Subscription price/access policy without a specific interaction failure."
+  },
+  {
+    "id": "R048",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R049",
+    "included": true,
+    "themes": [
+      "reliability",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R050",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R051",
+    "included": true,
+    "themes": [
+      "reliability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R052",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R053",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R054",
+    "included": true,
+    "themes": [
+      "reliability",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R055",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R056",
+    "included": true,
+    "themes": [
+      "reliability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R057",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R058",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R059",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R060",
+    "included": false,
+    "reason": "Refund policy only."
+  },
+  {
+    "id": "R061",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R062",
+    "included": false,
+    "reason": "Subscription pricing model only."
+  },
+  {
+    "id": "R063",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R064",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R065",
+    "included": true,
+    "themes": [
+      "reliability",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R066",
+    "included": true,
+    "themes": [
+      "agency",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R067",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R068",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R069",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R070",
+    "included": false,
+    "reason": "Ownership opinion without a described interaction."
+  },
+  {
+    "id": "R071",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R072",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R073",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R074",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R075",
+    "included": true,
+    "themes": [
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R076",
+    "included": false,
+    "reason": "General paywall/pricing objection without an interaction to analyze."
+  },
+  {
+    "id": "R077",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R078",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R079",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R080",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R081",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R082",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R083",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R084",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R085",
+    "included": true,
+    "themes": [
+      "reliability",
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R086",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R087",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R088",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R089",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R090",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R091",
+    "included": false,
+    "reason": "Requests activity-correlation analytics, outside scope."
+  },
+  {
+    "id": "R092",
+    "included": false,
+    "reason": "Requests video/photo capacity expansion, outside scope."
+  },
+  {
+    "id": "R093",
+    "included": false,
+    "reason": "Subscription entitlement/support issue, not a three-screen design signal."
+  },
+  {
+    "id": "R094",
+    "included": false,
+    "reason": "Support dissatisfaction without an actionable interaction description."
+  },
+  {
+    "id": "R095",
+    "included": true,
+    "themes": [
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R096",
+    "included": false,
+    "reason": "Billing across multiple store accounts, outside scope."
+  },
+  {
+    "id": "R097",
+    "included": true,
+    "themes": [
+      "reliability",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R098",
+    "included": true,
+    "themes": [
+      "agency",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R099",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R100",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R101",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R102",
+    "included": false,
+    "reason": "Price only."
+  },
+  {
+    "id": "R103",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R104",
+    "included": true,
+    "themes": [
+      "expectation_access",
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R105",
+    "included": false,
+    "reason": "Charts changed, but no specific visual problem described."
+  },
+  {
+    "id": "R106",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R107",
+    "included": false,
+    "reason": "Platform feature-parity request without an interaction description."
+  },
+  {
+    "id": "R108",
+    "included": true,
+    "themes": [
+      "expectation_access",
+      "reliability",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R109",
+    "included": true,
+    "themes": [
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R110",
+    "included": false,
+    "reason": "Requests correlation and cycle tracking, outside scope."
+  },
+  {
+    "id": "R111",
+    "included": false,
+    "reason": "Trial/pricing expectation only."
+  },
+  {
+    "id": "R112",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R113",
+    "included": true,
+    "themes": [
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R114",
+    "included": false,
+    "reason": "Free goal-count limit only."
+  },
+  {
+    "id": "R115",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R116",
+    "included": true,
+    "themes": [
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R117",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R118",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R119",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R120",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R121",
+    "included": false,
+    "reason": "Paid export policy, outside scope."
+  },
+  {
+    "id": "R122",
+    "included": true,
+    "themes": [
+      "reliability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R123",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R124",
+    "included": false,
+    "reason": "Billing only."
+  },
+  {
+    "id": "R125",
+    "included": false,
+    "reason": "Billing/trial dispute, outside scope."
+  },
+  {
+    "id": "R126",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R127",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R128",
+    "included": false,
+    "reason": "Requests new scales analytics, outside scope."
+  },
+  {
+    "id": "R129",
+    "included": false,
+    "reason": "Requests account sync, outside scope."
+  },
+  {
+    "id": "R130",
+    "included": false,
+    "reason": "Price only."
+  },
+  {
+    "id": "R131",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "agency"
+    ]
+  },
+  {
+    "id": "R132",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R133",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R134",
+    "included": false,
+    "reason": "Pricing and desire for new analysis, outside scope."
+  },
+  {
+    "id": "R135",
+    "included": true,
+    "themes": [
+      "tone_pressure",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R136",
+    "included": true,
+    "themes": [
+      "agency",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R137",
+    "included": false,
+    "reason": "Monthly billing request only."
+  },
+  {
+    "id": "R138",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R139",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R140",
+    "included": true,
+    "themes": [
+      "reliability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R141",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R142",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R143",
+    "included": true,
+    "themes": [
+      "reliability",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R144",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R145",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R146",
+    "included": false,
+    "reason": "Monthly billing request only."
+  },
+  {
+    "id": "R147",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R148",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R149",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R150",
+    "included": false,
+    "reason": "Price/media entitlement only."
+  },
+  {
+    "id": "R151",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R152",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency"
+    ]
+  },
+  {
+    "id": "R153",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R154",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R155",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R156",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R157",
+    "included": false,
+    "reason": "Update disliked without a specific interaction described."
+  },
+  {
+    "id": "R158",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R159",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R160",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R161",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R162",
+    "included": true,
+    "themes": [
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R163",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R164",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R165",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R166",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R167",
+    "included": false,
+    "reason": "New health/feeling input feature request, outside scope."
+  },
+  {
+    "id": "R168",
+    "included": false,
+    "reason": "Platform backup/media entitlement rather than an observed screen flow."
+  },
+  {
+    "id": "R169",
+    "included": false,
+    "reason": "New video-save feature request, outside scope."
+  },
+  {
+    "id": "R170",
+    "included": false,
+    "reason": "General paywall objection without a specific flow."
+  },
+  {
+    "id": "R171",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R172",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R173",
+    "included": false,
+    "reason": "Reminder delivery reliability without a three-screen interaction."
+  },
+  {
+    "id": "R174",
+    "included": true,
+    "themes": [
+      "navigation",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R175",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R176",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R177",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R178",
+    "included": true,
+    "themes": [
+      "navigation",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R179",
+    "included": false,
+    "reason": "General customer-service opinion."
+  },
+  {
+    "id": "R180",
+    "included": false,
+    "reason": "General value and provider-disclosure request, outside the visual research scope."
+  },
+  {
+    "id": "R181",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R182",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R183",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R184",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R185",
+    "included": true,
+    "themes": [
+      "agency",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R186",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R187",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R188",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R189",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R190",
+    "included": true,
+    "themes": [
+      "navigation",
+      "agency"
+    ]
+  },
+  {
+    "id": "R191",
+    "included": true,
+    "themes": [
+      "reliability",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R192",
+    "included": true,
+    "themes": [
+      "reliability"
+    ]
+  },
+  {
+    "id": "R193",
+    "included": false,
+    "reason": "Unspecified platform-parity complaint."
+  },
+  {
+    "id": "R194",
+    "included": true,
+    "themes": [
+      "agency",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R195",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R196",
+    "included": true,
+    "themes": [
+      "agency",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R197",
+    "included": true,
+    "themes": [
+      "agency",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R198",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R199",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R200",
+    "included": true,
+    "themes": [
+      "agency",
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R201",
+    "included": true,
+    "themes": [
+      "agency",
+      "tone_pressure"
+    ]
+  },
+  {
+    "id": "R202",
+    "included": false,
+    "reason": "Rating reduced because a therapist requested use; no app UX failure described."
+  },
+  {
+    "id": "R203",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R204",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R205",
+    "included": false,
+    "reason": "Body-map feature request only, outside scope."
+  },
+  {
+    "id": "R206",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R207",
+    "included": true,
+    "themes": [
+      "editing_readability",
+      "navigation"
+    ]
+  },
+  {
+    "id": "R208",
+    "included": true,
+    "themes": [
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R209",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  },
+  {
+    "id": "R210",
+    "included": true,
+    "themes": [
+      "navigation",
+      "reliability"
+    ]
+  },
+  {
+    "id": "R211",
+    "included": true,
+    "themes": [
+      "navigation"
+    ]
+  },
+  {
+    "id": "R212",
+    "included": true,
+    "themes": [
+      "expectation_access"
+    ]
+  },
+  {
+    "id": "R213",
+    "included": true,
+    "themes": [
+      "navigation",
+      "editing_readability"
+    ]
+  },
+  {
+    "id": "R214",
+    "included": true,
+    "themes": [
+      "agency"
+    ]
+  }
+]

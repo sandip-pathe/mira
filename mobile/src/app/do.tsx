@@ -1,1 +1,1 @@
-export { default } from '../features/do/DoScreen';
+export { default } from '../features/activities/ActivityRouteScreen';

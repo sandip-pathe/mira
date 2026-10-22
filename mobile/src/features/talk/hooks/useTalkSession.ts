@@ -9,7 +9,10 @@ import { Voice, VoiceState, VoiceTransportState, VoiceTurnState } from '../../..
 import { acknowledgeTalkTransfer, peekTalkTransfer } from '../../../shared/talkTransfer';
 import { activityCapabilities } from '../../../shared/activityRegistry';
 import { consumeQuietTalkReturn } from '../../../shared/musicHandoff';
-import { currentConsentRevision, selectTalkContext } from '../data/contextRepository';
+import { currentConsentRevision } from '../data/contextRepository';
+import { getContextSnapshot } from '../../../shared/context/contextService';
+import { normalizeSupportDecision } from '../data/orchestrationContract';
+import { stageReachOutContext } from '../../../shared/reachOutContextHandoff';
 
 export function useTalkSession() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -97,15 +100,32 @@ export function useTalkSession() {
       proposalRef.current = undefined;
       setProposal(undefined);
       stopVoice();
+      const recentMessages = currentContext.current.messages.slice(-6).map((message) => `${message.role === 'user' ? 'Me' : 'Mira'}: ${message.content}`).join('\n');
+      const momentState = currentContext.current.moment;
+      const momentSummary = [momentState.what_happened, momentState.current_need, momentState.what_is_unclear].filter(Boolean).join('\n');
+      const contextId = intervention.id === 'reach_out' ? stageReachOutContext([momentSummary, recentMessages].filter(Boolean).join('\n\n')) : undefined;
       router.push({
         pathname: '/do',
-        params: { id: intervention.id, origin: 'talk' },
+        params: { id: intervention.id, origin: 'talk', ...(contextId ? { contextId } : {}) },
       });
     },
     [stopVoice],
   );
 
-  const handleDecision = useCallback((value: SupportDecision) => {
+  const acceptProposal = useCallback((proposalId: string | null | undefined) => {
+    const pending = proposalRef.current;
+    if (!proposalId || pending?.proposal_id !== proposalId || !pending.intervention) return;
+    openIntervention(pending.intervention);
+  }, [openIntervention]);
+
+  const handleDecision = useCallback((raw: unknown) => {
+    const value = normalizeSupportDecision(raw);
+    if (!value) {
+      proposalRef.current = undefined;
+      setProposal(undefined);
+      setError('That activity suggestion is unavailable. You can keep talking.');
+      return;
+    }
     if (value.intervention) rememberIntervention(value.intervention);
     const mode = {
       listen: 'listen_more',
@@ -146,16 +166,16 @@ export function useTalkSession() {
         setUrgent(true);
         return;
       }
-      const pending = proposalRef.current?.intervention;
-      if (!pending) return;
+      const pending = proposalRef.current;
+      if (!pending?.intervention) return;
       const response = proposalResponse(message.content);
       if (response === 'decline') {
         void declineProposal();
       } else if (response === 'accept') {
-        openIntervention(pending);
+        acceptProposal(pending.proposal_id);
       }
     },
-    [declineProposal, openIntervention],
+    [acceptProposal, declineProposal],
   );
 
   useEffect(() => {
@@ -385,16 +405,16 @@ export function useTalkSession() {
       setUrgent(true);
       return;
     }
-    const pending = proposalRef.current?.intervention;
-    if (pending && proposalResponse(content) === 'accept') {
+    const pending = proposalRef.current;
+    if (pending?.intervention && proposalResponse(content) === 'accept') {
       setMessages((items) => [...items, { role: 'user', content }]);
       setText('');
       activeVoice?.addTextMessages([{ role: 'user', content }]);
       setText('');
-      openIntervention(pending);
+      acceptProposal(pending.proposal_id);
       return;
     }
-    if (pending && proposalResponse(content) === 'decline') {
+    if (pending?.intervention && proposalResponse(content) === 'decline') {
       setMessages((items) => [...items, { role: 'user', content }]);
       setText('');
       activeVoice?.addTextMessages([{ role: 'user', content }]);
@@ -420,7 +440,7 @@ export function useTalkSession() {
       let current = await getSession();
       if (attempt !== textAttempt.current) return;
       const prepareBody = async () => {
-        const approvedContext = await selectTalkContext(content);
+        const approvedContext = await getContextSnapshot('talk', content);
         const revision = await currentConsentRevision();
         if (revision !== approvedContext.revision) throw new Error('Shared context changed. Retry to use current consent.');
         return {
@@ -437,10 +457,11 @@ export function useTalkSession() {
       if (attempt !== textAttempt.current) return;
       const path = `/sessions/${current.session_id}/text`;
       type TextReply = {
+        contract_version: number;
         text: string;
         moment_state: MomentState;
         context_matches: ContextMatch[];
-        decision: SupportDecision;
+        decision: unknown;
       };
       let result: TextReply;
       try {
@@ -454,6 +475,9 @@ export function useTalkSession() {
         result = await request<TextReply>(`/sessions/${current.session_id}/text`, current, body, undefined, { signal: requestController.signal });
       }
       if (attempt !== textAttempt.current) return;
+      const decision = normalizeSupportDecision(result.decision);
+      if (result.contract_version !== 1 || !decision)
+        throw new Error('Unsupported activity proposal contract.');
       activeVoice?.addTextMessages([
         { role: 'user', content },
         { role: 'assistant', content: result.text },
@@ -473,7 +497,7 @@ export function useTalkSession() {
           ? ''
           : 'No relevant shared context matched. Mira is continuing without it.',
       );
-      handleDecision(result.decision);
+      handleDecision(decision);
     } catch {
       if (attempt === textAttempt.current) {
         setFailedText(content);
@@ -568,7 +592,7 @@ export function useTalkSession() {
     setShowCaptions,
     setSessionEnded,
     setError,
-    openIntervention,
+    acceptProposal,
     declineProposal,
     connect,
     switchToVoice,

@@ -3,8 +3,8 @@ import {
   readDeviceCollection,
   type CollectionSource,
 } from '../../../shared/storage/collectionStore';
-import type { LocalActivityRun } from '../../do/activityEngine';
-import type { Rating } from '../../do/components/ActivityOutcome';
+import type { LocalActivityRun } from '../../activities/runtime/activityEngine';
+import type { Rating } from '../../activities/data/activityFeedback';
 import { emitContextRevoked } from '../../../shared/demoEvents';
 
 export type LocalActivityPreference = {
@@ -15,6 +15,7 @@ export type LocalActivityPreference = {
   helpful_lesson: string;
   created_at: number;
   storage: 'device';
+  deleted?: boolean;
 };
 
 const listeners = new Set<() => void>();
@@ -29,7 +30,8 @@ function valid(value: unknown): value is LocalActivityPreference {
     ['no', 'a_little', 'yes', 'not_sure'].includes(item.rating ?? '') &&
     [0, 1].includes(item.reuse_context ?? -1) &&
     typeof item.helpful_lesson === 'string' &&
-    !!item.helpful_lesson.trim() &&
+    (item.deleted === true || !!item.helpful_lesson.trim()) &&
+    (item.deleted === undefined || typeof item.deleted === 'boolean') &&
     typeof item.created_at === 'number' &&
     Number.isFinite(item.created_at) &&
     item.storage === 'device'
@@ -50,6 +52,11 @@ const preferenceSource: CollectionSource<LocalActivityPreference> = {
 };
 
 export function loadActivityPreferences() {
+  return readDeviceCollection(preferenceSource).then((items) => items.filter((item) => !item.deleted));
+}
+
+/** Includes compact removal markers so older choices cannot silently become active again. */
+export function loadActivityPreferenceRecords() {
   return readDeviceCollection(preferenceSource);
 }
 
@@ -91,7 +98,7 @@ export function saveActivityPreference(run: LocalActivityRun, rating: Rating, le
       rating,
       reuse_context: 1,
       helpful_lesson: lesson.trim(),
-      created_at: Date.now(),
+      created_at: Math.max(Date.now(), ...items.map((item) => item.created_at + 1)),
       storage: 'device',
     };
     return { items: [item, ...items], result: item };
@@ -101,12 +108,15 @@ export function saveActivityPreference(run: LocalActivityRun, rating: Rating, le
 export function changeActivityPreference(id: string, action: 'reuse' | 'delete', enabled = false) {
   return mutate((items) => {
     if (!items.some((item) => item.id === id)) throw new Error('This preference no longer exists.');
+    const changedAt = Math.max(Date.now(), ...items.map((item) => item.created_at + 1));
     return {
       items:
-        action === 'delete'
-          ? items.filter((item) => item.id !== id)
+      action === 'delete'
+          ? items.map((item) => item.id === id
+            ? { ...item, reuse_context: 0, helpful_lesson: '', created_at: changedAt, deleted: true }
+            : item)
           : items.map((item) =>
-              item.id === id ? { ...item, reuse_context: enabled ? 1 : 0 } : item,
+              item.id === id ? { ...item, reuse_context: enabled ? 1 : 0, created_at: changedAt } : item,
             ),
       result: undefined,
     };

@@ -1,0 +1,11 @@
+{
+  "note": "Synthetic browser examples loaded only by the external Load sample state control. No app data is imported.",
+  "outputs": [
+    {"kind":"Continue","title":"Work on the presentation","body":"Write a rough title"},
+    {"kind":"One Small Step","title":"Work on the presentation","body":"Open a blank slide and write a rough title"},
+    {"kind":"Brain Dump takeaway","title":"A place to start","body":"I can start with the title before I know the whole presentation."},
+    {"kind":"Notice & Name wording","title":"Finding the words","body":"I feel stuck about starting, and I want a smaller first step."},
+    {"kind":"Reach Out draft","title":"A listening ear","body":"Could we talk for a few minutes when you have time?"}
+  ],
+  "feedback": {"text":"Starting with one rough title helped.","reuse":false}
+}

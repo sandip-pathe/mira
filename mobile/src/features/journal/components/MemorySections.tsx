@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, TextInput, View } from 'react-native';
-import { ActionButton, Eyebrow, StatusPill, Surface, ui } from '../../../components/ui';
+import { ActionButton, Eyebrow, StatusPill, Surface, useTheme } from '../../../components/ui';
 import { JournalEntry, MemoryItem } from '../types';
 
 export function MemorySections({
@@ -13,6 +13,7 @@ export function MemorySections({
   onSaveExcerpt,
   onCancel,
   onAction,
+  onPaper = false,
 }: {
   selectedEntry?: JournalEntry;
   excerpt: string;
@@ -23,24 +24,29 @@ export function MemorySections({
   onSaveExcerpt: () => void;
   onCancel: () => void;
   onAction: (id: string, action: 'approve' | 'revoke' | 'delete') => void;
+  onPaper?: boolean;
 }) {
+  const { colors, paper, typography } = useTheme();
   return (
     <>
       {selectedEntry && (
         <Surface style={{ gap: 10 }}>
           <Eyebrow>SHARE WITH TALK</Eyebrow>
-          <Text style={ui.heading}>Review this excerpt</Text>
-          <Text style={ui.muted}>It stays private until you approve it.</Text>
+          <Text style={[typography.sheetTitle, { color: colors.ink }]}>Review this excerpt</Text>
+          <Text style={[typography.support, { color: colors.muted }]}>Talk can use this only after you approve it.</Text>
           <TextInput
             accessibilityLabel="Editable memory excerpt"
             multiline
             maxLength={500}
             value={excerpt}
             onChangeText={setExcerpt}
-            style={[ui.input, { minHeight: 90 }]}
+            cursorColor={paper.ink}
+            selectionColor={paper.primary}
+            style={[typography.body, { minHeight: 90, padding: 12, textAlignVertical: 'top', borderRadius: 12,
+              backgroundColor: paper.background, color: paper.ink, borderWidth: 1, borderColor: colors.line }]}
           />
           <ActionButton
-            label="Save pending excerpt"
+            label="Save for review"
             disabled={busy || recording || !excerpt.trim()}
             onPress={onSaveExcerpt}
           />
@@ -49,10 +55,10 @@ export function MemorySections({
       )}
       {!!memories.length && (
         <View style={{ gap: 12 }}>
-          <Eyebrow>MIRA’S CONTEXT</Eyebrow>
+          <Text style={[typography.eyebrow, { color: onPaper ? paper.muted : colors.muted }]}>MIRA’S CONTEXT</Text>
           {memories.map((item) => (
             <Surface key={item.id} style={{ gap: 9 }}>
-              <Text style={ui.body}>{item.excerpt}</Text>
+              <Text style={[typography.body, { color: colors.ink }]}>{item.excerpt}</Text>
               <StatusPill tone={item.approved && !item.revoked ? 'good' : 'neutral'}>
                 {item.revoked
                   ? 'Revoked'

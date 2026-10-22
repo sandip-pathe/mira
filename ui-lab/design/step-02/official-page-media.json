@@ -1,0 +1,422 @@
+[
+  {
+    "id": "dayone-editor",
+    "url": "https://dayoneapp.com/guides/day-one-for-android/editing-and-formatting-entries-in-day-one-for-android/",
+    "images": [
+      {
+        "src": "https://dayoneapp.com/wp-content/themes/day-one-app/assets/img/day-one-app-logo.svg",
+        "alt": "Day One App Logo",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Day One Android editor default toolbar showing Add attachment, Add media, AI, and Formatting buttons",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-default-toolbar.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Day One Android editor selection toolbar with Bold, Italic, Underline, Italic, Strikethrough, Link, Inline code, and Highlight options after selecting text",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-selection-toolbar.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Tapping the Formatting button in the Day One Android editor toolbar",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-formatting-button.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=509%2C1024&quality=80&ssl=1",
+        "alt": "Formatting bar open in the Day One Android editor with the Heading dropdown highlighted",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=509%2C1024&quality=80&ssl=1 509w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=149%2C300&quality=80&ssl=1 149w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=768%2C1546&quality=80&ssl=1 768w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=763%2C1536&quality=80&ssl=1 763w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?resize=600%2C1207&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-heading-dropdown.png?w=968&quality=80&ssl=1 968w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=509%2C1024&quality=80&ssl=1",
+        "alt": "Heading picker bottom sheet showing Title, Subtitle, Heading, Subheading, Section, and Subsection options",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=509%2C1024&quality=80&ssl=1 509w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=149%2C300&quality=80&ssl=1 149w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=768%2C1546&quality=80&ssl=1 768w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=763%2C1536&quality=80&ssl=1 763w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?resize=600%2C1207&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-heading-picker-sheet.png?w=968&quality=80&ssl=1 968w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Day One Android editor formatting bar showing Quote, Code block, Bulleted list, Numbered list, Checklist, and Horizontal rule options",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-formatting-bar-lists-quote-code.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Entry overflow menu open with Copy to Clipboard highlighted",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-entry-menu-copy-to-clipboard.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Tapping the Add attachment button in the Day One Android editor toolbar",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-tap-add-attachment.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?resize=442%2C1024&quality=80&ssl=1",
+        "alt": "Add attachment sheet showing Camera, Video, Audio, Start dictation, File, Tag, Location, and Template options",
+        "srcset": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?resize=442%2C1024&quality=80&ssl=1 442w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?resize=129%2C300&quality=80&ssl=1 129w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?resize=663%2C1536&quality=80&ssl=1 663w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?resize=600%2C1390&quality=80&ssl=1 600w, https://i0.wp.com/dayoneapp.com/wp-content/uploads/2026/07/android-editor-add-attachment-sheet.png?w=744&quality=80&ssl=1 744w",
+        "data_src": null
+      },
+      {
+        "src": "https://dayoneapp.com/wp-content/themes/day-one-app/assets/img/automattic-logo.svg",
+        "alt": "Automattic Logo",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://i0.wp.com/dayoneapp.com/wp-content/uploads/2025/03/new-badge-light.png?resize=512%2C151&quality=80&ssl=1",
+        "alt": "",
+        "srcset": null,
+        "data_src": null
+      }
+    ],
+    "videos": [
+      {
+        "src": "https://www.googletagmanager.com/ns.html?id=GTM-WVMRTDH",
+        "height": "0",
+        "width": "0",
+        "style": "display:none;visibility:hidden"
+      }
+    ]
+  },
+  {
+    "id": "whatsapp-voice",
+    "url": "https://about.fb.com/news/2022/03/new-voice-message-features-on-whatsapp/",
+    "images": [
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2026/07/metaglassestortoisebrown.png?resize=460%2C264",
+        "alt": "Meta Glasses Adventurer",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2026/07/metaglassesslimoval.png?resize=460%2C264",
+        "alt": "Meta Glasses Starfire Kylie Edition",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2025/09/rayban-wayfarer.png?resize=460%2C264",
+        "alt": "Ray-Ban Wayfarer",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2025/09/Meta-Quest-3.png?fit=481%2C480",
+        "alt": "",
+        "srcset": "https://about.fb.com/wp-content/uploads/2025/09/Meta-Quest-3.png?w=481 481w, https://about.fb.com/wp-content/uploads/2025/09/Meta-Quest-3.png?w=150 150w, https://about.fb.com/wp-content/uploads/2025/09/Meta-Quest-3.png?w=300 300w, https://about.fb.com/wp-content/uploads/2025/09/Meta-Quest-3.png?w=220 220w",
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2025/09/meta-quest-3s.png?fit=481%2C480",
+        "alt": "",
+        "srcset": "https://about.fb.com/wp-content/uploads/2025/09/meta-quest-3s.png?w=481 481w, https://about.fb.com/wp-content/uploads/2025/09/meta-quest-3s.png?w=150 150w, https://about.fb.com/wp-content/uploads/2025/09/meta-quest-3s.png?w=300 300w, https://about.fb.com/wp-content/uploads/2025/09/meta-quest-3s.png?w=220 220w",
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg",
+        "alt": "Product mock of messaging features on WhatsApp",
+        "srcset": "https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=1920 1920w, https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=300 300w, https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=768 768w, https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=1024 1024w, https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=1536 1536w, https://about.fb.com/wp-content/uploads/2022/03/New-Voice-Message-Features-on-WhatsApp_Header-1.jpg?w=800 800w",
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?resize=890%2C501",
+        "alt": "Stat graphic that says \"7 billion voice messages sent daily on WhatsApp.\"",
+        "srcset": "https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=1920 1920w, https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=300 300w, https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=768 768w, https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=1024 1024w, https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=1536 1536w, https://about.fb.com/wp-content/uploads/2022/03/01_Voice-Messages_7-Billion.png?w=800 800w",
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?resize=890%2C501",
+        "alt": "Product mocks of voice message updates on WhatsApp",
+        "srcset": "https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=1920 1920w, https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=300 300w, https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=768 768w, https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=1024 1024w, https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=1536 1536w, https://about.fb.com/wp-content/uploads/2022/03/02_Voice-Messages_New-Features.png?w=800 800w",
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/plugins/post-media-zip/assets/downloadicon_arrowimg.png",
+        "alt": "",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/article_threads.png",
+        "alt": "Share on Threads",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/article_fb.png",
+        "alt": "Share on Facebook",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/article_x.png",
+        "alt": "Share on X",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/sf-threads.png",
+        "alt": "Threads",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/sf-instagram.png",
+        "alt": "Instagram",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/sf-facebook.png",
+        "alt": "Facebook",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/themes/fbcorp/assets/images/sf-x.png",
+        "alt": "X",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2026/07/threadssvgpngbig.png?w=960",
+        "alt": null,
+        "srcset": null,
+        "data_src": null
+      }
+    ],
+    "videos": [
+      {
+        "src": "https://about.fb.com/wp-content/uploads/2026/01/elevenlabs-33953-1767636739.mp3",
+        "type": "audio/mpeg"
+      },
+      {
+        "src": "https://www.googletagmanager.com/ns.html?id=GTM-W5J2VCV",
+        "height": "0",
+        "width": "0",
+        "style": "display:none;visibility:hidden"
+      }
+    ]
+  },
+  {
+    "id": "keep-capture",
+    "url": "https://blog.google/products-and-platforms/products/workspace/8-tips-help-you-keep-google-keep/",
+    "images": [
+      {
+        "src": "/static/blogv2/images/super-g-aurora.svg?version=pr20261009-1701",
+        "alt": "",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/GoogleKeep.blogheader.width-200.format-webp.webp",
+        "alt": "Article's hero media",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif",
+        "alt": "Record GIF",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif 500w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif 800w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif 1200w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif 1600w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V03_VO2_1000x563.gif 2000w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif",
+        "alt": "OCR gif",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif 500w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif 800w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif 1200w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif 1600w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/Keep_Mobile_V02_1000x563.gif 2000w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif",
+        "alt": "Keep GIF",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif 500w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif 800w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif 1200w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif 1600w, https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/keep-docs.gif 2000w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-1200.format-webp.webp",
+        "alt": "Chrome Extension",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-500.format-webp.webp 500w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-800.format-webp.webp 800w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-1200.format-webp.webp 1200w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-1600.format-webp.webp 1600w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP2_blog_1.width-2000.format-webp.webp 2000w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-1200.format-webp.webp",
+        "alt": "Changing colors in Keep",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-500.format-webp.webp 500w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-800.format-webp.webp 800w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-1200.format-webp.webp 1200w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-1600.format-webp.webp 1600w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/KEEP4_blog_1.width-2000.format-webp.webp 2000w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/ireland-innovation-co.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/ireland-innovation-co.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/ireland-innovation-co.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/CloudGeminiAgent_hero.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/CloudGeminiAgent_hero.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/CloudGeminiAgent_hero.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/WaterChile_socialshar.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/WaterChile_socialshar.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/WaterChile_socialshar.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Blog_Header_.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Blog_Header_.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Blog_Header_.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Beam_hero.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Beam_hero.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Google_Beam_hero.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      },
+      {
+        "src": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/DevFest.2e16d0ba.fill-300x300.format-webp.webp",
+        "alt": "",
+        "srcset": "https://storage.googleapis.com/gweb-uniblog-publish-prod/images/DevFest.2e16d0ba.fill-300x300.format-webp.webp 300w, https://storage.googleapis.com/gweb-uniblog-publish-prod/images/DevFest.2e16d0ba.fill-600x600.format-webp.webp 600w",
+        "data_src": null
+      }
+    ],
+    "videos": [
+      {
+        "src": "https://www.googletagmanager.com/ns.html?id=GTM-TRV24V",
+        "height": "0",
+        "width": "0",
+        "style": "display:none;visibility:hidden"
+      }
+    ]
+  },
+  {
+    "id": "duolingo-motion",
+    "url": "https://blog.duolingo.com/building-character/",
+    "images": [
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2024/06/cover_Building-character-How-a-cast-of-characters-can-help-you-learn-a-language.png",
+        "alt": "Illustration of Duo the owl and the Duolingo characters flying through the air",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/13-copy-10-2.png",
+        "alt": "Duolingo characters jumping in a line",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/6-copy-3.gif",
+        "alt": "Duolingo character at a dinner table in a restaurant, a waiter arrives with a closed silver dish. The moving gif reveals an octopus under the lid that attacks the two characters.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/duo.gif",
+        "alt": "Gif that shows a sketch of Duolingo owl and Duolingo character Junior are made from same basic shapes",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/22-copy-2.png",
+        "alt": "Picture of lots of different characters and styles",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/Artboard-1.png",
+        "alt": "Early sketches of Duolingo characters",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+        "alt": "Gif of a Duolingo lesson where learner translates the sentence. Junior celebrates the correct answer.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/04_A_Violet_01_FINAL.gif",
+        "alt": "Animation screen at the end of a Duolingo lesson shows Duolingo and Lily walking across a screen.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/13-copy-10-2.png",
+        "alt": "Personajes Duolingo",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/6-copy-3.gif",
+        "alt": "Un personaje de Duolingo está en la mesa de un restaurante y un camarero llega con una bandeja de plata cerrada. En la siguiente escena, sale un pulpo de adentro de la bandeja y ataca a los dos personajes.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/duo.gif",
+        "alt": "Animación que muestra un boceto del búho de Duolingo y del personaje de Duolingo, Junior. Ambos fueron creados a partir de las mismas formas básicas.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/22-copy-2.png",
+        "alt": "Imagen con una gran cantidad de personajes y estilos diferentes",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/Artboard-1.png",
+        "alt": "Bocetos preliminares de los personajes de Duolingo",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/junior_correct_vidmock2.gif",
+        "alt": "Animación de una lección en la que un usuario traduce una oración. Junior festeja por la respuesta correcta.",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "https://storage.ghost.io/c/7a/33/7a33d0f4-927d-4fe8-a6bf-96131b5e76d4/content/images/2022/02/04_A_Violet_01_FINAL.gif",
+        "alt": "Pantalla de animación al final de una lección de Duolingo que muestra a Duo y a Lily caminando a través de la pantalla",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "",
+        "alt": "",
+        "srcset": null,
+        "data_src": null
+      },
+      {
+        "src": "",
+        "alt": "",
+        "srcset": null,
+        "data_src": null
+      }
+    ],
+    "videos": [
+      {
+        "src": "https://www.googletagmanager.com/ns.html?id=GTM-WVD4G9P",
+        "height": "0",
+        "width": "0",
+        "style": "display:none;visibility:hidden"
+      }
+    ]
+  },
+  {
+    "id": "howwefeel-official",
+    "url": "https://howwefeel.org/",
+    "images": [],
+    "videos": []
+  }
+]

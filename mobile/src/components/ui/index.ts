@@ -1,6 +1,11 @@
 export { ActionButton } from './ActionButton';
 export { HelpButton } from './HelpButton';
+export { ThemePickerButton } from './ThemePickerButton';
 export { Eyebrow } from './Eyebrow';
 export { StatusPill } from './StatusPill';
 export { Surface } from './Surface';
 export { colors, ui } from './tokens';
+export { ThemeProvider, useTheme } from './theme';
+export { DEFAULT_THEME_ID, themes } from './themeTokens';
+export type { Theme, ThemeColors, ThemeId } from './themeTokens';
+export { fontFamilies, typography } from './typography';

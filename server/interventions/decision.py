@@ -24,6 +24,8 @@ class DecisionResult(BaseModel):
     question: str = Field(default="", max_length=300)
     offer_reason: str = Field(default="", max_length=240)
     ranked_ids: list[str] = Field(default_factory=list, max_length=4)
+    contract_version: Literal[1] = 1
+    proposal_id: str | None = None
 
 
 def listening_decision() -> dict:

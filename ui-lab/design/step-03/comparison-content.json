@@ -1,0 +1,439 @@
+{
+  "schema_version": 1,
+  "status": "Comparison fixture for Step 04; not approved native copy or new behavior.",
+  "tone": "Warm, informal peer; natural English without forced slang, pet names, invented history, or emotional assumptions.",
+  "copy": {
+    "talk.welcome": {
+      "text": "Hey. What’s on your mind?",
+      "when": "Fresh welcome; no active recording"
+    },
+    "talk.welcome_help": {
+      "text": "No need to make it sound neat.",
+      "when": "One optional supporting line on welcome"
+    },
+    "talk.hold": {
+      "text": "Hold to talk",
+      "when": "Mic idle/ready; visible hold instruction"
+    },
+    "talk.type": {
+      "text": "Type instead",
+      "when": "Switch to the existing text mode"
+    },
+    "talk.end": {
+      "text": "End voice",
+      "when": "Existing end-voice action; disabled when unavailable"
+    },
+    "talk.connecting": {
+      "text": "Getting voice ready…",
+      "when": "Connection pending; not recording"
+    },
+    "talk.starting": {
+      "text": "Turning the mic on…",
+      "when": "Capture startup pending"
+    },
+    "talk.recording": {
+      "text": "I’m listening.",
+      "when": "Only while actual user capture is active"
+    },
+    "talk.release": {
+      "text": "Let go to send.",
+      "when": "Recording helper"
+    },
+    "talk.processing": {
+      "text": "One sec…",
+      "when": "Finalizing/processing; capture has ended"
+    },
+    "talk.speaking": {
+      "text": "Mira’s speaking",
+      "when": "Reply audio is active"
+    },
+    "talk.interrupt": {
+      "text": "Hold the mic to jump in.",
+      "when": "Speaking-state helper; existing interruption behavior"
+    },
+    "talk.retry_title": {
+      "text": "Let’s try voice again.",
+      "when": "Voice/turn error"
+    },
+    "talk.retry_help": {
+      "text": "Hold the mic, or type instead.",
+      "when": "Existing hold retry and text alternative"
+    },
+    "talk.ended": {
+      "text": "Voice is off.",
+      "when": "End action completed; conversation retained"
+    },
+    "talk.restart": {
+      "text": "Hold the mic when you’re ready.",
+      "when": "Voice-ended helper"
+    },
+    "talk.placeholder": {
+      "text": "Write a message…",
+      "when": "Text composer"
+    },
+    "talk.send": {
+      "text": "Send",
+      "when": "Existing nonblank text submit"
+    },
+    "talk.reply_wait": {
+      "text": "Mira is replying…",
+      "when": "Text reply pending"
+    },
+    "talk.reply_failed": {
+      "text": "Couldn’t get a reply. Your message is still here.",
+      "when": "Failed request/response; do not assert it never reached the worker"
+    },
+    "talk.retry_text": {
+      "text": "Try again",
+      "when": "Retry existing failed text turn"
+    },
+    "talk.voice": {
+      "text": "Switch to voice",
+      "when": "Existing text-to-voice action"
+    },
+    "talk.offer_title": {
+      "text": "Want to try One Small Step?",
+      "when": "One valid offer, not auto-launch"
+    },
+    "talk.offer_reason": {
+      "text": "We could pick one thing to start with.",
+      "when": "Synthetic comparison offer explanation"
+    },
+    "talk.offer_accept": {
+      "text": "Try it",
+      "when": "Accept the displayed activity"
+    },
+    "talk.offer_decline": {
+      "text": "Keep talking",
+      "when": "Decline without pressure"
+    },
+    "talk.quiet_return": {
+      "text": "Music might still be playing. Voice is paused.",
+      "when": "Existing quiet music return"
+    },
+    "talk.resume": {
+      "text": "Resume voice",
+      "when": "Existing explicit voice resume"
+    },
+    "talk.show_captions": {
+      "text": "Show conversation",
+      "when": "Accessible name for existing expanded transcript/context view; not a word-synced-caption promise"
+    },
+    "talk.hide_captions": {
+      "text": "Hide conversation",
+      "when": "Accessible name when expanded"
+    },
+    "activities.title": {
+      "text": "Activities",
+      "when": "Main header"
+    },
+    "activities.intro": {
+      "text": "What sounds doable right now?",
+      "when": "One introductory line"
+    },
+    "activities.preferred": {
+      "text": "Your picks",
+      "when": "Only activities explicitly opted into future suggestions; not inferred favorites"
+    },
+    "activities.continue": {
+      "text": "Continue",
+      "when": "Existing kept-work section"
+    },
+    "activities.continue_link": {
+      "text": "Continue (1)",
+      "when": "Populated supporting fixture; count is real local record count in implementation"
+    },
+    "activities.mark_done": {
+      "text": "Mark done",
+      "when": "Existing Continue operation"
+    },
+    "activities.remove": {
+      "text": "Remove",
+      "when": "Existing removal with confirmation"
+    },
+    "activities.local_error": {
+      "text": "Saved items didn’t load. You can still choose an activity.",
+      "when": "Local saved-item read failure; catalog remains available"
+    },
+    "journal.title": {
+      "text": "Journal",
+      "when": "Main header"
+    },
+    "journal.intro": {
+      "text": "Start wherever you want.",
+      "when": "New-entry invitation, not a required task"
+    },
+    "journal.pick_prompt": {
+      "text": "Pick a prompt",
+      "when": "Optional existing picker"
+    },
+    "journal.prompt": {
+      "text": "How was your day?",
+      "when": "Existing default prompt for all comparison candidates"
+    },
+    "journal.placeholder": {
+      "text": "Start writing…",
+      "when": "Blank input; never the only accessible field label"
+    },
+    "journal.appearance": {
+      "text": "Page style",
+      "when": "Existing background/writing-size picker; accessible label explains both"
+    },
+    "journal.font_size": {
+      "text": "Writing size",
+      "when": "Existing size control"
+    },
+    "journal.save_entry": {
+      "text": "Save entry",
+      "when": "Append writing, stay in editor, and request existing follow-up"
+    },
+    "journal.saving": {
+      "text": "Saving…",
+      "when": "Actual local write pending"
+    },
+    "journal.saved": {
+      "text": "Entry saved.",
+      "when": "Local append confirmed"
+    },
+    "journal.follow_up_pending": {
+      "text": "Entry saved. Mira is thinking of a follow-up…",
+      "when": "Separate online follow-up pending"
+    },
+    "journal.follow_up_unavailable": {
+      "text": "Entry saved. Mira couldn’t add a follow-up right now.",
+      "when": "Local save succeeded; worker failed"
+    },
+    "journal.retry_follow_up": {
+      "text": "Retry follow-up",
+      "when": "Existing retry action"
+    },
+    "journal.save_failed": {
+      "text": "That didn’t save. Your writing is still here—try again.",
+      "when": "Local write failed"
+    },
+    "journal.draft_failed": {
+      "text": "Your draft is still here. Local saving needs another try.",
+      "when": "Background draft persistence failed; do not show Saved"
+    },
+    "journal.finish": {
+      "text": "Finish session",
+      "when": "Relabels existing Save session; finalizes locally then returns"
+    },
+    "journal.finish_help": {
+      "text": "Saves this session as finished. Start a new one anytime.",
+      "when": "Contextual helper beside session-finalization action"
+    },
+    "journal.finished": {
+      "text": "This session is saved. Start a new entry whenever you want.",
+      "when": "Existing finalized/read state"
+    },
+    "journal.new_entry": {
+      "text": "New entry",
+      "when": "Existing new-session action"
+    },
+    "journal.recent": {
+      "text": "Recent sessions",
+      "when": "Supporting home list; includes drafts and finalized sessions"
+    },
+    "journal.empty": {
+      "text": "No entries yet.",
+      "when": "Genuine empty home fixture"
+    },
+    "journal.empty_help": {
+      "text": "You can start with a few words.",
+      "when": "Supporting empty-state line"
+    },
+    "journal.draft": {
+      "text": "Draft",
+      "when": "Non-finalized local session label"
+    },
+    "journal.saved_session": {
+      "text": "Saved",
+      "when": "Finalized session label"
+    },
+    "journal.voice": {
+      "text": "Voice note",
+      "when": "Tap starts Journal recording; not Talk hold behavior"
+    },
+    "journal.recording": {
+      "text": "Recording your voice note…",
+      "when": "Capture active"
+    },
+    "journal.stop_recording": {
+      "text": "Stop recording",
+      "when": "Existing tap-to-stop action"
+    },
+    "journal.note_ready": {
+      "text": "Voice note ready. Save it or discard it.",
+      "when": "Stopped, unsaved audio attachment"
+    },
+    "journal.save_note": {
+      "text": "Save voice note",
+      "when": "Existing local attachment save"
+    },
+    "journal.discard_note": {
+      "text": "Discard",
+      "when": "Existing unsaved recording discard"
+    },
+    "journal.note_saved": {
+      "text": "Voice note saved.",
+      "when": "Local attachment commit confirmed"
+    },
+    "journal.note_failed": {
+      "text": "Voice note didn’t save. The recording is still here.",
+      "when": "Local attachment save failed"
+    },
+    "journal.play": {
+      "text": "Play",
+      "when": "Existing saved recording playback"
+    },
+    "journal.pause": {
+      "text": "Pause",
+      "when": "Existing saved recording pause"
+    },
+    "journal.delete_note": {
+      "text": "Delete voice note",
+      "when": "Existing saved recording removal"
+    },
+    "journal.excerpt": {
+      "text": "Choose an excerpt for Talk",
+      "when": "Existing excerpt review, not automatic transfer"
+    },
+    "journal.excerpt_review": {
+      "text": "Review this excerpt",
+      "when": "Existing editable selection"
+    },
+    "journal.excerpt_pending": {
+      "text": "Save for review",
+      "when": "Relabels existing Save pending excerpt; does not approve use"
+    },
+    "journal.excerpt_approve": {
+      "text": "Approve for Talk",
+      "when": "Existing separate approval"
+    },
+    "journal.excerpt_help": {
+      "text": "Talk can use this only after you approve it.",
+      "when": "At the existing excerpt decision, not on ordinary writing screen"
+    },
+    "shared.help": {
+      "text": "Help",
+      "when": "Existing support choices"
+    },
+    "shared.cancel": {
+      "text": "Cancel",
+      "when": "Dismiss picker/action without applying"
+    },
+    "shared.close": {
+      "text": "Close",
+      "when": "Dismiss overlay"
+    },
+    "shared.back": {
+      "text": "Back",
+      "when": "Return to origin using existing route behavior"
+    }
+  },
+  "fixtures": {
+    "talk": {
+      "user_message": "I’ve got a presentation tomorrow and I keep putting it off.",
+      "mira_reply": "Want to make the first step a little smaller?",
+      "offer_activity_id": "one_small_step"
+    },
+    "activities": {
+      "preferred_ids": [
+        "one_small_step"
+      ],
+      "all": [
+        {
+          "id": "brain_dump",
+          "group": "Express",
+          "title": "Brain Dump",
+          "summary": "Get it out. Sorting it can wait."
+        },
+        {
+          "id": "unsent_letter",
+          "group": "Express",
+          "title": "Unsent Letter",
+          "summary": "Write what you wish you could say."
+        },
+        {
+          "id": "name_a_feeling",
+          "group": "Express",
+          "title": "Notice & Name",
+          "summary": "Find words that feel close enough."
+        },
+        {
+          "id": "one_small_step",
+          "group": "Move forward",
+          "title": "One Small Step",
+          "summary": "Make one thing easier to start."
+        },
+        {
+          "id": "reach_out",
+          "group": "Move forward",
+          "title": "Reach Out",
+          "summary": "Draft a message in your own words."
+        },
+        {
+          "id": "short_movement",
+          "group": "Take a break",
+          "title": "Move / Change Your Scene",
+          "summary": "A change of pace, with movement optional."
+        },
+        {
+          "id": "one_song_break",
+          "group": "Take a break",
+          "title": "One Song Break",
+          "summary": "Make room for a song you choose."
+        },
+        {
+          "id": "grounding",
+          "group": "Follow a guide",
+          "title": "Grounding",
+          "summary": "Notice what’s around you, at your pace."
+        },
+        {
+          "id": "paced_breathing",
+          "group": "Follow a guide",
+          "title": "Paced Breathing",
+          "summary": "Follow a gentle rhythm, at your own pace."
+        }
+      ],
+      "journal_link": {
+        "title": "Journal",
+        "summary": "Recent entries and a new page."
+      },
+      "continue": {
+        "task": "Work on the presentation",
+        "first_move": "Write a rough title",
+        "cue": "After lunch"
+      }
+    },
+    "journal": {
+      "prompt": "How was your day?",
+      "draft": "I kept putting off the presentation today. I think I just don’t know where to start.",
+      "follow_up": "What would make starting feel a little easier?",
+      "home_records": [
+        {
+          "title": "Presentation thoughts",
+          "state": "Draft",
+          "date": "2026-10-20",
+          "preview": "I kept putting off the presentation today."
+        },
+        {
+          "title": "A quieter afternoon",
+          "state": "Saved",
+          "date": "2026-10-19",
+          "preview": "Taking a walk gave me a little space."
+        }
+      ]
+    }
+  },
+  "comparison_rules": [
+    "Keep this content identical across A/B/C.",
+    "Use a separate fresh fixture with no preference/kept work, and a populated supporting fixture with the one Continue item.",
+    "Activity summaries are candidate library copy only, not changes to activity instructions.",
+    "Do not add clipboard, automatic voice capture, auto-sending, new saved-work categories, or new activities.",
+    "State titles are alternatives, not a list to display all at once."
+  ],
+  "optional_before_step_04": "Share a must-keep brand element or one or two interfaces/illustration styles you love or dislike. No input is required; otherwise explore three distinct visual worlds, including a character-led direction."
+}

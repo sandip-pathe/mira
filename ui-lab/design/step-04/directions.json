@@ -1,0 +1,80 @@
+[
+  {
+    "id": "a",
+    "name": "Little company",
+    "line": "A little warmth. A lot of room.",
+    "font": "Nunito Sans",
+    "display": "Nunito Sans",
+    "world": "Matte clay, a sprout companion, peach and moss.",
+    "reason": "Finch’s visible companion and Headspace’s unhurried focal point, with the review corpus’s pressure and reward interruptions removed. Open library rows borrow Keep’s directness.",
+    "colors": {
+      "canvas": "#F7F1E7",
+      "surface": "#FFF9F1",
+      "ink": "#263C31",
+      "muted": "#5B675E",
+      "primary": "#315A45",
+      "soft": "#E5E8DB",
+      "accent": "#DEA68D",
+      "line": "#D7D4C5",
+      "pressed": "#234332",
+      "disabled": "#D8D7CF",
+      "disabledInk": "#60635C",
+      "error": "#A13C32"
+    },
+    "layout": "A companion sits in the middle of a quiet, open welcome. Large round voice control; open rows in the library; an airy writing page.",
+    "motion": "Idle: 6-second 3px float, no pulsing mic. Hold: 120ms control compression plus a static recording ring. Waiting: separate three-dot indicator. Reply: subtle companion tilt. Release/route change cancels hold immediately.",
+    "art": "assets/illustrations/a-plate.png"
+  },
+  {
+    "id": "b",
+    "name": "Clear head",
+    "line": "A brighter kind of breathing room.",
+    "font": "Outfit",
+    "display": "Outfit",
+    "world": "Sculptural lilac loops, folded paper and a citron accent.",
+    "reason": "How We Feel’s legible color grouping and Spotify’s strong action hierarchy, with Tiimo’s visual activity identity. Categories stay browsable and explicit preferences stay first.",
+    "colors": {
+      "canvas": "#F1EEF9",
+      "surface": "#FBF8FF",
+      "ink": "#302745",
+      "muted": "#675D79",
+      "primary": "#594476",
+      "soft": "#E5DDF0",
+      "accent": "#DDEAAB",
+      "line": "#D7CDE3",
+      "pressed": "#42315B",
+      "disabled": "#D8D1E0",
+      "disabledInk": "#665D73",
+      "error": "#A03548"
+    },
+    "layout": "Bolder type and sculptural negative space. A tonal voice dock anchors Talk. Activities use alternating tonal group surfaces. Journal keeps the shape language at the edge.",
+    "motion": "Idle: 8-second 2-degree sculpture drift. Hold: 120ms citron control compression and static recording ring. Waiting: three-dot state. Reply: 240ms shape settle. No looping full-screen shader.",
+    "art": "assets/illustrations/b-plate.png"
+  },
+  {
+    "id": "c",
+    "name": "Room to think",
+    "line": "Less polish in your words. More you.",
+    "font": "DM Sans",
+    "display": "Lora",
+    "world": "Ink, apricot paper, an ordinary cup and a loose pencil line.",
+    "reason": "Day One’s readable writing space and Keep’s low-effort entry, with Headspace’s editorial art. Existing journal actions remain separate; decoration recedes as soon as writing starts.",
+    "colors": {
+      "canvas": "#F8F2E8",
+      "surface": "#FFFAF2",
+      "ink": "#263543",
+      "muted": "#5E6570",
+      "primary": "#2F5271",
+      "soft": "#ECE4D7",
+      "accent": "#EDC0A1",
+      "line": "#D8D0C2",
+      "pressed": "#203D57",
+      "disabled": "#D9D4CA",
+      "disabledInk": "#63666A",
+      "error": "#A13C32"
+    },
+    "layout": "An editorial greeting and a conversational still life. A broad hold-to-talk action. The library is a clean illustrated index; the writing page is nearly unframed.",
+    "motion": "Idle: 7-second 2px still-life drift. Hold: 120ms button compression and static recording ring. Waiting: three-dot state. Reply: 200ms ink-line reveal concept. No animated writing or delayed tools.",
+    "art": "assets/illustrations/c-plate.png"
+  }
+]

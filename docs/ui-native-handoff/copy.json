@@ -1,0 +1,324 @@
+{
+  "schemaVersion": 1,
+  "status": "Selected Lab screen wording for native transfer; native state accuracy and actual activity content take precedence",
+  "source": "ui-lab/design/step-03/comparison-content.json, filtered to selected screen usage",
+  "tone": "Warm, concise, informal peer; natural English, no forced slang or invented familiarity",
+  "strings": {
+    "talk.welcome": {
+      "text": "Hey. What’s on your mind?",
+      "when": "Fresh welcome; no active recording"
+    },
+    "talk.welcome_help": {
+      "text": "No need to make it sound neat.",
+      "when": "One optional supporting line on welcome"
+    },
+    "talk.hold": {
+      "text": "Hold to talk",
+      "when": "Mic idle/ready; visible hold instruction"
+    },
+    "talk.type": {
+      "text": "Type instead",
+      "when": "Switch to the existing text mode"
+    },
+    "talk.end": {
+      "text": "End voice",
+      "when": "Existing end-voice action; disabled when unavailable"
+    },
+    "talk.recording": {
+      "text": "I’m listening.",
+      "when": "Only while actual user capture is active"
+    },
+    "talk.release": {
+      "text": "Let go to send.",
+      "when": "Recording helper"
+    },
+    "talk.processing": {
+      "text": "One sec…",
+      "when": "Finalizing/processing; capture has ended"
+    },
+    "talk.speaking": {
+      "text": "Mira’s speaking",
+      "when": "Reply audio is active"
+    },
+    "talk.interrupt": {
+      "text": "Hold the mic to jump in.",
+      "when": "Speaking-state helper; existing interruption behavior"
+    },
+    "talk.retry_title": {
+      "text": "Let’s try voice again.",
+      "when": "Voice/turn error"
+    },
+    "talk.retry_help": {
+      "text": "Hold the mic, or type instead.",
+      "when": "Existing hold retry and text alternative"
+    },
+    "talk.ended": {
+      "text": "Voice is off.",
+      "when": "End action completed; conversation retained"
+    },
+    "talk.restart": {
+      "text": "Hold the mic when you’re ready.",
+      "when": "Voice-ended helper"
+    },
+    "talk.placeholder": {
+      "text": "Write a message…",
+      "when": "Text composer"
+    },
+    "talk.send": {
+      "text": "Send",
+      "when": "Existing nonblank text submit"
+    },
+    "talk.reply_wait": {
+      "text": "Mira is replying…",
+      "when": "Text reply pending"
+    },
+    "talk.reply_failed": {
+      "text": "Couldn’t get a reply. Your message is still here.",
+      "when": "Failed request/response; do not assert it never reached the worker"
+    },
+    "talk.retry_text": {
+      "text": "Try again",
+      "when": "Retry existing failed text turn"
+    },
+    "talk.voice": {
+      "text": "Switch to voice",
+      "when": "Existing text-to-voice action"
+    },
+    "talk.offer_title": {
+      "text": "Want to try One Small Step?",
+      "when": "One valid offer, not auto-launch",
+      "nativeBinding": "Use actual offered activity title; this literal is the One Small Step example only."
+    },
+    "talk.offer_reason": {
+      "text": "We could pick one thing to start with.",
+      "when": "Synthetic comparison offer explanation",
+      "nativeBinding": "Use actual native/AI offer reason, not the fixed comparison fixture."
+    },
+    "talk.offer_accept": {
+      "text": "Try it",
+      "when": "Accept the displayed activity"
+    },
+    "talk.offer_decline": {
+      "text": "Keep talking",
+      "when": "Decline without pressure"
+    },
+    "talk.show_captions": {
+      "text": "Show conversation",
+      "when": "Accessible name for existing expanded transcript/context view; not a word-synced-caption promise"
+    },
+    "activities.title": {
+      "text": "Activities",
+      "when": "Main header"
+    },
+    "activities.intro": {
+      "text": "What sounds doable right now?",
+      "when": "One introductory line"
+    },
+    "activities.preferred": {
+      "text": "Your picks",
+      "when": "Only activities explicitly opted into future suggestions; not inferred favorites"
+    },
+    "activities.continue": {
+      "text": "Continue",
+      "when": "Existing kept-work section"
+    },
+    "activities.mark_done": {
+      "text": "Mark done",
+      "when": "Existing Continue operation"
+    },
+    "activities.remove": {
+      "text": "Remove",
+      "when": "Existing removal with confirmation"
+    },
+    "activities.local_error": {
+      "text": "Saved items didn’t load. You can still choose an activity.",
+      "when": "Local saved-item read failure; catalog remains available"
+    },
+    "journal.title": {
+      "text": "Journal",
+      "when": "Main header"
+    },
+    "journal.intro": {
+      "text": "Start wherever you want.",
+      "when": "New-entry invitation, not a required task"
+    },
+    "journal.pick_prompt": {
+      "text": "Pick a prompt",
+      "when": "Optional existing picker"
+    },
+    "journal.prompt": {
+      "text": "How was your day?",
+      "when": "Existing default prompt for all comparison candidates"
+    },
+    "journal.placeholder": {
+      "text": "Start writing…",
+      "when": "Blank input; never the only accessible field label"
+    },
+    "journal.appearance": {
+      "text": "Page style",
+      "when": "Existing background/writing-size picker; accessible label explains both"
+    },
+    "journal.font_size": {
+      "text": "Writing size",
+      "when": "Existing size control"
+    },
+    "journal.save_entry": {
+      "text": "Save entry",
+      "when": "Append writing, stay in editor, and request existing follow-up"
+    },
+    "journal.saving": {
+      "text": "Saving…",
+      "when": "Actual local write pending"
+    },
+    "journal.saved": {
+      "text": "Entry saved.",
+      "when": "Local append confirmed"
+    },
+    "journal.follow_up_pending": {
+      "text": "Entry saved. Mira is thinking of a follow-up…",
+      "when": "Separate online follow-up pending"
+    },
+    "journal.follow_up_unavailable": {
+      "text": "Entry saved. Mira couldn’t add a follow-up right now.",
+      "when": "Local save succeeded; worker failed"
+    },
+    "journal.retry_follow_up": {
+      "text": "Retry follow-up",
+      "when": "Existing retry action"
+    },
+    "journal.save_failed": {
+      "text": "That didn’t save. Your writing is still here—try again.",
+      "when": "Local write failed"
+    },
+    "journal.finish": {
+      "text": "Finish session",
+      "when": "Relabels existing Save session; finalizes locally then returns"
+    },
+    "journal.finish_help": {
+      "text": "Saves this session as finished. Start a new one anytime.",
+      "when": "Contextual helper beside session-finalization action"
+    },
+    "journal.finished": {
+      "text": "This session is saved. Start a new entry whenever you want.",
+      "when": "Existing finalized/read state"
+    },
+    "journal.new_entry": {
+      "text": "New entry",
+      "when": "Existing new-session action"
+    },
+    "journal.recent": {
+      "text": "Recent sessions",
+      "when": "Supporting home list; includes drafts and finalized sessions"
+    },
+    "journal.empty": {
+      "text": "No entries yet.",
+      "when": "Genuine empty home fixture"
+    },
+    "journal.empty_help": {
+      "text": "You can start with a few words.",
+      "when": "Supporting empty-state line"
+    },
+    "journal.draft": {
+      "text": "Draft",
+      "when": "Non-finalized local session label"
+    },
+    "journal.saved_session": {
+      "text": "Saved",
+      "when": "Finalized session label"
+    },
+    "journal.voice": {
+      "text": "Voice note",
+      "when": "Tap starts Journal recording; not Talk hold behavior"
+    },
+    "journal.recording": {
+      "text": "Recording your voice note…",
+      "when": "Capture active"
+    },
+    "journal.stop_recording": {
+      "text": "Stop recording",
+      "when": "Existing tap-to-stop action"
+    },
+    "journal.note_ready": {
+      "text": "Voice note ready. Save it or discard it.",
+      "when": "Stopped, unsaved audio attachment"
+    },
+    "journal.save_note": {
+      "text": "Save voice note",
+      "when": "Existing local attachment save"
+    },
+    "journal.discard_note": {
+      "text": "Discard",
+      "when": "Existing unsaved recording discard"
+    },
+    "journal.note_saved": {
+      "text": "Voice note saved.",
+      "when": "Local attachment commit confirmed"
+    },
+    "journal.note_failed": {
+      "text": "Voice note didn’t save. The recording is still here.",
+      "when": "Local attachment save failed"
+    },
+    "journal.play": {
+      "text": "Play",
+      "when": "Existing saved recording playback"
+    },
+    "journal.pause": {
+      "text": "Pause",
+      "when": "Existing saved recording pause"
+    },
+    "journal.delete_note": {
+      "text": "Delete voice note",
+      "when": "Existing saved recording removal"
+    },
+    "journal.excerpt": {
+      "text": "Choose an excerpt for Talk",
+      "when": "Existing excerpt review, not automatic transfer"
+    },
+    "journal.excerpt_review": {
+      "text": "Review this excerpt",
+      "when": "Existing editable selection"
+    },
+    "journal.excerpt_pending": {
+      "text": "Save for review",
+      "when": "Relabels existing Save pending excerpt; does not approve use"
+    },
+    "journal.excerpt_approve": {
+      "text": "Approve for Talk",
+      "when": "Existing separate approval"
+    },
+    "journal.excerpt_help": {
+      "text": "Talk can use this only after you approve it.",
+      "when": "At the existing excerpt decision, not on ordinary writing screen"
+    },
+    "shared.help": {
+      "text": "Help",
+      "when": "Existing support choices"
+    },
+    "shared.cancel": {
+      "text": "Cancel",
+      "when": "Dismiss picker/action without applying"
+    },
+    "shared.close": {
+      "text": "Close",
+      "when": "Dismiss overlay"
+    }
+  },
+  "additionalSelectedScreenText": {
+    "journal.homeInvitation": "A new page, whenever you want.",
+    "talk.offline": "Mira’s temporarily offline.",
+    "talk.conversationEmpty": "Your conversation will appear here.",
+    "activities.groups": [
+      "Express",
+      "Move forward",
+      "Take a break",
+      "Follow a guide"
+    ]
+  },
+  "rules": [
+    "Do not copy mock user messages, fixed AI replies, fake saved data, fake durations or simulated Help content.",
+    "Use actual bundled catalog content and current native AI responses. Activity titles and core meanings remain unchanged.",
+    "Retain native connecting/capture-starting/music-return/failure distinctions even where the Lab did not render every state.",
+    "A local save success and an AI follow-up success are separate; do not report that saving failed when only the follow-up failed.",
+    "Preserve current native support, excerpt approval, feedback and deletion actions; wording must match what each action does."
+  ]
+}

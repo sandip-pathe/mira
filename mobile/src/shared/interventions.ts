@@ -32,6 +32,8 @@ export type Intervention = {
 };
 
 export type SupportDecision = {
+  contract_version: 1;
+  proposal_id: string | null;
   route: 'listen' | 'ask_question' | 'offer_intervention' | 'human_support';
   situation_summary: string;
   question: string;

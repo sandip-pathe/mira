@@ -3,7 +3,8 @@ import { ApiError, DemoSession, Message, renewDemoSession, request } from './api
 import { SupportDecision } from './interventions';
 import type { ContextMatch, MomentState } from '../features/talk/conversation';
 import { activityCapabilities } from './activityRegistry';
-import { currentConsentRevision, selectTalkContext } from '../features/talk/data/contextRepository';
+import { currentConsentRevision } from '../features/talk/data/contextRepository';
+import { getContextSnapshot } from './context/contextService';
 
 export type VoiceTransportState =
   | 'disconnected'
@@ -46,24 +47,25 @@ function parseToolArguments(name: string, raw: string): Record<string, unknown> 
   if (raw.length > 5000) throw new Error('Tool arguments are too large.');
   const value: unknown = JSON.parse(raw);
   if (!isRecord(value)) throw new Error('Tool arguments are invalid.');
+  if (value.contract_version !== 1) throw new Error('Unsupported tool contract version.');
   if (name === 'retrieve_shared_context') {
-    if (!exactKeys(value, ['query', 'max_results']) || typeof value.query !== 'string' ||
+    if (!exactKeys(value, ['contract_version', 'query', 'max_results']) || typeof value.query !== 'string' ||
         !value.query.trim() || value.query.length > 500 || value.max_results !== 1)
       throw new Error('Context query is invalid.');
   } else if (name === 'choose_support') {
-    if (!exactKeys(value, ['user_message', 'situation_summary', 'current_need']) ||
+    if (!exactKeys(value, ['contract_version', 'user_message', 'situation_summary', 'current_need']) ||
         typeof value.user_message !== 'string' || value.user_message.length > 2000 ||
         typeof value.situation_summary !== 'string' || value.situation_summary.length > 500 ||
         typeof value.current_need !== 'string' || value.current_need.length > 240)
       throw new Error('Support request is invalid.');
   } else if (name === 'update_moment_state') {
-    const keys = ['what_happened', 'current_need', 'what_is_unclear', 'support_mode', 'suggested_action', 'previously_helpful'];
+    const keys = ['contract_version', 'what_happened', 'current_need', 'what_is_unclear', 'support_mode', 'suggested_action', 'previously_helpful'];
     const max: Record<string, number> = {
       what_happened: 240, current_need: 160, what_is_unclear: 160,
       suggested_action: 160, previously_helpful: 160,
     };
     if (!exactKeys(value, keys) || !momentModes.has(value.support_mode as MomentState['support_mode']) ||
-        keys.some((key) => key !== 'support_mode' &&
+        keys.some((key) => key !== 'support_mode' && key !== 'contract_version' &&
           (typeof value[key] !== 'string' || (value[key] as string).length > max[key])))
       throw new Error('Moment update is invalid.');
   } else throw new Error('Unknown tool.');
@@ -638,32 +640,40 @@ export class Voice {
     try {
       const args = parseToolArguments(event.name, event.arguments);
       if (event.name === 'retrieve_shared_context') {
-        const selected = await selectTalkContext(args.query as string);
+        const selected = await getContextSnapshot('talk', args.query as string);
         const currentRevision = await currentConsentRevision();
         if (epoch !== this.epoch || turn !== this.turn) return;
         const matches = currentRevision === selected.revision ? selected.matches : [];
-        output = { matches, no_match: !matches.length };
+        output = {
+          contract_version: 1,
+          matches,
+          preferences: currentRevision === selected.revision ? selected.preferences : [],
+          no_match: !matches.length,
+        };
         this.callbacks.context(matches, !matches.length);
       } else if (event.name === 'update_moment_state') {
-        const moment = args as unknown as MomentState;
-        this.callbacks.moment(moment);
-        output = { moment_state: moment };
+        const { contract_version: _contractVersion, ...moment } = args;
+        const state = moment as unknown as MomentState;
+        this.callbacks.moment(state);
+        output = { contract_version: 1, moment_state: state };
       } else {
         const call = { call_id: event.call_id, name: event.name, arguments: args };
-        await request(
+        const registered = await request<{ contract_version: number; registered: boolean }>(
           `/sessions/${session.session_id}/tool-calls?generation=${this.generation}`,
           session,
           call,
           undefined,
           { signal: controller.signal },
         );
+        if (registered.contract_version !== 1 || !registered.registered)
+          throw new Error('Unsupported tool contract response.');
         if (epoch !== this.epoch || turn !== this.turn) return;
         const query = `${args.user_message} ${args.situation_summary} ${args.current_need}`;
-        const approved = await selectTalkContext(query);
+        const approved = await getContextSnapshot('activity_selection', query);
         const revision = await currentConsentRevision();
         if (epoch !== this.epoch || turn !== this.turn) return;
         if (revision !== approved.revision) throw new Error('Consent changed during support request.');
-        const response = await request<{ call_id: string; result: any }>(
+        const response = await request<{ contract_version: number; call_id: string; result: any }>(
           `/sessions/${session.session_id}/tools`,
           session,
           { call, approved_preferences: approved.preferences, declined_interventions: this.callbacks.declinedInterventions(), consent_revision: revision },
@@ -671,7 +681,8 @@ export class Voice {
           { signal: controller.signal },
         );
         if (epoch !== this.epoch || turn !== this.turn) return;
-        if (response.call_id !== event.call_id) throw new Error('Mismatched call ID');
+        if (response.contract_version !== 1 || response.call_id !== event.call_id)
+          throw new Error('Mismatched tool response contract.');
         output = response.result;
         if (response.result.decision) this.callbacks.decision(response.result.decision);
       }
@@ -680,7 +691,7 @@ export class Voice {
         this.fail('Voice capability expired. Reconnectingâ€¦', true);
         return;
       }
-      output = { error: 'tool_unavailable', instruction: 'Continue without saved context or an activity suggestion.' };
+      output = { contract_version: 1, error: 'tool_unavailable', instruction: 'Continue without saved context or an activity suggestion.' };
       if (epoch === this.epoch && turn === this.turn)
         this.callbacks.error('Tool unavailable. Continuing without its result.');
     } finally {

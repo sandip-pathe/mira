@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import { colors } from './tokens';
+import { useTheme } from './theme';
 
 export function Surface({
   children,
@@ -9,13 +9,16 @@ export function Surface({
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  return <View style={[styles.surface, style]}>{children}</View>;
+  const { colors } = useTheme();
+  return (
+    <View style={[styles.surface, { backgroundColor: colors.surface, borderColor: colors.line }, style]}>
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
   surface: {
-    backgroundColor: colors.surface,
-    borderColor: colors.line,
     borderWidth: 1,
     borderRadius: 18,
     padding: 16,

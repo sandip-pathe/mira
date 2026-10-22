@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "source_id": "whatsapp-features",
+  "title": "WhatsApp: documented voice feedback",
+  "role_for_mira": "Supplementary documentation of familiar voice-state indicators.",
+  "provenance": {
+    "source_url": "https://about.fb.com/news/2022/03/new-voice-message-features-on-whatsapp/",
+    "platform": "Official historical feature announcement, March 2022",
+    "kind": "feature graphics; not sequential flow evidence",
+    "frames": [
+      {
+        "id": "01",
+        "path": "../../step-02/references/whatsapp-features/01.png",
+        "label": "1 Voice feature graphic"
+      },
+      {
+        "id": "02",
+        "path": "../../step-02/references/whatsapp-features/02.png",
+        "label": "2 Voice feature graphic"
+      }
+    ]
+  },
+  "spatial_ergonomic": {
+    "target_reference": {
+      "width": 360,
+      "height": 800,
+      "units": "logical design units, not measured donor dp"
+    },
+    "measurement_basis": "Qualitative visual reading of retained frames. Regions below are relative roles; source screenshots/GIFs do not expose device density or reliable native dp. Marketing/device chrome is not counted as app content.",
+    "regions": [
+      {
+        "state": "feature_graphic",
+        "description": "Multiple chat/control examples and callout labels share one publisher graphic; no single native viewport can be measured.",
+        "status": "estimated",
+        "frame_refs": [
+          "01",
+          "02"
+        ]
+      }
+    ],
+    "reference_zones": {
+      "top": [
+        0,
+        120
+      ],
+      "center": [
+        120,
+        440
+      ],
+      "lower": [
+        440,
+        760
+      ]
+    },
+    "reference_zone_status": "Proposed comparison grid only; donor controls may fall outside these bands. Not a fixed-coordinate implementation rule.",
+    "visual_density": {
+      "status": "estimated",
+      "value": "Not applicable to a native viewport: multi-example feature diagram."
+    },
+    "open_canvas_ratio_percent": {
+      "status": "unknown",
+      "value": null
+    },
+    "native_touch_target_dp": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "states_and_triggers": {
+    "states": [
+      "paused_draft",
+      "playback",
+      "recording"
+    ],
+    "transitions": [
+      {
+        "from": "recording",
+        "trigger": "Pause capture",
+        "to": "paused_draft",
+        "status": "documented"
+      },
+      {
+        "from": "paused_draft",
+        "trigger": "Preview the draft",
+        "to": "playback",
+        "status": "documented"
+      },
+      {
+        "from": "paused_draft",
+        "trigger": "Resume capture",
+        "to": "recording",
+        "status": "documented"
+      }
+    ],
+    "limitation": "Visible states are observations; documented arrows use source flow/guide descriptions. No event-handler names, gesture thresholds, or unseen screens are inferred as measured behavior."
+  },
+  "motion_and_rendering": {
+    "observation": {
+      "status": "unknown",
+      "value": "Static official feature graphics document capability; exact visual transitions, dimensions, and timings are unknown."
+    },
+    "asset_duration_ms": {
+      "status": "unknown",
+      "value": null
+    },
+    "keyframe_timestamps_ms": [],
+    "native_frame_rate": {
+      "status": "unknown",
+      "value": null
+    },
+    "spring_parameters": {
+      "status": "unknown",
+      "value": null
+    },
+    "rendering_engine": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "sensory_and_haptics": {
+    "visual_or_documented_feedback": {
+      "status": "documented",
+      "value": "Voice playback and waveform visualization are documented. A waveform alone does not prove speech recognition or successful transmission; haptics are unknown."
+    },
+    "haptic_pattern": {
+      "status": "unknown",
+      "value": null
+    },
+    "audio_cue_timing": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "copy_and_cognitive_load": {
+    "hierarchy": {
+      "status": "observed",
+      "value": "Feature labels distinguish recording, draft preview, and playback. Publisher marketing captions are not in-app copy measurements."
+    },
+    "max_visible_words": {
+      "status": "unknown",
+      "value": null
+    },
+    "reading_grade": {
+      "status": "unknown",
+      "value": null
+    },
+    "note": "No OCR word-count or grade-level measurement is claimed. Use the Mira copy sheet for exact comparison text."
+  },
+  "mira_synthesis_candidate": {
+    "status": "proposed",
+    "value": "Make actual voice capture obvious and keep a visible text route. Preserve Mira hold/release behavior; pause/preview/mic-lock features are not silently added."
+  },
+  "review_evidence_ids": [
+    "R006",
+    "R055",
+    "R197"
+  ]
+}

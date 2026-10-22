@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { colors } from './tokens';
+import { useTheme } from './theme';
 
 export function StatusPill({
   children,
@@ -9,13 +9,21 @@ export function StatusPill({
   children: React.ReactNode;
   tone?: 'neutral' | 'good' | 'warn';
 }) {
+  const { colors, typography } = useTheme();
+  const warning = tone === 'warn';
   return (
     <View
       accessibilityLiveRegion="polite"
-      style={[styles.pill, tone === 'good' && styles.goodPill, tone === 'warn' && styles.warnPill]}
+      style={[
+        styles.pill,
+        {
+          backgroundColor: warning ? colors.surface : colors.soft,
+          borderColor: warning ? colors.accent : 'transparent',
+        },
+      ]}
     >
-      {tone === 'good' && <View style={styles.dot} />}
-      <Text style={styles.pillText}>{children}</Text>
+      {tone === 'good' && <View style={[styles.dot, { backgroundColor: colors.primary }]} />}
+      <Text style={[typography.status, { color: colors.ink }]}>{children}</Text>
     </View>
   );
 }
@@ -28,11 +36,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 7,
     paddingHorizontal: 11,
+    paddingVertical: 5,
+    borderWidth: 1,
     borderRadius: 99,
-    backgroundColor: colors.quiet,
   },
-  goodPill: { backgroundColor: colors.accentSoft },
-  warnPill: { backgroundColor: '#F8E9E3' },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.accent },
-  pillText: { color: colors.ink, fontSize: 13, lineHeight: 18, fontWeight: '600' },
+  dot: { width: 7, height: 7, borderRadius: 4 },
 });

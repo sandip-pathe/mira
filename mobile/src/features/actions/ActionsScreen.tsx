@@ -1,241 +1,109 @@
 import React from 'react';
-import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router, useFocusEffect } from 'expo-router';
-import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-import { ContinueItem, loadContinueItems, removeContinueItem } from '../../shared/interventions';
-import { ActionButton, HelpButton, Surface, colors, ui } from '../../components/ui';
+import { router } from 'expo-router';
+import { ActionButton, HelpButton, ThemePickerButton, useTheme } from '../../components/ui';
+import { BrandArtwork } from '../../components/ui/BrandArtwork';
 import { emitUrgentHelp } from '../../shared/demoEvents';
-import { activityGroups, getBundledActivities } from '../do/catalog';
-import { storageErrorMessage } from '../../shared/storage/database';
+import { activityGroups, getBundledActivities } from '../activities/data/catalog';
+import { canonicalActivityId, type RegisteredActivityId } from '../../shared/activityRegistry';
+import { rankPromotedActivities } from '../../shared/context/preferenceFeatures';
+import { ActivityLibraryRow, activityIcons } from './components/ActivityLibraryRow';
+import { ActivitySavedWork } from './components/ActivitySavedWork';
+import { useActivityLibrary } from './hooks/useActivityLibrary';
 
 const catalog = getBundledActivities();
+const stableCatalogOrder = activityGroups.flatMap((group) => group.ids);
+
+function showHelp() {
+  Alert.alert('Help', 'Choose a support route or urgent help.', [
+    {
+      text: 'Support route',
+      onPress: () => Alert.alert(
+        'Support route',
+        'This prototype is not connected to Mpower support. Ask the Mpower team which route belongs here.',
+      ),
+    },
+    {
+      text: 'Urgent help now',
+      onPress: () => { emitUrgentHelp(); router.push('/(tabs)/index'); },
+    },
+    { text: 'Close', style: 'cancel' },
+  ]);
+}
 
 export default function ActionsScreen() {
-  const [items, setItems] = React.useState<ContinueItem[]>([]);
-  const [status, setStatus] = React.useState('');
+  const { colors, typography } = useTheme();
+  const library = useActivityLibrary();
+  const scroll = React.useRef<ScrollView>(null);
+  const continueY = React.useRef(0);
+  const promoted = rankPromotedActivities(library.preferences, stableCatalogOrder)
+    .filter(({ activityId }) => stableCatalogOrder.some((id) => id === activityId));
+  const promotedIds = new Set(promoted.map((item) => item.activityId));
 
-  const refresh = React.useCallback(async () => {
-    setStatus('');
-    try {
-      setItems(await loadContinueItems());
-    } catch (error) {
-      setStatus(storageErrorMessage(error, 'Saved items could not be loaded on this device.'));
-    }
-  }, []);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      void refresh();
-    }, [refresh]),
-  );
-
-  function open(id: string, origin: 'actions_library' | 'actions_continue', itemId?: string) {
-    router.push({ pathname: '/do', params: { id, origin, ...(itemId ? { itemId } : {}) } });
-  }
-
-  function showHelp() {
-    Alert.alert('Help', 'Choose a support route or urgent help.', [
-      {
-        text: 'Support route',
-        onPress: () =>
-          Alert.alert(
-            'Support route',
-            'This prototype is not connected to Mpower support. Ask the Mpower team which route belongs here.',
-          ),
-      },
-      {
-        text: 'Urgent help now',
-        onPress: () => {
-          emitUrgentHelp();
-          router.push('/(tabs)/index');
-        },
-      },
-      { text: 'Close', style: 'cancel' },
-    ]);
-  }
-
-  function confirmRemove(item: ContinueItem) {
-    Alert.alert('Remove from Continue?', 'This removes the item saved on this device.', [
-      { text: 'Keep', style: 'cancel' },
-      {
-        text: 'Remove',
-        style: 'destructive',
-        onPress: () =>
-          void removeContinueItem(item.id)
-            .then(() => setItems((current) => current.filter((value) => value.id !== item.id)))
-            .catch(() => setStatus('This item could not be removed. Try again.')),
-      },
-    ]);
+  function renderActivity(id: RegisteredActivityId, preferred = false) {
+    const activity = catalog.find((item) => canonicalActivityId(item.id) === id);
+    if (!activity) return null;
+    return <ActivityLibraryRow key={id} title={activity.title} summary={activity.summary}
+      icon={activityIcons[id as keyof typeof activityIcons] ?? 'shape-outline'}
+      preferred={preferred}
+      onPress={() => router.push({ pathname: '/do', params: { id, origin: 'actions_library' } })} />;
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.canvas }}>
-      <ScrollView
-        contentContainerStyle={{
-          paddingHorizontal: 22,
-          paddingBottom: 28,
-          gap: 20,
-          maxWidth: 660,
-          width: '100%',
-          alignSelf: 'center',
-        }}
-      >
-        <View style={{ gap: 5 }}>
-          <View
-            style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <Text
-              style={{
-                fontSize: 32,
-                lineHeight: 42,
-                fontWeight: '700',
-                color: '#0474f3',
-                letterSpacing: -1.2,
-              }}
-            >
-              Activities
-            </Text>
-            <HelpButton onPress={showHelp} />
-          </View>
+    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, { backgroundColor: colors.canvas }]}>
+      <View style={styles.header}>
+        <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.ink }]}>Activities</Text>
+        <View style={styles.headerActions}>
+          <ThemePickerButton />
+          <HelpButton onPress={showHelp} />
         </View>
-        {!!items.length && (
-          <View style={{ gap: 10 }}>
-            <Text style={ui.heading}>Continue</Text>
-            {items.map((item) => (
-              <Surface key={item.id} style={{ gap: 9 }}>
-                <Text style={ui.label}>{item.title}</Text>
-                {!!item.source_task && <Text style={ui.muted}>Task: {item.source_task}</Text>}
-                <Text style={ui.body}>{item.content}</Text>
-                {!!item.cue && <Text style={ui.muted}>When: {item.cue}</Text>}
-                <View style={{ flexDirection: 'row', gap: 8 }}>
-                  <ActionButton
-                    label="Continue"
-                    onPress={() => open(item.intervention_id, 'actions_continue', item.id)}
-                    style={{ flex: 1 }}
-                  />
-                  <ActionButton
-                    label="Mark done"
-                    variant="secondary"
-                    onPress={() =>
-                      void removeContinueItem(item.id)
-                        .then(() =>
-                          setItems((current) => current.filter((value) => value.id !== item.id)),
-                        )
-                        .catch(() => setStatus('This item could not be updated. Try again.'))
-                    }
-                    style={{ flex: 1 }}
-                  />
-                </View>
-                <ActionButton label="Remove" variant="quiet" onPress={() => confirmRemove(item)} />
-              </Surface>
-            ))}
-          </View>
-        )}
-        <View style={{ gap: 14 }}>
-          <Text style={ui.heading}>Choose an activity</Text>
-          {activityGroups.map((group) => (
-            <View key={group.title} style={{ gap: 9 }}>
-              <Text style={ui.label}>{group.title}</Text>
-              {group.title === 'Express' && (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Journal. Recent entries and new entry"
-                  onPress={() => router.push('/you')}
-                >
-                  <Surface style={{ flexDirection: 'row', alignItems: 'center', gap: 13 }}>
-                    <View
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 15,
-                        backgroundColor: colors.accentSoft,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <MaterialDesignIcons
-                        name="book-open-page-variant-outline"
-                        size={22}
-                        color={colors.accent}
-                      />
-                    </View>
-                    <View style={{ flex: 1, gap: 4 }}>
-                      <Text style={ui.label}>Journal</Text>
-                      <Text style={ui.muted}>Recent entries and a new entry</Text>
-                    </View>
-                    <MaterialDesignIcons name="chevron-right" size={22} color={colors.muted} />
-                  </Surface>
-                </Pressable>
-              )}
-              {group.ids.map((id) => {
-                const intervention = catalog.find((item) => item.id === id)!;
-                return (
-                  <Pressable
-                    key={id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${intervention.title}. ${intervention.summary}`}
-                    onPress={() => open(id, 'actions_library')}
-                  >
-                    <Surface
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 13,
-                      }}
-                    >
-                      <View
-                        style={{
-                          width: 44,
-                          height: 44,
-                          borderRadius: 15,
-                          backgroundColor: colors.accentSoft,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <MaterialDesignIcons
-                          name={
-                            id === 'grounding'
-                              ? 'eye-outline'
-                              : id === 'brain_dump'
-                                ? 'notebook-edit-outline'
-                                : id === 'task_reset_60s' || id === 'one_small_step'
-                                  ? 'checkbox-marked-circle-outline'
-                                  : id === 'name_a_feeling'
-                                    ? 'emoticon-outline'
-                                    : id === 'write_100_words' || id === 'unsent_message'
-                                      ? 'email-edit-outline'
-                                      : id === 'reach_out'
-                                        ? 'message-text-outline'
-                                        : id === 'short_movement'
-                                          ? 'walk'
-                                          : id === 'one_song_break' || id === 'one_song_reset'
-                                            ? 'music-note-outline'
-                                            : 'account-switch-outline'
-                          }
-                          size={22}
-                          color={colors.accent}
-                        />
-                      </View>
-                      <View style={{ flex: 1, gap: 4 }}>
-                        <Text style={ui.label}>{intervention.title}</Text>
-                        <Text style={ui.muted}>{intervention.summary}</Text>
-                      </View>
-                      <MaterialDesignIcons name="chevron-right" size={22} color={colors.muted} />
-                    </Surface>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))}
-        </View>
-        {!!status && (
-          <Text accessibilityLiveRegion="polite" style={ui.muted}>
-            {status}
+      </View>
+      <ScrollView ref={scroll} contentContainerStyle={styles.content}>
+        <View style={styles.intro}>
+          <Text style={[typography.activitiesIntro, styles.invitation, { color: colors.ink }]}>
+            What sounds doable right now?
           </Text>
-        )}
+          <BrandArtwork part="activities" size={122} />
+        </View>
+        {!!library.status && <Text accessibilityLiveRegion="polite" style={[typography.support, { color: colors.muted }]}>
+          {library.status}
+        </Text>}
+        {!!library.items.length && <ActionButton label={`Continue (${library.items.length}) ↓`} variant="quiet"
+          onPress={() => scroll.current?.scrollTo({ y: continueY.current, animated: false })}
+          style={styles.resume} />}
+        {!!promoted.length && <View style={[styles.preferred, { backgroundColor: colors.soft }]}>
+          <Text accessibilityRole="header" style={[typography.recentTitle, { color: colors.ink }]}>Your picks</Text>
+          {promoted.map(({ activityId }) => renderActivity(activityId, true))}
+        </View>}
+        {activityGroups.map((group) => {
+          const groupIds = group.ids.filter((id) => !promotedIds.has(id));
+          if (!groupIds.length && group.title !== 'Express') return null;
+          return <View key={group.title}>
+            <Text accessibilityRole="header" style={[typography.groupHeading, { color: colors.ink }]}>{group.title}</Text>
+            {group.title === 'Express' && <ActivityLibraryRow title="Journal"
+              summary="Recent entries and a new entry" icon={activityIcons.journal}
+              onPress={() => router.push('/you')} />}
+            {groupIds.map((id) => renderActivity(id))}
+          </View>;
+        })}
+        <ActivitySavedWork library={library}
+          onContinueLayout={(event) => { continueY.current = event.nativeEvent.layout.y; }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  header: {
+    minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center',
+  },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  content: { paddingHorizontal: 22, paddingBottom: 28, gap: 22, maxWidth: 660, width: '100%', alignSelf: 'center' },
+  intro: { minHeight: 116, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  invitation: { flex: 1 },
+  preferred: { padding: 16, borderRadius: 20 },
+  resume: { alignSelf: 'flex-start' },
+});

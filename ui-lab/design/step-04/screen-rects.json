@@ -1,0 +1,65 @@
+[
+  {
+    "label": "Little company: Talk",
+    "x": 167.5,
+    "y": 514.390625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Little company: Activities",
+    "x": 167.5,
+    "y": 1170.890625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Little company: Journal",
+    "x": 167.5,
+    "y": 1827.390625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Clear head: Talk",
+    "x": 577.5,
+    "y": 514.390625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Clear head: Activities",
+    "x": 577.5,
+    "y": 1170.890625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Clear head: Journal",
+    "x": 577.5,
+    "y": 1827.390625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Room to think: Talk",
+    "x": 987.5,
+    "y": 514.390625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Room to think: Activities",
+    "x": 987.5,
+    "y": 1170.890625,
+    "width": 270,
+    "height": 600
+  },
+  {
+    "label": "Room to think: Journal",
+    "x": 987.5,
+    "y": 1827.390625,
+    "width": 270,
+    "height": 600
+  }
+]

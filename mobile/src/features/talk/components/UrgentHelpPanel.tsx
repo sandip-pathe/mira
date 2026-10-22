@@ -1,23 +1,20 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { ActionButton, colors } from '../../../components/ui';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { ActionButton, useTheme } from '../../../components/ui';
 
 export function UrgentHelpPanel({ onClose }: { onClose: () => void }) {
+  const { colors, typography } = useTheme();
   return (
-    <View style={styles.panel}>
-      <Text style={styles.title}>Urgent help now</Text>
-      <Text style={styles.body}>
+    <ScrollView contentContainerStyle={[styles.panel, { backgroundColor: colors.canvas }]}>
+      <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.ink }]}>Urgent help now</Text>
+      <Text style={[typography.body, { color: colors.ink }]}>
         This demo is not crisis support and is not connected to Mpower. Contact local emergency
         services or someone you trust now.
       </Text>
-      <Text style={styles.body}>No one has been contacted through this demo.</Text>
+      <Text style={[typography.body, { color: colors.ink }]}>No one has been contacted through this demo.</Text>
       <ActionButton label="Close help" onPress={onClose} />
-    </View>
+    </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  panel: { flex: 1, padding: 22, gap: 20, backgroundColor: colors.canvas },
-  title: { fontSize: 25, lineHeight: 32, fontWeight: '700', color: '#183A34' },
-  body: { fontSize: 15, lineHeight: 22, color: '#263F3A' },
-});
+const styles = StyleSheet.create({ panel: { flexGrow: 1, padding: 22, gap: 20 } });

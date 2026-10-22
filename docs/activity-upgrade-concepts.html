@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mira · Activity upgrade concepts</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --canvas: #f4f1e8;
+      --paper: #fffaf0;
+      --ink: #173a34;
+      --muted: #65766e;
+      --green: #367b5d;
+      --pale: #e4ede1;
+      --line: #d9d9ca;
+      --amber: #d3a65e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 10% 4%, #e4e9dc 0, transparent 29rem),
+        radial-gradient(ellipse at 92% 31%, #ebe2d2 0, transparent 31rem),
+        var(--canvas);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main { width: min(1480px, 100%); margin: 0 auto; padding: 46px clamp(18px, 4vw, 64px) 72px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 800px; margin: 12px 0; font: 600 clamp(34px, 5vw, 62px)/1.02 Georgia, serif; letter-spacing: -.04em; }
+    .intro { max-width: 760px; color: var(--muted); font-size: 16px; line-height: 1.7; }
+    .board { display: grid; grid-template-columns: repeat(3, minmax(250px, 1fr)); align-items: start; gap: 28px; margin-top: 44px; }
+    article { min-width: 0; }
+    .concept-title { display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; font-size: 17px; }
+    .concept-title span { color: #9b9d88; font-size: 11px; letter-spacing: .08em; }
+    .phone {
+      position: relative; display: flex; flex-direction: column; min-height: 692px; overflow: hidden;
+      border: 6px solid #263d35; border-radius: 37px; padding: 18px 18px 20px;
+      background: var(--canvas); box-shadow: 0 24px 50px #27372a20, inset 0 0 0 1px #ffffff80;
+    }
+    .phone::before { content: ""; position: absolute; z-index: 3; left: 50%; top: 7px; width: 68px; height: 13px; border-radius: 10px; background: #263d35; transform: translateX(-50%); }
+    .status { display: flex; justify-content: space-between; padding: 3px 2px 20px; color: #728078; font-size: 10px; }
+    .nav { display: flex; align-items: center; justify-content: space-between; min-height: 38px; }
+    .back { color: var(--green); font-size: 13px; font-weight: 700; }
+    .close { display: grid; width: 32px; height: 32px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--ink); }
+    .content { display: flex; flex: 1; flex-direction: column; }
+    .tag { margin-top: 19px; color: var(--green); font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+    h2 { margin: 8px 0 5px; font: 600 27px/1.1 Georgia, serif; letter-spacing: -.025em; }
+    .sub { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .primary { display: flex; min-height: 48px; align-items: center; justify-content: center; border-radius: 25px; background: var(--green); color: white; font-size: 13px; font-weight: 750; }
+    .secondary { display: flex; min-height: 42px; align-items: center; justify-content: center; color: var(--green); font-size: 12px; font-weight: 700; }
+    .thought-art { position: relative; display: grid; height: 168px; place-items: center; margin: 12px -4px 7px; overflow: hidden; border-radius: 26px; background: linear-gradient(145deg, #e8ecdf, #f2e8d9 72%, #ede3d6); }
+    .thread { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .thought { position: absolute; display: grid; min-width: 72px; height: 31px; place-items: center; padding: 0 10px; border: 1px solid #d1d8c8; border-radius: 17px 14px 17px 12px; background: #fffaf0e8; box-shadow: 0 5px 15px #43534412; color: #506257; font: italic 11px Georgia, serif; }
+    .thought.one { left: 12px; top: 25px; transform: rotate(-8deg); }
+    .thought.two { right: 12px; top: 38px; transform: rotate(6deg); }
+    .thought.three { left: 27px; bottom: 24px; transform: rotate(3deg); }
+    .thought.four { right: 21px; bottom: 23px; transform: rotate(-4deg); }
+    .ink { position: absolute; width: 15px; height: 15px; border-radius: 50%; background: #56856d; box-shadow: 0 0 0 8px #72977c20, 0 0 28px #48836580; }
+    .field { flex: 1; min-height: 177px; margin-top: 6px; padding: 12px 5px; border-bottom: 1px solid #d5d5c6; color: #324b40; font: 16px/1.8 Georgia, serif; }
+    .field .written { display: block; max-width: 240px; }
+    .field .placeholder { color: #94a096; }
+    .voice { display: flex; align-items: center; justify-content: space-between; margin: 10px 0; padding: 11px 13px; border-radius: 17px; background: #e6ece2; }
+    .voice strong { font-size: 11px; }
+    .voice small { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; }
+    .mic { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 50%; background: var(--green); color: #fff; font-size: 17px; }
+    .review { margin-top: 9px; padding: 12px 14px; border-left: 2px solid #91a98e; color: #667269; font: italic 13px/1.65 Georgia, serif; }
+    .thread-map { position: relative; height: 68px; margin: 5px 4px 0; }
+    .thread-map::before { content: ""; position: absolute; left: 11%; right: 11%; top: 35px; height: 2px; border-radius: 4px; background: linear-gradient(90deg,#cfb779,#78a280,#8ba4a0); transform: rotate(-7deg); }
+    .thread-dot { position: absolute; top: 27px; width: 17px; height: 17px; border: 4px solid #f6f1e7; border-radius: 50%; background: #4d8665; box-shadow: 0 0 0 1px #75917a; }
+    .thread-dot:nth-child(1) { left: 11%; } .thread-dot:nth-child(2) { left: 42%; top: 19px; } .thread-dot:nth-child(3) { right: 11%; top: 12px; }
+    .result { margin-top: 9px; padding: 13px 14px; border-radius: 18px; background: linear-gradient(140deg,#fffaf1,#f5ead7); }
+    .result .label { color: #8c7042; font-size: 9px; font-weight: 800; letter-spacing: .13em; }
+    .result p { margin: 7px 0 0; font: 14px/1.5 Georgia, serif; }
+    .breath-phone { background: radial-gradient(circle at 50% 48%, #e6ebdc 0, #edf0e4 35%, var(--canvas) 72%); }
+    .breath-phone .content { align-items: center; text-align: center; }
+    .breath-phone .nav { align-self: stretch; }
+    .breath-phone .tag { margin-top: 45px; }
+    .breath-phone h2 { max-width: 240px; margin-top: 12px; font-size: 27px; }
+    .breath-phone .sub { max-width: 230px; }
+    .orb-stage { position: relative; display: grid; width: 260px; height: 282px; place-items: center; margin: 11px auto 5px; }
+    .orbit { position: absolute; width: 247px; height: 247px; border: 1px solid #a8b9a0a8; border-radius: 50%; }
+    .orbit.inner { width: 205px; height: 205px; border-color: #b4c3aa80; }
+    .orb { position: relative; display: grid; width: 155px; height: 155px; place-items: center; border: 1px solid #ffffffbd; border-radius: 48% 52% 53% 47%; background: radial-gradient(circle at 35% 30%, #d3e0bd, #83ac8a 47%, #4d866b 100%); box-shadow: 0 18px 42px #3f755038, inset 0 2px 13px #ffffff86; animation: breathe 5s ease-in-out infinite alternate; }
+    .orb::before,.orb::after { content: ""; position: absolute; border: 1px solid #fff7; border-radius: 50%; }
+    .orb::before { inset: 14px; } .orb::after { inset: 27px; opacity: .55; }
+    .orb-core { width: 10px; height: 10px; border-radius: 50%; background: #fff9e9; box-shadow: 0 0 25px 9px #fff5; }
+    .orbit-dot { position: absolute; top: 24px; right: 30px; width: 8px; height: 8px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 18px #d3a65e88; }
+    @keyframes breathe { from { transform: scale(.83); } to { transform: scale(1); } }
+    .breath-phone .result { width: 100%; margin-top: auto; background: #ffffff80; text-align: left; }
+    .breath-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 12px 0 4px; }
+    .breath-controls span { display: grid; width: 43px; height: 43px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--green); }
+    .breath-controls .pause { width: 55px; height: 55px; background: var(--green); color: white; font-size: 17px; }
+    .letter-phone { background: linear-gradient(160deg,#f4f1e8 30%,#eee7d9); }
+    .letter-phone .content { position: relative; }
+    .leaf-art { position: absolute; top: 96px; right: -2px; width: 101px; height: 136px; opacity: .95; }
+    .stationery { position: relative; display: flex; flex: 1; flex-direction: column; min-height: 275px; margin: 16px 2px 12px; padding: 19px 17px; border: 1px solid #e1d8c4; background: repeating-linear-gradient(to bottom,#fffaf0 0,#fffaf0 31px,#e9e0cf 32px,#fffaf0 33px); box-shadow: 0 12px 28px #51462c14, 0 2px 4px #51462c0d; transform: rotate(-.7deg); }
+    .stationery .to { color: #95876c; font: italic 12px Georgia, serif; }
+    .letter-copy { max-width: 188px; margin-top: 22px; color: #344c41; font: 14px/1.9 Georgia, serif; }
+    .letter-copy em { color: #47795a; font-style: normal; text-decoration: underline; text-decoration-color: #bdcba9; text-underline-offset: 3px; }
+    .signature { margin-top: auto; color: #6c776b; font: italic 13px Georgia,serif; }
+    .envelope-wrap { position: relative; height: 94px; margin: 0 auto 8px; width: 142px; }
+    .envelope { position: absolute; left: 6px; bottom: 10px; width: 130px; height: 72px; overflow: hidden; border: 1px solid #b6c4ad; border-radius: 7px; background: #dfe9da; box-shadow: 0 8px 16px #415a3a19; }
+    .envelope::before { content: ""; position: absolute; left: -1px; top: -44px; width: 130px; height: 82px; border: 1px solid #afbea7; background: #edf1e6; transform: rotate(45deg); }
+    .envelope::after { content: ""; position: absolute; left: 17px; bottom: -43px; width: 92px; height: 92px; border: 1px solid #afbea7; background: #d9e4d5; transform: rotate(45deg); }
+    .seal { position: absolute; z-index: 2; left: 59px; bottom: 24px; width: 24px; height: 24px; display: grid; place-items: center; border-radius: 50%; background: #8cac80; color: white; font-size: 11px; }
+    .takeaway { margin: 0 4px 8px; padding: 12px 14px; border-radius: 15px; background: #e5ecdf; color: #4b6954; font: italic 12px/1.5 Georgia,serif; }
+    .notes { margin-top: 19px; padding: 17px 18px; border: 1px solid #d6d9cc; border-radius: 18px; background: #fffaf480; }
+    .notes h3 { margin: 0 0 8px; font-size: 13px; }
+    .notes p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .notes strong { color: var(--ink); }
+    .footer { margin-top: 44px; padding-top: 18px; border-top: 1px solid #d3d5c8; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    @media (max-width: 960px) { .board { grid-template-columns: repeat(2, minmax(250px, 1fr)); } }
+    @media (max-width: 620px) { main { padding-top: 30px; } .board { grid-template-columns: minmax(0, 390px); justify-content: center; gap: 34px; } .phone { min-height: 700px; } }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; } }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">Mira · activity upgrade · AU-00</div>
+    <h1>Three activities.<br />Three different worlds.</h1>
+    <p class="intro">Concept screens for the first architecture and art slice. Each page owns its layout and its visual language. The shared pieces are quiet navigation, readable type, and a clear way to leave.</p>
+    <div class="board">
+      <article>
+        <h2 class="concept-title"><span>01</span> Brain Dump · Gather & untangle</h2>
+        <div class="phone">
+          <div class="status"><span>9:41</span><span>••• &nbsp; 82%</span></div>
+          <div class="nav"><span class="back">‹ &nbsp; Activities</span><span class="close">×</span></div>
+          <div class="content">
+            <div class="tag">BRAIN DUMP</div>
+            <h2>Let it land<br />where it lands.</h2>
+            <p class="sub">Start anywhere. You can sort it out later.</p>
+            <div class="thought-art" aria-label="Loose thoughts drift on fine threads toward a quiet center">
+              <svg class="thread" viewBox="0 0 320 168" fill="none" aria-hidden="true">
+                <path d="M28 42C90 25 95 125 159 84S230 27 292 51" stroke="#89A58B" stroke-width="1.5" opacity=".7"/>
+                <path d="M34 127C92 140 103 66 166 86S235 140 286 111" stroke="#C4A976" stroke-width="1.5" opacity=".75"/>
+                <path d="M43 80C98 88 113 60 164 83S217 103 276 76" stroke="#7C9C92" stroke-width="1" opacity=".55"/>
+              </svg>
+              <span class="thought one">deadlines</span><span class="thought two">what if…</span>
+              <span class="thought three">call home</span><span class="thought four">too much</span><span class="ink"></span>
+            </div>
+            <div class="field"><span class="written">I keep thinking about the meeting, and then there’s everything I still have to do…</span><span class="placeholder">Keep going, if you want.</span></div>
+            <div class="voice"><div><strong>Hold to add a voice note</strong><small>Your words join this draft when ready</small></div><span class="mic">♩</span></div>
+            <div class="secondary">Need a starting line? &nbsp;⌄</div>
+          </div>
+          <div class="primary">Read it back</div>
+          <div class="secondary">Clear and leave</div>
+        </div>
+        <div class="notes"><h3>Art & interaction</h3><p>Hand-painted paper field with four floating scraps. Fine ink paths converge as writing gathers; on <strong>Untangle this</strong>, the strands become three editable threads. Keyboard mode gives the writing canvas the space and keeps the hold-to-speak action reachable.</p></div>
+      </article>
+
+      <article>
+        <h2 class="concept-title"><span>02</span> Paced Breathing · Follow a rhythm</h2>
+        <div class="phone breath-phone">
+          <div class="status" style="align-self:stretch"><span>9:41</span><span>••• &nbsp; 82%</span></div>
+          <div class="nav"><span class="back">‹ &nbsp; Activities</span><span class="close">×</span></div>
+          <div class="content">
+            <div class="tag">TAKE A BREATHING BREAK</div>
+            <h2>Follow a comfortable rhythm.</h2>
+            <p class="sub">Let your breathing stay easy. Stop whenever you like.</p>
+            <div class="orb-stage" aria-label="Layered sage orb gently expands and contracts">
+              <div class="orbit"></div><div class="orbit inner"></div><div class="orbit-dot"></div>
+              <div class="orb"><span class="orb-core"></span></div>
+            </div>
+            <div class="result"><div class="label">BREATHE OUT · 4 SECONDS</div><p>The shape carries the pace. Look away whenever you want.</p></div>
+            <div class="breath-controls"><span>Ⅱ</span><span class="pause">Ⅱ</span><span>◌</span></div>
+            <div class="secondary">Rhythm settings &nbsp;⌄</div>
+          </div>
+        </div>
+        <div class="notes"><h3>Art & interaction</h3><p>A layered, painterly orb with internal rings, soft light and a fine orbit. It expands on inhale and settles on exhale. The same foreground timeline drives shape and optional touch/audio cues; pace, own rhythm, pause, and stop stay immediately understandable.</p></div>
+      </article>
+
+      <article>
+        <h2 class="concept-title"><span>03</span> Unsent Letter · Write & release</h2>
+        <div class="phone letter-phone">
+          <div class="status"><span>9:41</span><span>••• &nbsp; 82%</span></div>
+          <div class="nav"><span class="back">‹ &nbsp; Letter home</span><span class="close">×</span></div>
+          <div class="content">
+            <div class="tag">UNSENT LETTER <span style="float:right;color:#879187;letter-spacing:0">Draft</span></div>
+            <h2>Say what you<br />wish you could.</h2>
+            <p class="sub">This letter is yours. It will not be sent.</p>
+            <svg class="leaf-art" viewBox="0 0 100 136" fill="none" aria-label="Delicate olive branch illustration">
+              <path d="M21 128C43 97 50 64 73 15" stroke="#718C6F" stroke-width="2" stroke-linecap="round"/>
+              <path d="M39 97C18 91 11 81 12 70C28 71 39 79 42 91M50 73C70 72 82 63 85 51C68 50 56 58 50 68M59 53C40 47 34 36 37 25C53 30 61 38 62 48M68 34C83 29 89 19 88 9C76 12 69 20 67 30" fill="#a7bb91" stroke="#718C6F" stroke-width="1.4" stroke-linejoin="round"/>
+            </svg>
+            <div class="stationery">
+              <span class="to">Dear…</span>
+              <p class="letter-copy">I wanted you to know how much it mattered when <em>you showed up</em>. I don’t think I said that clearly at the time…</p>
+              <span class="signature">With honesty,</span>
+            </div>
+            <div class="takeaway">A thread worth keeping: “I want my effort to be seen.”</div>
+            <div class="envelope-wrap" aria-label="Illustrated envelope with a small seal">
+              <div class="envelope"></div><div class="seal">✳</div>
+            </div>
+          </div>
+          <div class="primary">Save letter</div>
+          <div class="secondary">Keep what matters &nbsp;→</div>
+        </div>
+        <div class="notes"><h3>Art & interaction</h3><p>Warm stationery is the canvas, with a botanical ink drawing and a dimensional envelope. Read view can reveal an editable “what I need” thread. Explicit Save opens a real saved-letter page; release folds the paper into the envelope with a visible cancelable hold and a tap alternative.</p></div>
+      </article>
+    </div>
+    <div class="footer">Design reference only · not the current app UI · dimensions and layouts will be adapted to native Android safe areas, keyboard, text scale, and device width before implementation.</div>
+  </main>
+</body>
+</html>

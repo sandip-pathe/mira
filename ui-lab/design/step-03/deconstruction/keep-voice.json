@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "source_id": "keep-voice",
+  "title": "Google Keep: historical voice capture",
+  "role_for_mira": "Familiar Android capture-and-result sequence; Talk capture clarity and Activities/Journal return-to-work continuity.",
+  "provenance": {
+    "source_url": "https://blog.google/products-and-platforms/products/workspace/8-tips-help-you-keep-google-keep/",
+    "platform": "Android demonstration; official article 2017",
+    "kind": "keyframes from official animated GIF; GIF cadence is not device performance",
+    "frames": [
+      {
+        "id": "01",
+        "path": "../../step-02/references/keep-voice/01.png",
+        "label": "0.00s"
+      },
+      {
+        "id": "02",
+        "path": "../../step-02/references/keep-voice/02.png",
+        "label": "2.20s"
+      },
+      {
+        "id": "03",
+        "path": "../../step-02/references/keep-voice/03.png",
+        "label": "4.40s"
+      },
+      {
+        "id": "04",
+        "path": "../../step-02/references/keep-voice/04.png",
+        "label": "6.60s"
+      },
+      {
+        "id": "05",
+        "path": "../../step-02/references/keep-voice/05.png",
+        "label": "8.80s"
+      },
+      {
+        "id": "06",
+        "path": "../../step-02/references/keep-voice/06.png",
+        "label": "10.80s"
+      }
+    ]
+  },
+  "spatial_ergonomic": {
+    "target_reference": {
+      "width": 360,
+      "height": 800,
+      "units": "logical design units, not measured donor dp"
+    },
+    "measurement_basis": "Qualitative visual reading of retained frames. Regions below are relative roles; source screenshots/GIFs do not expose device density or reliable native dp. Marketing/device chrome is not counted as app content.",
+    "regions": [
+      {
+        "state": "collection",
+        "description": "Existing note cards establish the destination for the captured result.",
+        "status": "estimated",
+        "frame_refs": [
+          "01",
+          "02"
+        ]
+      },
+      {
+        "state": "capture",
+        "description": "A centered capture dialog contains a mic and status; surrounding collection is dimmed.",
+        "status": "estimated",
+        "frame_refs": [
+          "03"
+        ]
+      },
+      {
+        "state": "result",
+        "description": "A note result appears, then the collection includes the new text result.",
+        "status": "estimated",
+        "frame_refs": [
+          "04",
+          "05",
+          "06"
+        ]
+      }
+    ],
+    "reference_zones": {
+      "top": [
+        0,
+        120
+      ],
+      "center": [
+        120,
+        440
+      ],
+      "lower": [
+        440,
+        760
+      ]
+    },
+    "reference_zone_status": "Proposed comparison grid only; donor controls may fall outside these bands. Not a fixed-coordinate implementation rule.",
+    "visual_density": {
+      "status": "estimated",
+      "value": "Collection: medium; capture dialog: low; resulting note: low/medium."
+    },
+    "open_canvas_ratio_percent": {
+      "status": "unknown",
+      "value": null
+    },
+    "native_touch_target_dp": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "states_and_triggers": {
+    "states": [
+      "capture_dialog",
+      "collection",
+      "note_result",
+      "updated_collection"
+    ],
+    "transitions": [
+      {
+        "from": "collection",
+        "trigger": "Choose voice capture",
+        "to": "capture_dialog",
+        "status": "documented"
+      },
+      {
+        "from": "capture_dialog",
+        "trigger": "Finish speaking in the historical demonstration",
+        "to": "note_result",
+        "status": "documented"
+      },
+      {
+        "from": "note_result",
+        "trigger": "Return from capture",
+        "to": "updated_collection",
+        "status": "observed"
+      }
+    ],
+    "limitation": "Visible states are observations; documented arrows use source flow/guide descriptions. No event-handler names, gesture thresholds, or unseen screens are inferred as measured behavior."
+  },
+  "motion_and_rendering": {
+    "observation": {
+      "status": "observed",
+      "value": "The GIF shows collection, capture dialog, result, and return. Sampled asset timestamps are available; the recording does not establish real capture latency or current Keep behavior."
+    },
+    "asset_duration_ms": {
+      "status": "documented",
+      "value": 11030
+    },
+    "keyframe_timestamps_ms": [
+      0,
+      2200,
+      4400,
+      6600,
+      8800,
+      10800
+    ],
+    "native_frame_rate": {
+      "status": "unknown",
+      "value": null
+    },
+    "spring_parameters": {
+      "status": "unknown",
+      "value": null
+    },
+    "rendering_engine": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "sensory_and_haptics": {
+    "visual_or_documented_feedback": {
+      "status": "observed",
+      "value": "The captured asset is an animated GIF with no audio track. The article documents voice capture and a text/audio result; specific tones and haptics remain unknown."
+    },
+    "haptic_pattern": {
+      "status": "unknown",
+      "value": null
+    },
+    "audio_cue_timing": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "copy_and_cognitive_load": {
+    "hierarchy": {
+      "status": "observed",
+      "value": "The active capture dialog uses a short instruction, then exposes the result. The current task is visually separated from the existing collection."
+    },
+    "max_visible_words": {
+      "status": "unknown",
+      "value": null
+    },
+    "reading_grade": {
+      "status": "unknown",
+      "value": null
+    },
+    "note": "No OCR word-count or grade-level measurement is claimed. Use the Mira copy sheet for exact comparison text."
+  },
+  "mira_synthesis_candidate": {
+    "status": "proposed",
+    "value": "Borrow explicit capture/result feedback and continuity back to kept work. Talk remains hold-to-speak, not the donor automatic-end mechanism. Journal voice notes remain saved audio attachments; do not imply automatic transcription."
+  },
+  "review_evidence_ids": [
+    "R006",
+    "R084",
+    "R099",
+    "R140"
+  ]
+}

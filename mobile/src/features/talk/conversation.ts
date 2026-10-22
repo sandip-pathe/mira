@@ -1,10 +1,4 @@
-export type ContextMatch = {
-  id: string;
-  source_type: 'journal' | 'action' | 'feedback';
-  source_id: string;
-  excerpt: string;
-  label?: string;
-};
+export type { ContextMatch } from '../../shared/context/contracts';
 
 export type MomentState = {
   what_happened: string;

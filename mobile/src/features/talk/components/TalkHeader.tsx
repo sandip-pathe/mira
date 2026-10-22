@@ -1,32 +1,24 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { HelpButton } from '../../../components/ui';
+import { Image, StyleSheet, View } from 'react-native';
+import { HelpButton, ThemePickerButton, useTheme } from '../../../components/ui';
+
+const wordmark = require('../../../../assets/brand/mira-signature.png');
 
 export function TalkHeader({ onHelp }: { onHelp: () => void }) {
+  const { wordmark: tintColor } = useTheme();
   return (
     <View style={styles.header}>
-      <View style={styles.brandBlock}>
-        <Text style={styles.brand}>Mira</Text>
+      <Image source={wordmark} resizeMode="contain" accessibilityLabel="Mira" accessibilityRole="image" style={[styles.brand, { tintColor }]} />
+      <View style={styles.actions}>
+        <ThemePickerButton />
+        <HelpButton onPress={onHelp} />
       </View>
-      <HelpButton onPress={onHelp} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
-    paddingHorizontal: 24,
-    paddingTop: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  brandBlock: { gap: 2 },
-  brand: {
-    fontSize: 32,
-    lineHeight: 42,
-    fontWeight: '700',
-    color: '#0474f3',
-    letterSpacing: -1.2,
-  },
+  header: { minHeight: 68, paddingHorizontal: 22, paddingVertical: 8, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  brand: { width: 92, height: 42, marginLeft: -2 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 });

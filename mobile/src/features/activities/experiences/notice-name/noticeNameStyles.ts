@@ -1,0 +1,25 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  page: { flex: 1 },
+  content: { flexGrow: 1, paddingHorizontal: 22, paddingTop: 8, paddingBottom: 28, gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center' },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  group: { gap: 8 },
+  feelingGroup: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 4 },
+  feelingRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  feelingButton: { flex: 1, minHeight: 52, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  feelingLabel: { flex: 1 },
+  iconButton: { minWidth: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center' },
+  shades: { marginLeft: 14, paddingBottom: 12, gap: 8 },
+  input: { minHeight: 52, padding: 14, borderRadius: 16, borderWidth: 1 },
+  writing: { minHeight: 110, textAlignVertical: 'top' },
+  thoughtInput: { minHeight: 88, textAlignVertical: 'top' },
+  actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  action: { flexGrow: 1, flexBasis: 130 },
+  angle: { minHeight: 64, gap: 12, paddingVertical: 16, flexDirection: 'row', alignItems: 'flex-start', borderBottomWidth: StyleSheet.hairlineWidth },
+  angleText: { flex: 1 },
+  spacer: { flexGrow: 1, minHeight: 12 },
+  bodyArt: { height: 90, alignItems: 'center', justifyContent: 'center' },
+  bodyShape: { width: 42, height: 72, borderRadius: 22 },
+  arms: { position: 'absolute', width: 64, height: 9, top: 26, borderRadius: 8 },
+});

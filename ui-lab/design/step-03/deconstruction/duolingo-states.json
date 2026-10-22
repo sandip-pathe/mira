@@ -1,0 +1,185 @@
+{
+  "schema_version": 1,
+  "source_id": "duolingo-states",
+  "title": "Duolingo: lesson input and completion",
+  "role_for_mira": "Supplementary reference for visible input alternatives and differentiated controls.",
+  "provenance": {
+    "source_url": "https://revyl.com/atlas/duolingo/",
+    "platform": "iOS; source build/date unknown",
+    "kind": "related exercise states; not one continuous recording",
+    "frames": [
+      {
+        "id": "01",
+        "path": "../../step-02/references/duolingo-states/01.png",
+        "label": "1 Image selection"
+      },
+      {
+        "id": "02",
+        "path": "../../step-02/references/duolingo-states/02.png",
+        "label": "2 Word selection"
+      },
+      {
+        "id": "03",
+        "path": "../../step-02/references/duolingo-states/03.png",
+        "label": "3 Listening"
+      },
+      {
+        "id": "04",
+        "path": "../../step-02/references/duolingo-states/04.png",
+        "label": "4 Speaking"
+      },
+      {
+        "id": "05",
+        "path": "../../step-02/references/duolingo-states/05.png",
+        "label": "5 Returned to path"
+      }
+    ]
+  },
+  "spatial_ergonomic": {
+    "target_reference": {
+      "width": 360,
+      "height": 800,
+      "units": "logical design units, not measured donor dp"
+    },
+    "measurement_basis": "Qualitative visual reading of retained frames. Regions below are relative roles; source screenshots/GIFs do not expose device density or reliable native dp. Marketing/device chrome is not counted as app content.",
+    "regions": [
+      {
+        "state": "input",
+        "description": "Instruction at top; response/input in the center; action and alternative input route toward the bottom.",
+        "status": "estimated",
+        "frame_refs": [
+          "01",
+          "02",
+          "03",
+          "04"
+        ]
+      },
+      {
+        "state": "path",
+        "description": "The last image is a path/collection screen, not a completion receipt.",
+        "status": "estimated",
+        "frame_refs": [
+          "05"
+        ]
+      }
+    ],
+    "reference_zones": {
+      "top": [
+        0,
+        120
+      ],
+      "center": [
+        120,
+        440
+      ],
+      "lower": [
+        440,
+        760
+      ]
+    },
+    "reference_zone_status": "Proposed comparison grid only; donor controls may fall outside these bands. Not a fixed-coordinate implementation rule.",
+    "visual_density": {
+      "status": "estimated",
+      "value": "Medium; the path image is denser than the exercise templates."
+    },
+    "open_canvas_ratio_percent": {
+      "status": "unknown",
+      "value": null
+    },
+    "native_touch_target_dp": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "states_and_triggers": {
+    "states": [
+      "alternate_input",
+      "image_selection",
+      "listening",
+      "selected_answer",
+      "speaking"
+    ],
+    "transitions": [
+      {
+        "from": "image_selection",
+        "trigger": "Choose an image",
+        "to": "selected_answer",
+        "status": "estimated"
+      },
+      {
+        "from": "listening",
+        "trigger": "Use the visible listening alternative",
+        "to": "alternate_input",
+        "status": "documented"
+      },
+      {
+        "from": "speaking",
+        "trigger": "Use the visible speaking alternative",
+        "to": "alternate_input",
+        "status": "documented"
+      }
+    ],
+    "limitation": "Visible states are observations; documented arrows use source flow/guide descriptions. No event-handler names, gesture thresholds, or unseen screens are inferred as measured behavior."
+  },
+  "motion_and_rendering": {
+    "observation": {
+      "status": "unknown",
+      "value": "Related stills show different exercise templates; their order does not establish a continuous user journey."
+    },
+    "asset_duration_ms": {
+      "status": "unknown",
+      "value": null
+    },
+    "keyframe_timestamps_ms": [],
+    "native_frame_rate": {
+      "status": "unknown",
+      "value": null
+    },
+    "spring_parameters": {
+      "status": "unknown",
+      "value": null
+    },
+    "rendering_engine": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "sensory_and_haptics": {
+    "visual_or_documented_feedback": {
+      "status": "observed",
+      "value": "Audio and microphone controls are visible, but no waveform timing, audio routing, haptic intensity, or interaction latency is measured."
+    },
+    "haptic_pattern": {
+      "status": "unknown",
+      "value": null
+    },
+    "audio_cue_timing": {
+      "status": "unknown",
+      "value": null
+    }
+  },
+  "copy_and_cognitive_load": {
+    "hierarchy": {
+      "status": "observed",
+      "value": "Input-specific instructions make listening and speaking different tasks. Alternatives are visible rather than relying on a hidden gesture."
+    },
+    "max_visible_words": {
+      "status": "unknown",
+      "value": null
+    },
+    "reading_grade": {
+      "status": "unknown",
+      "value": null
+    },
+    "note": "No OCR word-count or grade-level measurement is claimed. Use the Mira copy sheet for exact comparison text."
+  },
+  "mira_synthesis_candidate": {
+    "status": "proposed",
+    "value": "Keep text accessible from voice and make recording vs playback/reply distinct. Do not copy lesson scores, gating, or the misidentified completion image."
+  },
+  "review_evidence_ids": [
+    "R055",
+    "R069",
+    "R197"
+  ]
+}

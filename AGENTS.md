@@ -1,5 +1,6 @@
 # Mira project guidance
 
+- Demo direction: we do not want to hold back on technology or capabilities. Build compelling, visually rich, working experiences that show what Mira can do. Do not use production readiness, generic privacy/guideline concerns, or the word "demo" to default to static worksheets or remove useful capabilities. Address concrete implementation issues directly and track later hardening separately. See `PRD/mira_activity_upgrade_plan.md` for the separate upgrade proposal and implementation sequence.
 - `PRD/mira_prd.md` defines approved V0 behavior and product scope. Skills may guide implementation of that scope; they do not authorize new screens, flows, data retention, integrations, actions, or clinical behavior.
 - Use Expo's official docs and Codex plugin for Expo SDK, Expo Go, development builds, and `expo-audio` behavior.
 - Use Software Mansion's React Native skills and official docs for React Native/New Architecture, Gesture Handler, Reanimated, and its audio APIs if one is selected. Check the installed package versions before relying on version-specific APIs.

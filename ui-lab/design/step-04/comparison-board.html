@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Mira · three ways to feel at home</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="board-header">
+    <div><p class="eyebrow">MIRA / DESIGN STUDY 04</p><h1>Three ways to feel at home.</h1><p>Same words. Same actions. Three different visual worlds.</p></div>
+    <a href="/control.html">Open the previous control ↗</a>
+  </header>
+  <aside class="controls" aria-label="Comparison settings">
+    <label>Screen<select id="surface"><option value="all">All nine</option><option value="talk">Talk</option><option value="activities">Activities</option><option value="journal">Journal</option></select></label>
+    <label>Phone width<select id="width"><option>360</option><option>412</option></select></label>
+    <label>Talk state<select id="talk-state"><option value="welcome">Welcome</option><option value="recording">Holding mic</option><option value="processing">Waiting for reply</option><option value="speaking">Mira speaking</option><option value="error">Retry voice</option><option value="text">Text + keyboard</option><option value="offer">Activity offer</option></select></label>
+    <label>Activities<select id="activities-state"><option value="preferred">One explicit pick</option><option value="fresh">Fresh library</option><option value="kept">Pick + kept work</option></select></label>
+    <label>Journal<select id="journal-state"><option value="blank">Blank page</option><option value="draft">Written draft</option><option value="keyboard">Writing + keyboard</option><option value="unavailable">Saved / follow-up unavailable</option></select></label>
+    <label class="motion-label"><input type="checkbox" id="motion"> Motion study</label>
+  </aside>
+  <p class="selection-note"><strong>A — Little company is selected.</strong> B stays as an alternate reference. <a href="/">Open interactive A ↗</a></p>
+  <p class="board-note">75% presentation · logical sizes shown in the specs · illustration and state studies, not connected voice or saving</p>
+  <main id="board" aria-label="Nine screen comparison"></main>
+  <footer><a href="../step-03/layout-board.html">Synthesis & shared copy</a><a href="assets/fonts/manifest.json">Local fonts & licenses</a><a href="artwork-provenance.md">Illustration provenance</a><p>A selected 21 October 2026 · Interactive A at the main lab URL · Native app unchanged.</p></footer>
+  <script type="module" src="board.js"></script>
+</body>
+</html>

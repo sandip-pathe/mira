@@ -2,7 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { withDeviceTransaction } from './database';
 
-type Collection = 'continue_items' | 'saved_letters' | 'activity_preferences';
+type Collection = 'continue_items' | 'saved_letters' | 'activity_preferences' | 'activity_takeaways' | 'saved_actions';
 export type CollectionSource<T extends { id: string }> = {
   table: Collection;
   legacyFilename: string;
@@ -10,7 +10,7 @@ export type CollectionSource<T extends { id: string }> = {
 };
 
 function tableName<T extends { id: string }>(source: CollectionSource<T>) {
-  if (!['continue_items', 'saved_letters', 'activity_preferences'].includes(source.table)) {
+  if (!['continue_items', 'saved_letters', 'activity_preferences', 'activity_takeaways', 'saved_actions'].includes(source.table)) {
     throw new Error('Unknown device collection.');
   }
   return source.table;

@@ -1,0 +1,185 @@
+{
+  "layout": [
+    {
+      "width": 360,
+      "phones": [
+        {
+          "label": "Little company: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Little company: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Little company: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        }
+      ]
+    },
+    {
+      "width": 412,
+      "phones": [
+        {
+          "label": "Little company: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Little company: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Little company: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Clear head: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Talk",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Activities",
+          "overflow": false,
+          "innerScrollOverflow": false
+        },
+        {
+          "label": "Room to think: Journal",
+          "overflow": false,
+          "innerScrollOverflow": false
+        }
+      ]
+    },
+    {
+      "state": "recording",
+      "overflow": false
+    },
+    {
+      "state": "processing",
+      "overflow": false
+    },
+    {
+      "state": "speaking",
+      "overflow": false
+    },
+    {
+      "state": "error",
+      "overflow": false
+    },
+    {
+      "state": "text",
+      "overflow": false
+    },
+    {
+      "state": "offer",
+      "overflow": false
+    },
+    {
+      "state": "blank",
+      "overflow": false,
+      "writingHeights": [
+        289,
+        277,
+        271
+      ]
+    },
+    {
+      "state": "draft",
+      "overflow": false,
+      "writingHeights": [
+        397,
+        403,
+        397
+      ]
+    },
+    {
+      "state": "keyboard",
+      "overflow": false,
+      "writingHeights": [
+        283,
+        283,
+        283
+      ]
+    },
+    {
+      "state": "unavailable",
+      "overflow": false,
+      "writingHeights": [
+        270,
+        278,
+        270
+      ]
+    },
+    {
+      "enlargedText": true,
+      "phones": [
+        {
+          "label": "Little company: Talk",
+          "horizontalOverflow": false,
+          "voiceActionsOverlapGreeting": false
+        },
+        {
+          "label": "Clear head: Talk",
+          "horizontalOverflow": false,
+          "voiceActionsOverlapGreeting": false
+        },
+        {
+          "label": "Room to think: Talk",
+          "horizontalOverflow": false,
+          "voiceActionsOverlapGreeting": false
+        }
+      ]
+    }
+  ],
+  "browserExceptions": []
+}

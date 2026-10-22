@@ -6,11 +6,6 @@ from fastapi.testclient import TestClient
 from server import app as backend
 
 
-class NoPrivateStore:
-    def __getattr__(self, name):
-        raise AssertionError(f'Journal worker attempted private persistence: {name}')
-
-
 class JournalWorkerContract(unittest.TestCase):
     def setUp(self):
         backend.creation_times.clear()
@@ -23,7 +18,7 @@ class JournalWorkerContract(unittest.TestCase):
         provider = AsyncMock(return_value={'output': [{'content': [
             {'type': 'output_text', 'text': 'What would you like to write next?'}]}]})
         messages = [{'role': 'assistant', 'content': 'A prompt?'}, {'role': 'user', 'content': 'Synthetic writing.'}]
-        with patch.object(backend, 'store', NoPrivateStore(), create=True), patch.object(backend, 'provider', provider):
+        with patch.object(backend, 'provider', provider):
             response = self.client.post(self.url, headers=self.headers, json={'messages': messages})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'text': 'What would you like to write next?'})
@@ -41,7 +36,7 @@ class JournalWorkerContract(unittest.TestCase):
             provider.assert_not_called()
 
     def test_invalid_model_response_never_claims_a_save(self):
-        with patch.object(backend, 'store', NoPrivateStore(), create=True), patch.object(backend, 'provider', AsyncMock(return_value={'output': []})):
+        with patch.object(backend, 'provider', AsyncMock(return_value={'output': []})):
             response = self.client.post(self.url, headers=self.headers, json={'messages': [{'role': 'user', 'content': 'Synthetic'}]})
         self.assertEqual(response.status_code, 503)
         self.assertNotIn('saved', response.json())

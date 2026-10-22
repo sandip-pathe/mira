@@ -1,0 +1,50 @@
+[
+  {
+    "family": "Nunito Sans",
+    "slug": "nunitosans",
+    "web_files": [
+      "nunitosans-1.woff2"
+    ],
+    "native_candidate_file": "nunitosans-variable.ttf",
+    "license": "nunitosans-OFL.txt",
+    "ttf_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/nunitosans/NunitoSans%5BYTLC%2Copsz%2Cwdth%2Cwght%5D.ttf",
+    "css_source": "https://fonts.googleapis.com/css2?family=Nunito+Sans%3Awght%40400%3B500%3B600%3B700&display=swap",
+    "specimen": "https://fonts.google.com/specimen/Nunito+Sans"
+  },
+  {
+    "family": "Outfit",
+    "slug": "outfit",
+    "web_files": [
+      "outfit-1.woff2"
+    ],
+    "native_candidate_file": "outfit-variable.ttf",
+    "license": "outfit-OFL.txt",
+    "ttf_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/outfit/Outfit%5Bwght%5D.ttf",
+    "css_source": "https://fonts.googleapis.com/css2?family=Outfit%3Awght%40400%3B500%3B600%3B700&display=swap",
+    "specimen": "https://fonts.google.com/specimen/Outfit"
+  },
+  {
+    "family": "DM Sans",
+    "slug": "dmsans",
+    "web_files": [
+      "dmsans-1.woff2"
+    ],
+    "native_candidate_file": "dmsans-variable.ttf",
+    "license": "dmsans-OFL.txt",
+    "ttf_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmsans/DMSans%5Bopsz%2Cwght%5D.ttf",
+    "css_source": "https://fonts.googleapis.com/css2?family=DM+Sans%3Awght%40400%3B500%3B600%3B700&display=swap",
+    "specimen": "https://fonts.google.com/specimen/DM+Sans"
+  },
+  {
+    "family": "Lora",
+    "slug": "lora",
+    "web_files": [
+      "lora-1.woff2"
+    ],
+    "native_candidate_file": "lora-variable.ttf",
+    "license": "lora-OFL.txt",
+    "ttf_source": "https://raw.githubusercontent.com/google/fonts/main/ofl/lora/Lora%5Bwght%5D.ttf",
+    "css_source": "https://fonts.googleapis.com/css2?family=Lora%3Awght%40400%3B500%3B600%3B700&display=swap",
+    "specimen": "https://fonts.google.com/specimen/Lora"
+  }
+]

@@ -1,16 +1,18 @@
 import { StyleSheet } from 'react-native';
 
+// Compatibility tokens for screens awaiting migration. New/converted views use
+// useTheme(): its primary is green, while its accent is the approved peach.
 export const colors = {
-  canvas: '#F2F3EC',
-  surface: '#FBFCF8',
+  canvas: '#F4F1E8',
+  surface: '#FBF8F0',
   ink: '#173A34',
   muted: '#6D7D79',
   accent: '#3C805E',
-  accentSoft: '#E8F0E7',
-  line: '#D9DED7',
+  accentSoft: '#E9EFE5',
+  line: '#DDDCCF',
   danger: '#C7665B',
   white: '#FFFFFF',
-  quiet: '#F2F3EC',
+  quiet: '#EEECE2',
 };
 
 export const ui = StyleSheet.create({

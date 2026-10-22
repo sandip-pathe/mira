@@ -2,8 +2,16 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import { deviceCollectionsMigration } from './migrations/001-device-collections';
 import { journalMigration } from './migrations/002-journal';
 import { consentMigration } from './migrations/003-consent';
+import { activityTakeawaysMigration } from './migrations/004-activity-takeaways';
+import { savedActionsMigration } from './migrations/005-saved-actions';
+import { breathingPreferencesMigration } from './migrations/006-breathing-preferences';
+import { savedWordingsMigration } from './migrations/007-saved-wordings';
+import { savedReachOutDraftsMigration } from './migrations/008-saved-reach-out-drafts';
+import { moveScenePreferencesMigration } from './migrations/009-move-scene-preferences';
+import { soundscapePreferencesMigration } from './migrations/010-soundscape-preferences';
+import { themePreferenceMigration } from './migrations/011-theme-preference';
 
-const migrations = [deviceCollectionsMigration, journalMigration, consentMigration];
+const migrations = [deviceCollectionsMigration, journalMigration, consentMigration, activityTakeawaysMigration, savedActionsMigration, breathingPreferencesMigration, savedWordingsMigration, savedReachOutDraftsMigration, moveScenePreferencesMigration, soundscapePreferencesMigration, themePreferenceMigration];
 let opening: Promise<SQLiteDatabase> | undefined;
 let operations: Promise<unknown> = Promise.resolve();
 

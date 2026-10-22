@@ -1,0 +1,27 @@
+{
+  "candidate_pool": 498,
+  "screened": 214,
+  "included": 170,
+  "excluded_after_screening": 44,
+  "apps": {
+    "finch": 38,
+    "headspace": 40,
+    "daylio": 27,
+    "day-one": 34,
+    "how-we-feel": 31
+  },
+  "ratings": {
+    "2": 81,
+    "3": 89
+  },
+  "themes": {
+    "agency": 64,
+    "tone_pressure": 21,
+    "reliability": 71,
+    "navigation": 56,
+    "expectation_access": 26,
+    "editing_readability": 30
+  },
+  "oldest": "2025-11-07T01:08:11",
+  "newest": "2026-10-19T19:50:16"
+}

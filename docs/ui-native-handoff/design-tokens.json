@@ -1,0 +1,397 @@
+{
+  "schemaVersion": 1,
+  "recorded": "2026-10-21",
+  "status": "RN-00 through RN-16 implemented, including selected screens, saved outputs/shared controls, all nine activity styling passes and global theme finish; Android phone review pending; RN-17 is next",
+  "units": "Unscaled logical units; never multiply by preview scale 0.75",
+  "sources": [
+    "ui-lab/design/step-04/directions.json",
+    "ui-lab/design/step-04/style.css",
+    "ui-lab/src/selected/palettes.js",
+    "ui-lab/src/selected/selected.css"
+  ],
+  "defaultTheme": "warm-light",
+  "themes": {
+    "warm-light": {
+      "canvas": "#F7F1E7",
+      "surface": "#FFF9F1",
+      "ink": "#263C31",
+      "muted": "#5B675E",
+      "primary": "#315A45",
+      "soft": "#E5E8DB",
+      "accent": "#DEA68D",
+      "line": "#D7D4C5",
+      "pressed": "#234332",
+      "disabled": "#D8D7CF",
+      "disabledInk": "#60635C",
+      "error": "#A13C32"
+    },
+    "forest-dark": {
+      "canvas": "#17241D",
+      "surface": "#223229",
+      "ink": "#F2EEE5",
+      "muted": "#C0C8BF",
+      "primary": "#96B89C",
+      "soft": "#304237",
+      "accent": "#EDB494",
+      "line": "#46564B",
+      "pressed": "#AEC9B0",
+      "disabled": "#38443C",
+      "disabledInk": "#C4C9C4",
+      "error": "#FF8E83"
+    },
+    "blackout": {
+      "canvas": "#080A09",
+      "surface": "#141715",
+      "ink": "#F4F2EC",
+      "muted": "#B8BDB9",
+      "primary": "#A6C9AD",
+      "soft": "#202722",
+      "accent": "#EAB395",
+      "line": "#343A36",
+      "pressed": "#B8D3BE",
+      "disabled": "#303632",
+      "disabledInk": "#B6BCB7",
+      "error": "#FF938B"
+    }
+  },
+  "implementationRoles": {
+    "onPrimary": "active theme surface; matches selected Lab buttons",
+    "paperInk": "#111111",
+    "paperMuted": "warm-light.muted",
+    "paperControls": "warm-light.primary",
+    "brandWordmark": "#315A45",
+    "artPrimary": "active theme primary",
+    "artAccent": "active theme accent",
+    "artGround": "active theme soft",
+    "artPaper": "warm-light.surface",
+    "note": "Role bindings for native implementation. Keep existing semantic sense/emotion differentiation and user document colors."
+  },
+  "typography": {
+    "family": "Nunito Sans",
+    "nativeWeightFiles": [
+      400,
+      500,
+      600,
+      700
+    ],
+    "fontScale": "Honor system text scaling; allow layout growth",
+    "roles": {
+      "screenTitle": {
+        "fontSize": 30,
+        "lineHeight": 35.1,
+        "fontWeight": 600,
+        "letterSpacing": -0.8
+      },
+      "talkWelcome": {
+        "fontSize": 30,
+        "lineHeight": 35.4,
+        "fontWeight": 600,
+        "letterSpacing": -0.7
+      },
+      "talkReady": {
+        "fontSize": 28,
+        "lineHeight": 33.04,
+        "fontWeight": 600
+      },
+      "talkOfferHeading": {
+        "fontSize": 22,
+        "lineHeight": 25.96,
+        "fontWeight": 600
+      },
+      "talkKeyboardHeading": {
+        "fontSize": 24,
+        "lineHeight": 28.32,
+        "fontWeight": 600
+      },
+      "talkHelper": {
+        "fontSize": 16,
+        "lineHeight": 23.2,
+        "fontWeight": 400
+      },
+      "body": {
+        "fontSize": 16,
+        "lineHeight": 24,
+        "fontWeight": 400
+      },
+      "support": {
+        "fontSize": 14,
+        "lineHeight": 20.3,
+        "fontWeight": 400
+      },
+      "button": {
+        "fontSize": 14,
+        "lineHeight": 16.8,
+        "fontWeight": 600
+      },
+      "talkSideLabel": {
+        "fontSize": 12,
+        "lineHeight": 14.4,
+        "fontWeight": 600
+      },
+      "holdLabel": {
+        "fontSize": 14,
+        "fontWeight": 600
+      },
+      "tabInactive": {
+        "fontSize": 12,
+        "fontWeight": 500
+      },
+      "tabActive": {
+        "fontSize": 12,
+        "fontWeight": 700
+      },
+      "activitiesIntro": {
+        "fontSize": 25,
+        "lineHeight": 30,
+        "fontWeight": 600,
+        "letterSpacing": -0.5
+      },
+      "groupHeading": {
+        "fontSize": 20,
+        "lineHeight": 25,
+        "fontWeight": 600,
+        "letterSpacing": -0.3
+      },
+      "activityTitle": {
+        "fontSize": 17,
+        "lineHeight": 22.1,
+        "fontWeight": 600
+      },
+      "activitySummary": {
+        "fontSize": 14,
+        "lineHeight": 19.6,
+        "fontWeight": 400
+      },
+      "journalInvitation": {
+        "fontSize": 26,
+        "lineHeight": 31.2,
+        "fontWeight": 600,
+        "letterSpacing": -0.5
+      },
+      "journalPrompt": {
+        "fontSize": 17,
+        "lineHeight": 23.8,
+        "fontWeight": 600
+      },
+      "journalWriting": {
+        "fontSize": 17,
+        "lineHeight": 28.05,
+        "fontWeight": 400
+      },
+      "journalHomeTitle": {
+        "fontSize": 28,
+        "lineHeight": 33.6,
+        "fontWeight": 600,
+        "letterSpacing": -0.6
+      },
+      "sheetTitle": {
+        "fontSize": 22,
+        "lineHeight": 27.5
+      },
+      "sheetSection": {
+        "fontSize": 17
+      },
+      "recentTitle": {
+        "fontSize": 16,
+        "fontWeight": 600
+      },
+      "recentMeta": {
+        "fontSize": 14
+      },
+      "eyebrow": {
+        "fontSize": 12,
+        "lineHeight": 16,
+        "fontWeight": 700,
+        "letterSpacing": 1.2
+      },
+      "status": {
+        "fontSize": 13,
+        "lineHeight": 18,
+        "fontWeight": 600
+      }
+    },
+    "journalWritingRange": {
+      "min": 16,
+      "max": 26,
+      "default": 17,
+      "lineHeightRatio": 1.65,
+      "ink": "#111111"
+    },
+    "compactSharedRolesNote": "Eyebrow and status retain the pre-existing native compact label sizes during RN-02 migration."
+  },
+  "layout": {
+    "touchTargetMin": 48,
+    "spacingUsed": [
+      4,
+      6,
+      8,
+      10,
+      12,
+      14,
+      16,
+      18,
+      20,
+      22,
+      24,
+      26,
+      28
+    ],
+    "header": {
+      "baseHeight": 68,
+      "paddingHorizontal": 22,
+      "paddingVertical": 8,
+      "wordmarkContainer": [
+        92,
+        42
+      ]
+    },
+    "tabs": {
+      "baseHeight": 76,
+      "paddingTop": 4,
+      "paddingHorizontal": 16,
+      "paddingBottom": 12,
+      "gap": 8,
+      "activeBacking": [
+        42,
+        30
+      ],
+      "activeBackingRadius": 12,
+      "icon": 24,
+      "note": "Reconcile with actual native safe-area insets once; grow for system text."
+    },
+    "primaryButton": {
+      "minHeight": 52,
+      "radius": 16,
+      "paddingHorizontal": 20
+    },
+    "sheet": {
+      "topRadius": 24,
+      "paddingHorizontal": 22,
+      "paddingBottom": 28
+    },
+    "talk": {
+      "padding": [
+        12,
+        24,
+        24,
+        24
+      ],
+      "gap": 8,
+      "hero": [
+        250,
+        250
+      ],
+      "heroWithOffer": [
+        150,
+        150
+      ],
+      "heroWithKeyboard": [
+        130,
+        130
+      ],
+      "micDiameter": 92,
+      "micWithKeyboard": 72,
+      "micIcon": 38,
+      "sideIcon": 25,
+      "controlGap": 12,
+      "holdLabelMarginTop": 14
+    },
+    "activities": {
+      "paddingHorizontal": 22,
+      "introMinHeight": 116,
+      "motif": [
+        122,
+        122
+      ],
+      "rowMinHeight": 80,
+      "preferredRowMinHeight": 68,
+      "rowPaddingVertical": 12,
+      "rowGap": 12,
+      "rowIcon": 24,
+      "rowIconSlot": 28,
+      "destinationIcon": 19
+    },
+    "journal": {
+      "padding": [
+        8,
+        22,
+        18,
+        22
+      ],
+      "gap": 12,
+      "blankArt": [
+        104,
+        104
+      ],
+      "homeArt": [
+        135,
+        135
+      ],
+      "minimumWritingHeight": 80
+    }
+  },
+  "icons": {
+    "package": "@react-native-vector-icons/material-design-icons",
+    "names": {
+      "tabs": {
+        "talk": "microphone-outline",
+        "activities": "shape-outline",
+        "journal": "notebook-outline"
+      },
+      "activity": {
+        "brain_dump": "thought-bubble-outline",
+        "unsent_letter": "email-outline",
+        "name_a_feeling": "emoticon-outline",
+        "one_small_step": "stairs",
+        "reach_out": "message-outline",
+        "short_movement": "walk",
+        "one_song_break": "music-note-outline",
+        "grounding": "leaf",
+        "paced_breathing": "weather-windy",
+        "journal": "notebook-outline"
+      },
+      "shared": {
+        "help": "help-circle-outline",
+        "back": "arrow-left",
+        "close": "close",
+        "send": "arrow-up",
+        "showConversation": "closed-caption-outline",
+        "pageStyle": "palette-outline",
+        "delete": "trash-can-outline",
+        "rowDestination": "arrow-top-right"
+      }
+    }
+  },
+  "motion": {
+    "reduceMotion": "Still poses and labels; remove decorative transitions and loops",
+    "offscreen": "Pause/cancel ambient loops on route blur and app background",
+    "idle": {
+      "durationMs": 6000,
+      "translateY": 3,
+      "optional": true
+    },
+    "listening": {
+      "translateY": -2,
+      "rotateDeg": -1,
+      "loop": false
+    },
+    "speaking": {
+      "durationMs": 2000,
+      "translateY": 3,
+      "rotateDeg": 1
+    },
+    "replyLevelMark": {
+      "durationMs": 900,
+      "note": "Decorative state marker, not measured audio"
+    },
+    "heroTransformMs": 180,
+    "heroOpacityMs": 160,
+    "pressScale": 0.98,
+    "pressNote": "Immediate feedback; never wait for animation to accept input"
+  },
+  "nativeImplementationNotes": [
+    "Values capture current selected A and overrides; do not normalize existing 12-unit labels to 14.",
+    "Existing Android safe areas, font metrics, touch areas, and keyboard behavior may require layout growth without reducing font sizes.",
+    "No fixed phone height, fake status bar, browser keyboard, iframe, or root zoom transfers to native."
+  ]
+}

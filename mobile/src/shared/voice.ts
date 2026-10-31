@@ -1,5 +1,5 @@
 import { AppState, PermissionsAndroid, Platform } from 'react-native';
-import { ApiError, DemoSession, Message, renewDemoSession, request } from './api';
+import { ApiError, AuthenticatedSession, Message, renewAuthenticatedSession, request } from './api';
 import { SupportDecision } from './interventions';
 import type { ContextMatch, MomentState } from '../features/talk/conversation';
 import { activityCapabilities } from './activityRegistry';
@@ -144,7 +144,7 @@ export class Voice {
   private previousAudioStats = new Map<string, { energy: number; duration: number }>();
   private audioMeterGeneration = 0;
   private remoteAudioTrack: any;
-  private session?: DemoSession;
+  private session?: AuthenticatedSession;
   private connectController?: AbortController;
   private toolAbortControllers = new Set<AbortController>();
 
@@ -155,7 +155,7 @@ export class Voice {
   }
 
   async connect(
-    session: DemoSession,
+    session: AuthenticatedSession,
     history: Message[],
     momentState?: unknown,
     reconnecting = false,
@@ -232,7 +232,7 @@ export class Voice {
       const voiceRequest = () => request<{
         value: string;
         generation: number;
-      }>(`/sessions/${activeSession.session_id}/voice`, activeSession, {
+      }>(`/workers/voice`, activeSession, {
         moment_state: momentState ?? null,
         client_activity_capabilities: activityCapabilities(),
       }, 'POST', { signal: connectController.signal });
@@ -247,7 +247,7 @@ export class Voice {
         secret = await voiceRequest();
       } catch (error) {
         if (!(error instanceof ApiError) || error.status !== 401 || epoch !== this.epoch) throw error;
-        activeSession = await renewDemoSession(activeSession);
+        activeSession = await renewAuthenticatedSession(activeSession);
         if (epoch !== this.epoch || connectController.signal.aborted) return;
         this.session = activeSession;
         secret = await voiceRequest();
@@ -659,7 +659,7 @@ export class Voice {
       } else {
         const call = { call_id: event.call_id, name: event.name, arguments: args };
         const registered = await request<{ contract_version: number; registered: boolean }>(
-          `/sessions/${session.session_id}/tool-calls?generation=${this.generation}`,
+          `/workers/tool-calls?generation=${this.generation}`,
           session,
           call,
           undefined,
@@ -674,7 +674,7 @@ export class Voice {
         if (epoch !== this.epoch || turn !== this.turn) return;
         if (revision !== approved.revision) throw new Error('Consent changed during support request.');
         const response = await request<{ contract_version: number; call_id: string; result: any }>(
-          `/sessions/${session.session_id}/tools`,
+          `/workers/tools`,
           session,
           { call, approved_preferences: approved.preferences, declined_interventions: this.callbacks.declinedInterventions(), consent_revision: revision },
           undefined,
@@ -688,7 +688,7 @@ export class Voice {
       }
     } catch (error) {
       if (error instanceof ApiError && error.status === 401 && epoch === this.epoch) {
-        this.fail('Voice capability expired. Reconnectingâ€¦', true);
+        this.fail('Sign-in expired. Reconnecting…', true);
         return;
       }
       output = { contract_version: 1, error: 'tool_unavailable', instruction: 'Continue without saved context or an activity suggestion.' };

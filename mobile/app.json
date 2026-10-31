@@ -44,7 +44,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak, or when you choose to record a Journal note.",
+          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak.",
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
         }
@@ -52,7 +52,7 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak, or when you choose to record a Journal note."
+          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak."
         }
       ],
       "./plugins/withPrivateDemoHttp",
@@ -62,6 +62,7 @@
       "expo-sqlite"
     ],
     "extra": {
+      "apiUrl": "",
       "eas": {
         "projectId": "a39636fc-d431-4128-9971-6fd271bf5cf6"
       }

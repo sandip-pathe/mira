@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import patch
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -8,11 +8,13 @@ from server import app as backend
 
 class OfflineCutoverContract(unittest.TestCase):
     def setUp(self):
-        backend.sessions.clear()
+        backend.voice_states.clear()
+        self.auth_patch = patch.object(backend, 'verify_firebase_uid', return_value='firebase-user-test')
+        self.auth_patch.start()
+        self.addCleanup(self.auth_patch.stop)
         self.client = TestClient(backend.app)
-        created = self.client.post('/sessions', json={'session_id': str(uuid4())}).json()
-        self.path = '/sessions/' + created['session_id']
-        self.headers = {'Authorization': 'Bearer ' + created['capability']}
+        self.path = '/sessions/firebase-user-test'
+        self.headers = {'Authorization': 'Bearer firebase-test-token'}
 
     def test_private_store_is_not_opened_by_server_runtime(self):
         self.assertFalse(hasattr(backend, 'store'))
@@ -30,15 +32,6 @@ class OfflineCutoverContract(unittest.TestCase):
                 response = self.client.request(method, self.path + suffix, headers=self.headers)
                 self.assertEqual(response.status_code, 426)
                 self.assertIn('device', response.json()['detail'])
-
-    def test_stateless_journal_worker_remains_available(self):
-        fake = AsyncMock(return_value='What would you like to remember?')
-        with patch.object(backend, 'generate_journal_follow_up', fake):
-            response = self.client.post(self.path + '/journal-follow-up', headers=self.headers,
-                json={'messages': [{'role': 'user', 'content': 'Today felt busy.'}]})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'text': 'What would you like to remember?'})
-
 
 if __name__ == '__main__':
     unittest.main()

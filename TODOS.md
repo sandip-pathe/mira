@@ -7,7 +7,7 @@
 
 ## Focused verification pending
 
-- Check the refactored Journal recording controller on the OnePlus: record/stop, leave during preparation/capture, background/foreground, transcription retry/discard, and Talk voice after Journal. Record Android version. Controller checks, typecheck, and server checks do not establish native audio behavior.
+- Run the current development build on the OnePlus and record Android version. Check Firebase sign-in, Journal text save/reopen, offline Activities, Talk hold/release and reconnect, and Brain Dump transcription permission/retry. Journal has no microphone or recording flow. Source checks do not establish native device behavior.
 
 These items are deliberately outside Mira V0's connected phone demo. Revisit them with Mpower after the demo:
 
@@ -18,6 +18,18 @@ These items are deliberately outside Mira V0's connected phone demo. Revisit the
 - Revisit accounts, deployment, scaling, admin tools, and operational data lifecycle only if Mpower elects to pursue a pilot.
 
 ## Engineering
+
+### Route Realtime voice to connected earphones
+
+**What:** Add Android Bluetooth permission handling and explicit voice-call audio routing so Mira uses connected Bluetooth or wired earphones, with a speaker option where appropriate.
+
+**Why:** Realtime voice currently uses WebRTC without app-level audio route selection. The Android manifest has the legacy Bluetooth permission but not `BLUETOOTH_CONNECT` for newer Android versions.
+
+**Context:** Deferred for now. Follow the installed `react-native-webrtc` version's guidance, choose a compatible routing approach, then verify headset connection, disconnection, and speaker fallback on the OnePlus. Native changes require a fresh development build.
+
+**Effort:** M
+**Priority:** P2
+**Depends on:** Android route implementation and a fresh development build.
 
 ### Revisit clipboard export for Reach Out
 

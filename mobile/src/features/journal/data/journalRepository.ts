@@ -25,10 +25,6 @@ export async function readJournalTx(
     'SELECT id, text, input_type, created_at FROM journal_entries WHERE session_id = ? ORDER BY created_at, rowid',
     id,
   );
-  const messages = await db.getAllAsync<LocalJournalSession['messages'][number]>(
-    'SELECT id, session_id AS journal_session_id, role, content, entry_id, created_at FROM journal_messages WHERE session_id = ? ORDER BY sequence',
-    id,
-  );
   const notes = await db.getAllAsync<LocalJournalSession['voice_notes'][number]>(
     'SELECT id, uri, created_at FROM journal_attachments WHERE session_id = ? ORDER BY created_at DESC',
     id,
@@ -42,7 +38,6 @@ export async function readJournalTx(
     saved: !!row.saved,
     presentation: JSON.parse(row.presentation),
     entries,
-    messages,
     voice_notes: notes,
     draft: draft?.text ?? '',
     entry_count: entries.length,
@@ -83,14 +78,6 @@ export async function applyJournalDraftTx(
       timestamp,
       JSON.stringify(snapshot.presentation),
     );
-    await db.runAsync(
-      'INSERT INTO journal_messages (id, session_id, role, content, created_at, sequence) VALUES (?, ?, ?, ?, ?, 0)',
-      `${snapshot.id}:initial`,
-      snapshot.id,
-      'assistant',
-      snapshot.prompt,
-      timestamp,
-    );
     row = (await db.getFirstAsync<SessionRow>(
       'SELECT * FROM journal_sessions WHERE id = ?',
       snapshot.id,
@@ -105,11 +92,6 @@ export async function applyJournalDraftTx(
       'UPDATE journal_sessions SET initial_prompt = ? WHERE id = ?',
       snapshot.prompt,
       snapshot.id,
-    );
-    await db.runAsync(
-      'UPDATE journal_messages SET content = ? WHERE id = ?',
-      snapshot.prompt,
-      `${snapshot.id}:initial`,
     );
   }
   await db.runAsync(
@@ -151,99 +133,23 @@ export function listLocalJournals(): Promise<JournalSessionSummary[]> {
   });
 }
 
-async function appendEntryTx(db: SQLiteDatabase, snapshot: JournalDraftSnapshot, entryId: string) {
-  if (!snapshot.text.trim()) throw new Error('Write an entry first.');
-  const existing = await db.getFirstAsync<{ session_id: string; text: string }>(
-    'SELECT session_id, text FROM journal_entries WHERE id = ?',
-    entryId,
-  );
-  if (existing) {
-    if (existing.session_id !== snapshot.id || existing.text !== snapshot.text.trim())
-      throw new Error('Entry save conflict.');
-    return;
-  }
-  if (!(await applyJournalDraftTx(db, snapshot)))
-    throw new Error('This Journal session changed. Reopen it before saving.');
-  const timestamp = now();
-  await db.runAsync(
-    'INSERT INTO journal_entries (id, session_id, text, input_type, created_at) VALUES (?, ?, ?, ?, ?)',
-    entryId,
-    snapshot.id,
-    snapshot.text.trim(),
-    'text',
-    timestamp,
-  );
-  await db.runAsync(
-    `INSERT INTO journal_messages (id, session_id, role, content, entry_id, created_at, sequence)
-    VALUES (?, ?, 'user', ?, ?, ?, (SELECT COALESCE(MAX(sequence), -1) + 1 FROM journal_messages WHERE session_id = ?))`,
-    `${entryId}:user`,
-    snapshot.id,
-    snapshot.text.trim(),
-    entryId,
-    timestamp,
-    snapshot.id,
-  );
-  await db.runAsync('UPDATE journal_drafts SET text = ? WHERE session_id = ?', '', snapshot.id);
-  await db.runAsync(
-    'UPDATE journal_sessions SET revision = revision + 1, updated_at = ? WHERE id = ?',
-    timestamp,
-    snapshot.id,
-  );
-}
-
-export function appendJournalEntry(snapshot: JournalDraftSnapshot, entryId: string) {
+export function saveLocalJournal(snapshot: JournalDraftSnapshot, entryIds: string[]) {
   return withDeviceTransaction(async (db) => {
-    await appendEntryTx(db, snapshot, entryId);
-    return (await readJournalTx(db, snapshot.id))!;
-  });
-}
-
-export function appendJournalFollowUp(
-  id: string,
-  entryId: string,
-  revision: number,
-  text: string,
-  isCurrent = () => true,
-) {
-  return withDeviceTransaction(async (db) => {
-    const row = await db.getFirstAsync<SessionRow>(
-      'SELECT * FROM journal_sessions WHERE id = ?',
-      id,
-    );
-    const last = await db.getFirstAsync<{ entry_id: string; role: string }>(
-      'SELECT entry_id, role FROM journal_messages WHERE session_id = ? ORDER BY sequence DESC LIMIT 1',
-      id,
-    );
-    if (
-      !isCurrent() ||
-      !row ||
-      row.saved ||
-      row.revision !== revision ||
-      last?.entry_id !== entryId ||
-      last.role !== 'user'
-    )
-      return;
-    if (!text.trim() || text.length > 300) throw new Error('Invalid Journal follow-up.');
-    await db.runAsync(
-      `INSERT INTO journal_messages (id, session_id, role, content, entry_id, created_at, sequence)
-      VALUES (?, ?, 'assistant', ?, ?, ?, (SELECT MAX(sequence) + 1 FROM journal_messages WHERE session_id = ?))`,
-      `${entryId}:follow-up`,
-      id,
-      text,
-      entryId,
-      now(),
-      id,
-    );
-    await db.runAsync('UPDATE journal_sessions SET updated_at = ? WHERE id = ?', now(), id);
-    return readJournalTx(db, id);
-  });
-}
-
-export function saveLocalJournal(snapshot: JournalDraftSnapshot, entryId: string) {
-  return withDeviceTransaction(async (db) => {
-    if (snapshot.text.trim()) await appendEntryTx(db, snapshot, entryId);
-    else if (!(await applyJournalDraftTx(db, snapshot)))
+    if (!(await applyJournalDraftTx(db, snapshot)))
       throw new Error('This Journal session changed. Reopen it before saving.');
+    const lines = snapshot.text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    if (entryIds.length !== lines.length) throw new Error('Journal entry boundaries changed. Try saving again.');
+    const timestamp = now();
+    for (let index = 0; index < lines.length; index += 1) {
+      await db.runAsync(
+        'INSERT INTO journal_entries (id, session_id, text, input_type, created_at) VALUES (?, ?, ?, ?, ?)',
+        entryIds[index], snapshot.id, lines[index], 'text', timestamp + index / 1000,
+      );
+    }
+    await db.runAsync(
+      'UPDATE journal_sessions SET revision = revision + 1, updated_at = ? WHERE id = ?',
+      timestamp, snapshot.id,
+    );
     const document = (await readJournalTx(db, snapshot.id))!;
     if (!document.entries.length && !document.voice_notes.length)
       throw new Error('Add writing or a voice note first.');

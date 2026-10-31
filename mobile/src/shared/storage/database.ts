@@ -10,8 +10,11 @@ import { savedReachOutDraftsMigration } from './migrations/008-saved-reach-out-d
 import { moveScenePreferencesMigration } from './migrations/009-move-scene-preferences';
 import { soundscapePreferencesMigration } from './migrations/010-soundscape-preferences';
 import { themePreferenceMigration } from './migrations/011-theme-preference';
+import { journalMessagesMigration } from './migrations/012-journal-messages';
+import { journalMessagesRecoveryMigration } from './migrations/013-journal-messages-recovery';
+import { journalMessagesRetirementMigration } from './migrations/014-journal-messages-retirement';
 
-const migrations = [deviceCollectionsMigration, journalMigration, consentMigration, activityTakeawaysMigration, savedActionsMigration, breathingPreferencesMigration, savedWordingsMigration, savedReachOutDraftsMigration, moveScenePreferencesMigration, soundscapePreferencesMigration, themePreferenceMigration];
+const migrations = [deviceCollectionsMigration, journalMigration, consentMigration, activityTakeawaysMigration, savedActionsMigration, breathingPreferencesMigration, savedWordingsMigration, savedReachOutDraftsMigration, moveScenePreferencesMigration, soundscapePreferencesMigration, themePreferenceMigration, journalMessagesMigration, journalMessagesRecoveryMigration, journalMessagesRetirementMigration];
 let opening: Promise<SQLiteDatabase> | undefined;
 let operations: Promise<unknown> = Promise.resolve();
 

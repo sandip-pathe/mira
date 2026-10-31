@@ -36,10 +36,10 @@ Preserve existing navigation, activity flows, explicit hold-to-talk, consent cho
 | Data | Device lifetime | Network use | Our server storage |
 |---|---|---|---|
 | Activity definitions, illustrations, examples, prompts, Help copy | Bundled public content | Server uses the same public definitions for AI eligibility/ranking. | Public content only. |
-| Saved Journal entries, sessions, associated AI follow-ups | Durable until explicitly deleted | Only the bounded writing/history needed when requesting an AI follow-up. Never bulk upload the Journal. | None. |
-| Journal editor recovery draft | Durable local recovery until saved or discarded | Only when the user invokes the existing AI operation. | None. |
-| Explicitly saved voice notes | Durable local file plus local metadata until deleted | None for playback; transcription only if an existing supported action requests it. | None. |
-| Pending recordings | Local files while the existing keep/discard interaction is active | Only for an explicitly requested transcription. | No retained audio. |
+| Saved Journal entries and sessions | Durable until explicitly deleted | None. | None. |
+| Journal editor recovery draft | Durable local recovery until saved or discarded | None. | None. |
+| Journal voice notes | Durable local file plus local metadata until deleted | None for recording, playback, or save. | None. |
+| Pending Journal recordings | Local file during hold-to-record and automatic save recovery | None. | No retained audio. |
 | Continue action/message | Durable after explicit Keep; versioned and resumable | No automatic transmission. An approved action handoff into Talk remains explicit. | None. |
 | Pending/approved Journal excerpts | Durable locally; approval and revocation are local state | Only approved, relevant excerpts may be sent for Talk. Pending/revoked items never qualify. | None. |
 | Opted-in activity preference | Durable exact approved text plus minimum provenance | Relevant preferences may accompany an AI request. | None. |
@@ -87,7 +87,7 @@ mobile/src/shared/storage/
   database.ts                    initialization and schema migrations
   migrations/                    ordered, idempotent migrations
 mobile/src/features/journal/data/
-  journalRepository.ts           sessions, entries, messages, recovery drafts
+  journalRepository.ts           sessions, entries, recovery drafts
   attachmentRepository.ts        kept audio references and deletion cleanup
   memoryRepository.ts            excerpt approval, revocation, source linkage
 mobile/src/features/actions/data/
@@ -104,7 +104,7 @@ mobile/src/shared/online/
 
 These are responsibility boundaries, not a requirement to create every file immediately. Reuse existing modules where they already provide the boundary; avoid introducing a second state-management framework or generic sync engine.
 
-Suggested tables: `journal_sessions`, `journal_entries`, `journal_messages`, `journal_drafts`, `journal_attachments`, `memory_items`, `activity_preferences`, `continue_items`, and migration metadata. Preserve existing record IDs where possible. Do not add a durable table of every activity run or Talk turn. A saved preference can contain its minimum activity provenance without retaining the raw run inputs.
+Suggested tables: `journal_sessions`, `journal_entries`, `journal_drafts`, `journal_attachments`, `memory_items`, `activity_preferences`, `continue_items`, and migration metadata. Preserve existing record IDs where possible. Do not add a durable table of every activity run or Talk turn. A saved preference can contain its minimum activity provenance without retaining the raw run inputs.
 
 Dependency decision: OF-03 installed `expo-sqlite` 57.0.4 using Expo's SDK 57 installer and verified the matching documentation and installed APIs. A fresh native build is required before using it on the phone; the user has deferred that build until implementation is finished. Continue the remaining code work without launching intermediate builds. Native loading is lazy and guarded, so older APKs get a build-update message instead of crashing on import. No Expo/RN upgrade was made. Plain SQLite is not application-level encryption; custom encryption/key management is separate hardening, not a claim made by this plan.
 
@@ -123,11 +123,11 @@ Exclude private databases and audio files from automatic cloud backup/device-tra
 
 - Home reads recent sessions from the device. Tab button continues to open a new editor; Activities opens Journal home; New entry opens the editor. Preserve the existing route contract.
 - Creating, choosing a static prompt, writing, appending an entry, saving a session, opening saved writing, and deleting are local operations.
-- Commit the user's submitted writing before beginning the optional AI follow-up. A failed AI request cannot undo or prevent a local save.
-- Keep the existing submit interaction as the trigger for a follow-up when available; avoid adding a new AI screen. Offline, commit the writing and allow the person to continue or save with no generated reply.
+- Journal contains user text and local playable voice capsules only; keep the starter prompts, without AI replies or audio transcription.
+- Enter creates a text-entry boundary; Backspace at the boundary removes it. Save finalizes all text entries and voice capsules in one local session commit, then returns.
+- Keep the writing controls fixed above the keyboard. Hold the mic to record; release stops and saves the note automatically.
 - Persist an editor recovery draft locally with bounded/debounced writes and flush on existing lifecycle boundaries. Explicit discard removes it; submitting/saving clears or advances it atomically. A late autosave must not recreate discarded content.
 - Preserve the tab's New Entry behavior without silently overwriting an earlier recovery draft. Existing Journal home can list unfinished sessions with a simple state label; no new recovery navigator.
-- AI follow-ups use a stateless worker accepting bounded recent Journal messages and returning text only. Associate results with a local request/entry revision so stale replies cannot enter a different or deleted session.
 - Persist explicitly kept voice-note metadata and file ownership. Deleting a note/session removes its references and files; failed file deletions use local cleanup metadata and retry safely. Do not delete unrelated files.
 - Local save success means a successful local commit. Disk-full/corrupt-storage failures retain the editor and show an honest retry state.
 
@@ -184,9 +184,9 @@ Legacy IDs and previously kept records remain compatible where they are supporte
 | `/text` | Retain AI reply/decision worker; receive explicit bounded context, remove SQLite lookups. |
 | `/tool-calls`, `/tools` | Retain only the required remote tool boundary; local retrieval and local moment state leave the persistence path. |
 | `/task-reset/organize` | Retain only for existing optional AI sorting; manual sorting remains immediate. |
-| `/transcriptions` | Retain only if there is a supported caller; no automatic audio upload or new Journal transcription action. |
+| `/transcriptions` | Remove the Journal-only upload worker. Brain Dump uses `/voice/transcription` for its explicit online transcription path. |
 | `/journal`, `/journal-sessions` CRUD/save/prompt | Replace with local repositories. Remove private server persistence. |
-| `/journal-sessions/{id}/turn` | Replace with stateless Journal follow-up worker; no create/save operation on the server. |
+| `/journal-follow-up` and `/transcriptions` | Remove; Journal has no AI or upload worker. |
 | `/memory` create/list/approve/revoke/delete | Replace with local repository; no server memory library. |
 | `/feedback` save/reuse/delete | Replace with local preference repository. |
 | `/actions`, `/interventions` content reads | Remove mobile use. Public catalog may remain server-internal for selection; unnecessary public endpoints can be retired. |
@@ -283,6 +283,10 @@ OF-04 execution note: Journal reads and local mutations no longer create server 
 OF-05 execution note: Schema v3 tracks consent revisions locally. Text Talk selects approved Journal excerpts and opted-in activity preferences on-device using bounded deterministic token matching. It sends at most one relevant excerpt and three relevant preferences; no match means no stored context is sent. The text worker validates those bounds and uses supplied preferences for support ranking without looking up private records. Revocation, deletion, and source-entry deletion increment the local revision and invalidate active Talk context; retries rebuild from current consent. This order is complete, including realtime selection and local moment updates implemented in OF-06. Existing server data and compatibility routes remain untouched for OF-07. Focused SQLite and worker contract tests, TypeScript, and ESLint passed. No build or device test was run.
 
 OF-06 execution note: Session capabilities are created only when a user invokes an online worker; a valid cached capability does not trigger `/health`. A confirmed 401 renews once, and text retries rebuild current consented context. Talk focus and local navigation do not connect automatically. Realtime `retrieve_shared_context` is selected locally and returned as a `function_call_output`; `update_moment_state` is validated and held in app memory. Only `choose_support` uses the server tool relay. Its preferences and declined activity IDs are selected/held locally for that request. Relay registration stores a digest and expiry rather than message arguments, has a 128-call cap, and relay work is cancellation-, turn-, generation-, and call-ID-guarded. Voice session creation no longer accepts server feedback IDs. Text, voice setup, tool, Journal follow-up, sorting, and transcription workers avoid server private-store lookups; legacy private endpoints remain for OF-07. The fixed mic-off, hold-to-speak, release-to-end flow is unchanged in source. TypeScript passed; focused ESLint had no errors (only existing lazy-require warnings in `api.ts` and `voice.ts`); 43 server contracts and focused SQLite/activity checks passed. No build, physical voice test, or offline install test was run.
+
+**Journal interaction update (2026-10-24):** This supersedes the Journal follow-up and upload behavior recorded in the original OF-04/OF-06 notes above. Journal now keeps optional starter prompts, local user text, and local playable voice capsules. Enter separates text entries; Backspace removes a boundary. Hold starts recording and release automatically saves the capsule. The fixed toolbar stays outside the scroll view; its single Save action finalizes locally and returns. Journal follow-up and Journal transcription workers are removed. Migration v14 removes the duplicate `journal_messages` table; existing text entries and audio attachments remain in their authoritative tables. This source change has not been built or physically verified.
+
+**Journal scope correction (2026-10-28):** The user asked to remove Journal voice recording and its microphone icon. This supersedes the 2026-10-24 voice-capsule interaction above. Current Journal is text-only; drafts and entries are local. The current source has not had a final OnePlus walkthrough.
 
 ## References
 

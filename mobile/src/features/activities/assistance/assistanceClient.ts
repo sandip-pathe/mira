@@ -1,4 +1,4 @@
-import { getDemoSession, requestWithRenewal } from '../../../shared/api';
+import { getAuthenticatedSession, requestWithRenewal } from '../../../shared/api';
 
 export type DumpSections = { heavy: string; wait: string; thread: string };
 export type DumpSectionId = keyof DumpSections;
@@ -34,9 +34,9 @@ export async function requestActivityAssistance(
   request: ActivityAssistanceRequest,
   signal: AbortSignal,
 ): Promise<ActivityAssistanceResponse> {
-  const session = await getDemoSession();
+  const session = await getAuthenticatedSession();
   const response = await requestWithRenewal<ActivityAssistanceResponse>(
-    `/sessions/${encodeURIComponent(session.session_id)}/activities/assistance`, session, request, 'POST', { signal },
+    '/workers/activities/assistance', session, request, 'POST', { signal },
   );
   if (response.contract_version !== 1 || response.request_id !== request.request_id ||
       response.activity_run_id !== request.activity_run_id || response.source_revision !== request.source_revision ||

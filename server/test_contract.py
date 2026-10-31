@@ -55,14 +55,15 @@ class DecisionContract(unittest.IsolatedAsyncioTestCase):
 
 class WorkerContract(unittest.TestCase):
     def setUp(self):
-        backend.sessions.clear()
-        backend.creation_times.clear()
+        backend.voice_states.clear()
+        self.auth_patch = patch.object(backend, 'verify_firebase_uid', return_value='firebase-user-test')
+        self.auth_patch.start()
+        self.addCleanup(self.auth_patch.stop)
         self.client = TestClient(backend.app)
-        created = self.client.post('/sessions', json={'session_id': str(uuid4())}).json()
-        self.session_id = created['session_id']
-        self.path = f"/sessions/{self.session_id}"
-        self.headers = {'Authorization': f"Bearer {created['capability']}"}
-        backend.sessions[self.session_id]['voice_generation'] = 1
+        self.session_id = 'firebase-user-test'
+        self.path = '/workers'
+        self.headers = {'Authorization': 'Bearer firebase-test-token'}
+        backend.voice_state(self.session_id)['voice_generation'] = 1
         self.call = {
             'call_id': 'call_demo',
             'name': 'choose_support',
@@ -95,7 +96,7 @@ class WorkerContract(unittest.TestCase):
         }
         with patch.object(backend, 'choose_support', new=AsyncMock(return_value=decision)):
             self.assertEqual(self.register().status_code, 200)
-            pending = backend.sessions[self.session_id]['pending']['call_demo']
+            pending = backend.voice_states[self.session_id]['pending']['call_demo']
             self.assertNotIn('call', pending)
             self.assertEqual(len(pending['digest']), 64)
             response = self.relay()
@@ -104,7 +105,7 @@ class WorkerContract(unittest.TestCase):
         self.assertEqual(self.relay().status_code, 409)
 
     def test_relay_uses_only_request_supplied_preferences_and_exclusions(self):
-        backend.sessions[self.session_id]['compatible_activity_ids'] = set(PRIMARY_ACTIVITY_IDS)
+        backend.voice_states[self.session_id]['compatible_activity_ids'] = set(PRIMARY_ACTIVITY_IDS)
         fake = AsyncMock(return_value=provider_text({
             'route': 'listen', 'situation_summary': '', 'question': '',
             'offer_reason': '', 'ranked_ids': [],
@@ -118,11 +119,11 @@ class WorkerContract(unittest.TestCase):
         self.assertEqual(decision_input['preferences'][0]['intervention_id'], 'pause_60s')
         self.assertNotIn('pause_60s', fake.call_args.kwargs['json']['text']['format']['schema']['properties']['ranked_ids']['items']['enum'])
 
-    def test_capability_expiry_and_mismatch_are_rejected(self):
+    def test_missing_and_mismatched_firebase_identity_are_rejected(self):
         payload = {'call': self.call, 'approved_preferences': [], 'declined_interventions': [], 'consent_revision': 0}
         self.assertEqual(self.client.post(self.path + '/tools', json=payload).status_code, 401)
-        backend.sessions[self.session_id]['expires_at'] = time.time() - 1
-        self.assertEqual(self.register().status_code, 401)
+        with patch.object(backend, 'verify_firebase_uid', return_value=''):
+            self.assertEqual(self.client.post(self.path + '/tools', headers=self.headers, json=payload).status_code, 401)
 
     def test_tool_allowlist_and_local_tools_are_enforced(self):
         unexpected = {**self.call, 'arguments': {**self.call['arguments'], 'unexpected': 'value'}}
@@ -157,27 +158,6 @@ class WorkerContract(unittest.TestCase):
         self.assertIsNone(config['audio']['input']['turn_detection'])
         self.assertNotIn('instructions', config)
         self.assertNotIn('tools', config)
-
-    def test_transcription_upload_returns_worker_text(self):
-        fake = AsyncMock(return_value={'text': 'Synthetic note.'})
-        with patch.object(backend, 'provider', fake):
-            response = self.client.post(self.path + '/transcriptions', headers=self.headers,
-                files={'file': ('note.m4a', b'synthetic-audio', 'audio/mp4')})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'text': 'Synthetic note.'})
-        self.assertEqual(fake.call_args.args, ('audio/transcriptions',))
-
-    def test_journal_follow_up_worker_is_stateless(self):
-        fake = AsyncMock(return_value=provider_text(''))
-        fake.return_value = {'output': [{'content': [
-            {'type': 'output_text', 'text': 'What would you like to write next?'}]}]}
-        messages = [{'role': 'user', 'content': 'Synthetic writing.'}]
-        with patch.object(backend, 'provider', fake):
-            response = self.client.post(self.path + '/journal-follow-up', headers=self.headers,
-                json={'messages': messages})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'text': 'What would you like to write next?'})
-        self.assertFalse(fake.call_args.kwargs['json']['store'])
 
     def test_text_worker_accepts_only_bounded_device_selected_context(self):
         decision = {'route': 'listen', 'situation_summary': '', 'question': '', 'offer_reason': '', 'ranked_ids': []}

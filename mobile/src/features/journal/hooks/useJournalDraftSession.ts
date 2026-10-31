@@ -7,8 +7,6 @@ import type { JournalDraftSnapshot, JournalSessionSummary, LocalJournalSession }
 import { getLocalJournal, listLocalJournals, persistJournalDraft } from '../data/journalRepository';
 import { retryJournalFileCleanup } from '../data/attachmentRepository';
 import { JournalDraftWriter } from '../data/draftWriter';
-import { useJournalRecording } from './useJournalRecording';
-import { useJournalFollowUp } from './useJournalFollowUp';
 
 type Editor = { snapshot: JournalDraftSnapshot; saved: boolean; persisted: boolean };
 function mergeDrafts(sessions: JournalSessionSummary[], drafts: JournalDraftSnapshot[]) {
@@ -71,7 +69,6 @@ export function useJournalDraftSession() {
       ),
     );
   }, [writer, report]);
-  const audio = useJournalRecording({ visible: editorOpen && !document?.saved, setStatus });
 
   const applyDocument = React.useCallback((value: LocalJournalSession) => {
     editor.current = {
@@ -93,16 +90,6 @@ export function useJournalDraftSession() {
     setPaletteState(value.presentation.palette);
     setFontSizeState(value.presentation.fontSize);
   }, []);
-  const snapshot = React.useCallback(() => editor.current?.snapshot, []);
-  const followUp = useJournalFollowUp(snapshot, applyDocument, report);
-  const actions = React.useRef({
-    cancel: followUp.cancelFollowUp,
-    discardAudio: audio.discardPending,
-  });
-  React.useLayoutEffect(() => {
-    actions.current = { cancel: followUp.cancelFollowUp, discardAudio: audio.discardPending };
-  });
-
   const refreshJournalSessions = React.useCallback(async () => {
     try {
       const rows = await listLocalJournals();
@@ -138,9 +125,7 @@ export function useJournalDraftSession() {
   const startJournal = React.useCallback(() => {
     if (operation.current) return;
     navigation.current += 1;
-    actions.current.cancel();
     void writer.flushAll();
-    void actions.current.discardAudio().catch(() => {});
     const { prompt, palette: nextPalette, fontSize: nextSize } = settings.current;
     editor.current = {
       snapshot: {
@@ -168,7 +153,6 @@ export function useJournalDraftSession() {
   ) {
     const active = editor.current;
     if (!active || active.saved || operation.current) return false;
-    followUp.cancelFollowUp();
     const next = { ...active.snapshot, ...patch, revision: active.snapshot.revision + 1 };
     editor.current = { ...active, snapshot: next };
     writer.queue(next);
@@ -208,7 +192,6 @@ export function useJournalDraftSession() {
   function closeJournal() {
     navigation.current += 1;
     Keyboard.dismiss();
-    followUp.cancelFollowUp();
     const active = editor.current;
     if (active && !active.saved && (active.persisted || active.snapshot.text)) {
       writer.queue(active.snapshot);
@@ -221,12 +204,10 @@ export function useJournalDraftSession() {
     editor.current = undefined;
     setCurrentJournalId(undefined);
     setEditorOpen(false);
-    if (!operation.current) void audio.discardPending().catch(() => {});
   }
   async function openJournal(id: string): Promise<boolean> {
     if (operation.current) return false;
     const attempt = ++navigation.current;
-    followUp.cancelFollowUp();
     setLoading(true);
     try {
       await writer.flushAll();
@@ -245,7 +226,6 @@ export function useJournalDraftSession() {
           entry_count: 0,
           entries: [],
           voice_notes: [],
-          messages: [],
           draft: pending.text,
           revision: pending.revision,
           presentation: pending.presentation,
@@ -288,9 +268,7 @@ export function useJournalDraftSession() {
       currentJournalId,
       currentSaved: document?.saved ?? false,
       editorOpen,
-      messages: document?.messages ?? [],
       entries: document?.entries ?? [],
-      voiceNotes: document?.voice_notes ?? [],
       draft,
       setDraft,
       selectedPrompt,
@@ -303,27 +281,19 @@ export function useJournalDraftSession() {
       saving,
       status,
       error,
-      audio,
-      busy: saving || audio.busy,
+      busy: saving,
       background: palette.light,
-      foreground: '#111111',
-      subtle: '#5F5A55',
       startJournal,
       closeJournal,
       openJournal,
       refreshJournalSessions,
       report,
-      followingUp: followUp.followingUp,
-      followUpRetry: followUp.followUpRetry,
-      retryFollowUp: followUp.retryFollowUp,
     },
     editing: {
       editor,
       mounted,
       operation,
       writer,
-      audio,
-      followUp,
       report,
       applyDocument,
       refreshJournalSessions,

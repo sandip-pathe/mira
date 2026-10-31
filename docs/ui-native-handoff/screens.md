@@ -72,7 +72,7 @@ Reference: [blank](../../ui-lab/design/step-06/journal-blank.png), [writing/keyb
 
 ### Composition
 
-Editor is an open writing page. Blank state uses “Start wherever you want.”, a small notebook motif, optional prompt row, writing field, page/voice tools, and Save entry / Finish session actions. Once writing or saved entries take priority, remove the decorative invitation. Keep saved content and genuine AI follow-ups readable in the thread. Do not wrap the whole page inside another panel.
+Editor is an open writing page. Blank state uses “Start wherever you want.”, a small notebook motif, optional prompt row, writing field, page-style icon, hold-to-record mic, and one Save action. The writing tools stay fixed above the keyboard while the page content scrolls. Newlines divide text into separate entries with a fine rule between them; Backspace removes a newline. The timeline contains only the user's text entries and playable local voice capsules. Do not wrap the whole page inside another panel.
 
 | Element | Selected Lab anchor |
 | --- | --- |
@@ -95,10 +95,9 @@ Use the actual native keyboard and focus behavior. A color/prompt sheet has one 
 | Activities → Journal | `/you` recent-entry home |
 | Home → New entry | Start session, then `/you/entry` |
 | Recent session | Open actual local record in existing draft or finalized/read presentation |
-| Save entry | Genuine local save, append to current session, accurate status |
-| Follow-up unavailable | Saved entry remains visible; retry only the follow-up |
+| Save | Finalize the session locally and return to the prior screen |
 | Local save failure | Preserve unsaved writing and offer the existing retry |
-| Finish session | Existing finalize/save/return behavior, distinct from Save entry |
+| Hold mic | Begin local audio capture on press-in; save the capsule on release |
 | Voice note / excerpt / feedback | Existing native recording, playback, delete, review/approval and reuse behavior |
 
 Native owners: `JournalEntryScreen.tsx`, `JournalHomeScreen.tsx`, `components/journalStyles.ts`, `JournalPickers.tsx`, `MemorySections.tsx`, `FeedbackSection.tsx`, plus routes under `app/(tabs)/you/`. Keep `JournalProvider` and storage semantics intact. Use the currently working native flows wherever the browser mock differs.

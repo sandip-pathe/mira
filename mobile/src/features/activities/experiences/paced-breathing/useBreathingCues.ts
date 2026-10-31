@@ -4,6 +4,14 @@ import { useFocusEffect } from 'expo-router';
 import { useAudioPlayer } from 'expo-audio';
 import type { PacedBreathingExperience } from './usePacedBreathingExperience';
 
+function pauseSafely(player: { pause: () => void }) {
+  try {
+    void Promise.resolve(player.pause()).catch(() => undefined);
+  } catch {
+    // The player may already be released during navigation or cleanup.
+  }
+}
+
 /** Keep the existing local inhale/exhale cues scoped to the focused active exercise. */
 export function useBreathingCues(experience: PacedBreathingExperience) {
   const inhale = useAudioPlayer(require('../../../../../assets/audio/breath-in.wav'));
@@ -14,7 +22,8 @@ export function useBreathingCues(experience: PacedBreathingExperience) {
 
   const stop = React.useCallback(() => {
     generation.current += 1;
-    inhale.pause(); exhale.pause();
+    pauseSafely(inhale);
+    pauseSafely(exhale);
   }, [exhale, inhale]);
 
   useFocusEffect(React.useCallback(() => {

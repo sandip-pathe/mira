@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
-import { ApiError, getDemoSession, Message, renewDemoSession, request } from '../../../shared/api';
+import { ApiError, getAuthenticatedSession, Message, renewAuthenticatedSession, request } from '../../../shared/api';
 import { onContextRevoked, onDemoReset, onUrgentHelp } from '../../../shared/demoEvents';
 import { Intervention, SupportDecision, rememberIntervention } from '../../../shared/interventions';
 import { blankMoment, ContextMatch, MomentState, proposalResponse } from '../conversation';
@@ -22,7 +22,6 @@ export function useTalkSession() {
   const [audioLevel, setAudioLevel] = useState(0);
   const [error, setError] = useState('');
   const [contextMatches, setContextMatches] = useState<ContextMatch[]>([]);
-  const [contextNotice, setContextNotice] = useState('');
   const [textMode, setTextMode] = useState(false);
   const textModeRef = useRef(false);
   const [text, setText] = useState('');
@@ -57,7 +56,7 @@ export function useTalkSession() {
       }
     | undefined
   >(undefined);
-  const getSession = useCallback(() => getDemoSession(), []);
+  const getSession = useCallback(() => getAuthenticatedSession(), []);
   const updateConnection = useCallback((value: VoiceTransportState) => {
     connectionRef.current = value;
     setConnectionState(value);
@@ -201,9 +200,8 @@ export function useTalkSession() {
           ...value,
           previously_helpful: current.previously_helpful,
         })),
-      context: (matches, noMatch) => {
+      context: (matches) => {
         if (matches.length) {
-          setContextNotice('');
           const lesson = matches.find((item) => item.source_type === 'feedback')?.excerpt;
           if (lesson)
             setMoment((current) => ({
@@ -215,8 +213,7 @@ export function useTalkSession() {
             matches.forEach((item) => byId.set(item.id, item));
             return [...byId.values()];
           });
-        } else if (noMatch)
-          setContextNotice('No relevant shared context matched. Mira is continuing without it.');
+        }
       },
       declinedInterventions: () => [...declinedInterventions.current],
       urgentHelp: () => setUrgent(true),
@@ -243,7 +240,6 @@ export function useTalkSession() {
     setMessages([]);
     declinedInterventions.current.clear();
     setContextMatches([]);
-    setContextNotice('');
     setText('');
     updateTextMode(false);
     setUrgent(false);
@@ -275,7 +271,6 @@ export function useTalkSession() {
       setMessages([]);
       setFailedText('');
       setContextMatches([]);
-      setContextNotice('');
       setMoment(blankMoment());
       setProposal(undefined);
       proposalRef.current = undefined;
@@ -296,7 +291,6 @@ export function useTalkSession() {
       setSessionEnded(false);
       updateTextMode(false);
     setContextMatches([]);
-    setContextNotice('');
       updateConnection(reconnecting ? 'reconnecting' : 'connecting');
       try {
         const [session] = await Promise.all([getSession(), voice.requestMicPermission()]);
@@ -455,7 +449,7 @@ export function useTalkSession() {
       };
       let body = await prepareBody();
       if (attempt !== textAttempt.current) return;
-      const path = `/sessions/${current.session_id}/text`;
+      const path = '/workers/text';
       type TextReply = {
         contract_version: number;
         text: string;
@@ -468,11 +462,11 @@ export function useTalkSession() {
         result = await request<TextReply>(path, current, body, undefined, { signal: requestController.signal });
       } catch (error) {
         if (!(error instanceof ApiError) || error.status !== 401 || attempt !== textAttempt.current || requestController.signal.aborted) throw error;
-        current = await renewDemoSession(current);
+        current = await renewAuthenticatedSession(current);
         if (attempt !== textAttempt.current) return;
         body = await prepareBody();
         if (attempt !== textAttempt.current) return;
-        result = await request<TextReply>(`/sessions/${current.session_id}/text`, current, body, undefined, { signal: requestController.signal });
+        result = await request<TextReply>('/workers/text', current, body, undefined, { signal: requestController.signal });
       }
       if (attempt !== textAttempt.current) return;
       const decision = normalizeSupportDecision(result.decision);
@@ -492,11 +486,6 @@ export function useTalkSession() {
         previously_helpful: lesson ?? moment.previously_helpful,
       });
       setContextMatches(result.context_matches ?? []);
-      setContextNotice(
-        result.context_matches?.length
-          ? ''
-          : 'No relevant shared context matched. Mira is continuing without it.',
-      );
       handleDecision(decision);
     } catch {
       if (attempt === textAttempt.current) {
@@ -568,7 +557,6 @@ export function useTalkSession() {
     state,
     error,
     contextMatches,
-    contextNotice,
     textMode,
     text,
     sending,

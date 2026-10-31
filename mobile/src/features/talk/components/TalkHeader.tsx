@@ -10,8 +10,8 @@ export function TalkHeader({ onHelp }: { onHelp: () => void }) {
     <View style={styles.header}>
       <Image source={wordmark} resizeMode="contain" accessibilityLabel="Mira" accessibilityRole="image" style={[styles.brand, { tintColor }]} />
       <View style={styles.actions}>
-        <ThemePickerButton />
         <HelpButton onPress={onHelp} />
+        <ThemePickerButton />
       </View>
     </View>
   );

@@ -97,7 +97,7 @@ export default function ActionsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   header: {
-    minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
+    minHeight: 56, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center',
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },

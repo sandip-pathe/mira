@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Mira API (FastAPI)",
+			"type": "shell",
+			"command": "server/.venv/Scripts/python.exe",
+			"args": [
+				"-m",
+				"uvicorn",
+				"server.app:app",
+				"--host",
+				"0.0.0.0",
+				"--port",
+				"8000",
+				"--no-access-log"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

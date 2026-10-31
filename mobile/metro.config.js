@@ -2,7 +2,7 @@ const http = require('node:http');
 const { getDefaultConfig } = require('expo/metro-config');
 
 const config = getDefaultConfig(__dirname);
-const apiPath = /^\/(?:health|sessions(?:\/[0-9a-f-]{36}(?:\/[^?]*)?)?)(?:\?|$)/i;
+const apiPath = /^\/(?:health|workers(?:\/[^?]*)?|sessions(?:\/[0-9a-f-]{36}(?:\/[^?]*)?)?)(?:\?|$)/i;
 
 // A public Wi-Fi profile blocks LAN access to the separate FastAPI port.
 // Forward only Mira's API routes through Metro's existing, high-entropy tunnel.

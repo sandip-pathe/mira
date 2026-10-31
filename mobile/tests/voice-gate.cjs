@@ -73,7 +73,7 @@ const emit = event => pc.channel.onmessage({ data: JSON.stringify(event) });
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
 (async () => {
-  const session = { session_id: 'demo', capability: 'cap', expires_at: Date.now() / 1000 + 3600 };
+  const session = { userId: 'firebase-user', token: 'firebase-id-token', expiresAt: Date.now() / 1000 + 3600 };
   await voice.connect(session, [{ role: 'user', content: 'confirmed earlier turn' }]);
   assert.equal(track.enabled, false, 'mic disabled before connection');
   await voice.press();

@@ -6,13 +6,11 @@ import { FeedbackItem } from '../types';
 export function FeedbackSection({
   items,
   busy,
-  recording,
   onAction,
   onPaper = false,
 }: {
   items: FeedbackItem[];
   busy: boolean;
-  recording: boolean;
   onAction: (id: string, action: 'reuse' | 'delete', enabled?: boolean) => void;
   onPaper?: boolean;
 }) {
@@ -30,13 +28,13 @@ export function FeedbackSection({
           <ActionButton
             label={item.reuse_context ? 'Stop future use' : 'Allow future use'}
             variant="secondary"
-            disabled={busy || recording}
+            disabled={busy}
             onPress={() => onAction(item.id, 'reuse', !item.reuse_context)}
           />
           <ActionButton
             label="Delete feedback context"
             variant="quiet"
-            disabled={busy || recording}
+            disabled={busy}
             onPress={() => onAction(item.id, 'delete')}
           />
         </Surface>

@@ -8,10 +8,9 @@ import { ContextSources } from './ContextSources';
 import { ConversationMessages } from './ConversationMessages';
 import { InterventionOffer } from './InterventionOffer';
 
-export function TalkTextPanel({ messages, title, contextNotice, contextMatches, decision, onAccept, onDecline, failedText, waitingForReply, onRetry }: {
+export function TalkTextPanel({ messages, title, contextMatches, decision, onAccept, onDecline, failedText, waitingForReply, onRetry }: {
   messages: Message[];
   title: string;
-  contextNotice: string;
   contextMatches: ContextMatch[];
   decision?: SupportDecision;
   onAccept: () => void;
@@ -25,7 +24,6 @@ export function TalkTextPanel({ messages, title, contextNotice, contextMatches, 
     <View style={styles.pane}>
       {messages.length ? <ConversationMessages messages={messages} /> : <View style={styles.welcome}><Text style={[typography.body, styles.centered, { color: colors.muted }]}>{title}</Text></View>}
       {waitingForReply && <Text accessibilityLiveRegion="polite" style={[typography.support, { color: colors.muted }]}>Mira is replying…</Text>}
-      {!!contextNotice && <Text style={[typography.support, { color: colors.muted }]}>{contextNotice}</Text>}
       <ContextSources matches={contextMatches} />
       {decision?.intervention && <InterventionOffer decision={decision} onAccept={onAccept} onDecline={onDecline} />}
       {!!failedText && <View style={styles.failure}>

@@ -26,8 +26,7 @@ export function ThemePickerButton() {
       onPress={() => setVisible(true)}
       style={({ pressed }) => [styles.button, pressed && { backgroundColor: colors.soft }]}
     >
-      <MaterialDesignIcons name="palette-outline" size={20} color={colors.ink} />
-      <Text style={[typography.button, { color: colors.ink }]}>Look</Text>
+      <MaterialDesignIcons name="theme-light-dark" size={22} color={colors.ink} />
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
         <Pressable style={[styles.backdrop, { backgroundColor: '#00000066' }]} onPress={() => setVisible(false)}>
           <Pressable accessibilityRole="none" onPress={() => {}} style={[styles.sheet, { backgroundColor: colors.canvas }]}>
@@ -59,11 +58,9 @@ export function ThemePickerButton() {
 
 const styles = StyleSheet.create({
   button: {
+    width: 48,
     minHeight: 48,
-    minWidth: 64,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    gap: 6,
+    paddingHorizontal: 0,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,

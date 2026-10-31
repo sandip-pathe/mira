@@ -9,22 +9,22 @@ export function MemorySections({
   setExcerpt,
   memories,
   busy,
-  recording,
   onSaveExcerpt,
   onCancel,
   onAction,
   onPaper = false,
+  showSavedContext = true,
 }: {
   selectedEntry?: JournalEntry;
   excerpt: string;
   setExcerpt: (value: string) => void;
   memories: MemoryItem[];
   busy: boolean;
-  recording: boolean;
   onSaveExcerpt: () => void;
   onCancel: () => void;
   onAction: (id: string, action: 'approve' | 'revoke' | 'delete') => void;
   onPaper?: boolean;
+  showSavedContext?: boolean;
 }) {
   const { colors, paper, typography } = useTheme();
   return (
@@ -47,13 +47,13 @@ export function MemorySections({
           />
           <ActionButton
             label="Save for review"
-            disabled={busy || recording || !excerpt.trim()}
+            disabled={busy || !excerpt.trim()}
             onPress={onSaveExcerpt}
           />
           <ActionButton label="Cancel" variant="quiet" onPress={onCancel} />
         </Surface>
       )}
-      {!!memories.length && (
+      {showSavedContext && !!memories.length && (
         <View style={{ gap: 12 }}>
           <Text style={[typography.eyebrow, { color: onPaper ? paper.muted : colors.muted }]}>MIRA’S CONTEXT</Text>
           {memories.map((item) => (
@@ -69,7 +69,7 @@ export function MemorySections({
               {!item.approved && !item.revoked && (
                 <ActionButton
                   label="Approve for Talk"
-                  disabled={busy || recording}
+                  disabled={busy}
                   onPress={() => onAction(item.id, 'approve')}
                 />
               )}
@@ -77,14 +77,14 @@ export function MemorySections({
                 <ActionButton
                   label="Revoke future use"
                   variant="secondary"
-                  disabled={busy || recording}
+                  disabled={busy}
                   onPress={() => onAction(item.id, 'revoke')}
                 />
               )}
               <ActionButton
                 label="Delete context"
                 variant="quiet"
-                disabled={busy || recording}
+                disabled={busy}
                 onPress={() => onAction(item.id, 'delete')}
               />
             </Surface>

@@ -4,7 +4,7 @@ export const styles = StyleSheet.create({
   safe: { flex: 1 },
   page: { flex: 1 },
   header: {
-    minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
+    minHeight: 56, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', maxWidth: 660, width: '100%', alignSelf: 'center',
   },
   loading: { flex: 1, alignItems: 'center', justifyContent: 'center' },
@@ -17,7 +17,6 @@ export const styles = StyleSheet.create({
   input: { flexGrow: 1, minHeight: 120, padding: 0, textAlignVertical: 'top' },
   readNotice: { gap: 8 },
   left: { alignSelf: 'flex-start' },
-  supportingSection: { gap: 10, marginTop: 10 },
   homeContent: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 28, gap: 16, maxWidth: 660, width: '100%', alignSelf: 'center' },
   homeArt: { alignItems: 'center' },
   recentHeading: { marginTop: 12 },

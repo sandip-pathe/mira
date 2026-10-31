@@ -4,7 +4,7 @@ import { useJournalContext } from './useJournalContext';
 export function useJournalController() {
   const editor = useJournalEditor();
   const context = useJournalContext(
-    editor.busy || editor.audio.recording,
+    editor.busy,
     editor.report,
     editor.currentJournalId,
   );

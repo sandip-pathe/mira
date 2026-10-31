@@ -4,14 +4,6 @@ export type JournalEntry = {
   input_type: 'text' | 'voice';
   created_at: number;
 };
-export type JournalMessage = {
-  id: string;
-  journal_session_id: string;
-  role: 'assistant' | 'user';
-  content: string;
-  entry_id?: string | null;
-  created_at: number;
-};
 export type JournalSessionSummary = {
   id: string;
   title: string;
@@ -23,7 +15,6 @@ export type JournalSessionSummary = {
   entry_count: number;
   attachment_count?: number;
 };
-export type JournalSession = JournalSessionSummary & { messages: JournalMessage[] };
 export type JournalVoiceNote = { id: string; uri: string; created_at: number };
 export type JournalPresentation = { palette: { light: string; dark: string }; fontSize: number };
 export type JournalDraftSnapshot = {
@@ -33,7 +24,7 @@ export type JournalDraftSnapshot = {
   revision: number;
   presentation: JournalPresentation;
 };
-export type LocalJournalSession = JournalSession & {
+export type LocalJournalSession = JournalSessionSummary & {
   entries: JournalEntry[];
   voice_notes: JournalVoiceNote[];
   draft: string;

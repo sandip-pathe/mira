@@ -25,7 +25,8 @@ export default function MainTabs() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarAllowFontScaling: true,
-        tabBarHideOnKeyboard: true,
+        // Keep the primary navigation mounted and visible while the keyboard is open.
+        tabBarHideOnKeyboard: false,
         tabBarLabelPosition: 'below-icon',
         tabBarStyle: {
           height: 64 + bottomPadding + Math.max(0, fontScale - 1) * 24,

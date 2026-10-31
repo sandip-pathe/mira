@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState } from 'react-native';
 import { randomUUID } from 'expo-crypto';
-import { getDemoSession, requestWithRenewal } from '../../../../shared/api';
+import { getAuthenticatedSession, requestWithRenewal } from '../../../../shared/api';
 import {
   ContinueItem,
   getContinueKind,
@@ -335,12 +335,12 @@ export function useInterventionRun({
     setBusy(true);
     setStatus('Sorting your list...');
     try {
-      const session = await getDemoSession();
+      const session = await getAuthenticatedSession();
       const result = await requestWithRenewal<{
         now: string[];
         later: string[];
         ignore: string[];
-      }>(`/sessions/${session.session_id}/task-reset/organize`, session, {
+      }>(`/workers/task-reset/organize`, session, {
         items,
       });
       setGroups(result);

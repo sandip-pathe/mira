@@ -4,30 +4,30 @@ import { useTheme } from '../../../components/ui';
 import { useJournal } from '../JournalProvider';
 
 export function JournalThread() {
-  const { messages, currentSaved, entries, fontSize, busy, deleteEntry, setSelectedEntry, setExcerpt } = useJournal();
+  const { entries, fontSize, busy, deleteEntry, setSelectedEntry, setExcerpt } = useJournal();
   const { paper, typography } = useTheme();
+  const timeline = entries
+    .map((entry) => ({ createdAt: entry.created_at * 1000, entry }))
+    .sort((left, right) => left.createdAt - right.createdAt);
+
   return <>
-    {messages.filter((message) => currentSaved || entries.length > 0 || message.entry_id).map((message) => {
-      const entry = entries.find((item) => item.id === message.entry_id);
-      return <View key={message.id} style={[styles.exchange, { borderBottomColor: `${paper.ink}25` }]}>
-        {message.role === 'assistant' ? (
-          <Text style={[typography.body, { color: paper.primary }]}>{message.content}</Text>
-        ) : <>
-          <Pressable onLongPress={() => !busy && entry && deleteEntry(entry)} delayLongPress={450}
-            accessibilityHint="Long press to delete this entry">
-            <Text style={[typography.journalWriting, { color: paper.ink, fontSize, lineHeight: fontSize * 1.65 }]}>
-              {message.content}
-            </Text>
-            <Text style={[typography.support, styles.date, { color: paper.muted }]}>
-              {new Date(message.created_at * 1000).toLocaleDateString()}
-            </Text>
-          </Pressable>
-          {entry && <Pressable accessibilityRole="button" disabled={busy}
-            onPress={() => { setSelectedEntry(entry); setExcerpt(entry.text.slice(0, 500)); }}
-            style={({ pressed }) => [styles.excerpt, { opacity: pressed ? 0.65 : 1 }]}>
-            <Text style={[typography.support, { color: paper.primary }]}>Choose an excerpt for Talk</Text>
-          </Pressable>}
-        </>}
+    {timeline.map((item) => {
+      const { entry } = item;
+      return <View key={`entry-${entry.id}`} style={[styles.exchange, { borderBottomColor: `${paper.ink}25` }]}>
+        <Pressable onLongPress={() => !busy && deleteEntry(entry)} delayLongPress={450}
+          accessibilityHint="Long press to delete this entry">
+          <Text style={[typography.journalWriting, { color: paper.ink, fontSize, lineHeight: fontSize * 1.65 }]}>
+            {entry.text}
+          </Text>
+          <Text style={[typography.support, styles.date, { color: paper.muted }]}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" disabled={busy}
+          onPress={() => { setSelectedEntry(entry); setExcerpt(entry.text.slice(0, 500)); }}
+          style={({ pressed }) => [styles.excerpt, { opacity: pressed ? 0.65 : 1 }]}>
+          <Text style={[typography.support, { color: paper.primary }]}>Choose an excerpt for Talk</Text>
+        </Pressable>
       </View>;
     })}
   </>;

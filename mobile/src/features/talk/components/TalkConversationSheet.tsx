@@ -8,11 +8,10 @@ import type { ContextMatch } from '../conversation';
 import { ContextSources } from './ContextSources';
 import { ConversationMessages } from './ConversationMessages';
 
-export function TalkConversationSheet({ visible, onClose, messages, contextNotice, contextMatches }: {
+export function TalkConversationSheet({ visible, onClose, messages, contextMatches }: {
   visible: boolean;
   onClose: () => void;
   messages: Message[];
-  contextNotice: string;
   contextMatches: ContextMatch[];
 }) {
   const { colors, typography } = useTheme();
@@ -30,7 +29,6 @@ export function TalkConversationSheet({ visible, onClose, messages, contextNotic
           </View>
           <ScrollView contentContainerStyle={styles.content}>
             {messages.length ? <ConversationMessages messages={messages} /> : <Text style={[typography.body, { color: colors.muted }]}>Your conversation will appear here.</Text>}
-            {!!contextNotice && <Text style={[typography.support, { color: colors.muted }]}>{contextNotice}</Text>}
             <ContextSources matches={contextMatches} />
           </ScrollView>
         </View>

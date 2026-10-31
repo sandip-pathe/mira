@@ -162,41 +162,25 @@
       "text": "Writing size",
       "when": "Existing size control"
     },
-    "journal.save_entry": {
-      "text": "Save entry",
-      "when": "Append writing, stay in editor, and request existing follow-up"
-    },
     "journal.saving": {
       "text": "Saving…",
       "when": "Actual local write pending"
     },
     "journal.saved": {
-      "text": "Entry saved.",
-      "when": "Local append confirmed"
-    },
-    "journal.follow_up_pending": {
-      "text": "Entry saved. Mira is thinking of a follow-up…",
-      "when": "Separate online follow-up pending"
-    },
-    "journal.follow_up_unavailable": {
-      "text": "Entry saved. Mira couldn’t add a follow-up right now.",
-      "when": "Local save succeeded; worker failed"
-    },
-    "journal.retry_follow_up": {
-      "text": "Retry follow-up",
-      "when": "Existing retry action"
+      "text": "Journal saved on this device.",
+      "when": "Local session save confirmed"
     },
     "journal.save_failed": {
       "text": "That didn’t save. Your writing is still here—try again.",
       "when": "Local write failed"
     },
     "journal.finish": {
-      "text": "Finish session",
-      "when": "Relabels existing Save session; finalizes locally then returns"
+      "text": "Save",
+      "when": "Finalizes the session locally then returns"
     },
     "journal.finish_help": {
-      "text": "Saves this session as finished. Start a new one anytime.",
-      "when": "Contextual helper beside session-finalization action"
+      "text": "Saves this session on this device.",
+      "when": "Accessible label for the Save action"
     },
     "journal.finished": {
       "text": "This session is saved. Start a new entry whenever you want.",
@@ -228,31 +212,23 @@
     },
     "journal.voice": {
       "text": "Voice note",
-      "when": "Tap starts Journal recording; not Talk hold behavior"
+      "when": "Press and hold to record; release to save it as a capsule"
     },
     "journal.recording": {
       "text": "Recording your voice note…",
       "when": "Capture active"
     },
-    "journal.stop_recording": {
-      "text": "Stop recording",
-      "when": "Existing tap-to-stop action"
-    },
-    "journal.note_ready": {
-      "text": "Voice note ready. Save it or discard it.",
-      "when": "Stopped, unsaved audio attachment"
-    },
     "journal.save_note": {
       "text": "Save voice note",
-      "when": "Existing local attachment save"
+      "when": "Recovery action only if automatic save fails"
     },
     "journal.discard_note": {
       "text": "Discard",
-      "when": "Existing unsaved recording discard"
+      "when": "Recovery action only if automatic save fails"
     },
     "journal.note_saved": {
-      "text": "Voice note saved.",
-      "when": "Local attachment commit confirmed"
+      "text": "Voice note saved on this device.",
+      "when": "Release saved the local audio capsule"
     },
     "journal.note_failed": {
       "text": "Voice note didn’t save. The recording is still here.",
@@ -318,7 +294,7 @@
     "Do not copy mock user messages, fixed AI replies, fake saved data, fake durations or simulated Help content.",
     "Use actual bundled catalog content and current native AI responses. Activity titles and core meanings remain unchanged.",
     "Retain native connecting/capture-starting/music-return/failure distinctions even where the Lab did not render every state.",
-    "A local save success and an AI follow-up success are separate; do not report that saving failed when only the follow-up failed.",
+    "Journal has no AI follow-up or transcription flow. Store the user's text and raw voice notes locally.",
     "Preserve current native support, excerpt approval, feedback and deletion actions; wording must match what each action does."
   ]
 }

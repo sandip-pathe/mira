@@ -23,6 +23,6 @@ export const savedOutputStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
-  header: { minHeight: 68, paddingHorizontal: 22, justifyContent: 'center', maxWidth: 660, width: '100%', alignSelf: 'center' },
+  header: { minHeight: 56, paddingHorizontal: 22, justifyContent: 'center', maxWidth: 660, width: '100%', alignSelf: 'center' },
   content: { flexGrow: 1, paddingHorizontal: 22, paddingTop: 8, paddingBottom: 24, gap: 16, maxWidth: 660, width: '100%', alignSelf: 'center' },
 });

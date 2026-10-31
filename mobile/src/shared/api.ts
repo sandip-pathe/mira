@@ -1,10 +1,11 @@
 import Constants from 'expo-constants';
+import { firebaseAuth } from './firebase';
 
-export type DemoSession = { session_id: string; capability: string; expires_at: number };
+export type AuthenticatedSession = { userId: string; token: string; expiresAt: number };
 export type Message = { role: 'user' | 'assistant'; content: string };
 
-let activeSession: DemoSession | undefined;
-let creatingSession: Promise<DemoSession> | undefined;
+let activeSession: AuthenticatedSession | undefined;
+let creatingSession: Promise<AuthenticatedSession> | undefined;
 
 function resolveApiOrigin() {
   const hostUri = Constants.expoConfig?.hostUri;
@@ -18,7 +19,10 @@ function resolveApiOrigin() {
       return `https://${host}`;
     return `http://${host}:8000`;
   }
-  return process.env.EXPO_PUBLIC_API_URL ?? 'http://127.0.0.1:8000';
+  const configured = Constants.expoConfig?.extra?.apiUrl;
+  return (typeof configured === 'string' && configured.trim())
+    || process.env.EXPO_PUBLIC_API_URL
+    || '';
 }
 
 export const API_URL = resolveApiOrigin().replace(/\/$/, '');
@@ -35,17 +39,18 @@ export class ApiError extends Error {
 
 export async function request<T>(
   path: string,
-  session?: DemoSession,
+  session?: AuthenticatedSession,
   body?: unknown,
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   options?: { signal?: AbortSignal },
 ): Promise<T> {
+  if (!API_URL) throw new ApiError(0, 'Server URL is not configured for this build.');
   const verb = method ?? (body === undefined ? 'GET' : 'POST');
   const response = await fetch(API_URL + path, {
     method: verb,
     headers: {
       ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      ...(session ? { Authorization: `Bearer ${session.capability}` } : {}),
+      ...(session ? { Authorization: `Bearer ${session.token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: options?.signal ?? AbortSignal.timeout(50000),
@@ -54,7 +59,7 @@ export async function request<T>(
     throw new ApiError(
       response.status,
       response.status === 401
-        ? 'Demo session expired. Reconnect to continue.'
+        ? 'Sign-in expired. Reconnect to continue.'
         : response.status === 503
           ? 'Mira is temporarily offline.'
           : 'Request failed. Try again.',
@@ -62,16 +67,23 @@ export async function request<T>(
   return response.json();
 }
 
-export async function createSession(): Promise<DemoSession> {
-  // UUID generation is supplied by expo-crypto, never a timestamp/user identity.
-  const { randomUUID } = require('expo-crypto') as typeof import('expo-crypto');
-  return request('/sessions', undefined, { session_id: randomUUID() });
+async function createAuthenticatedSession(forceRefresh = false): Promise<AuthenticatedSession> {
+  const user = firebaseAuth.currentUser;
+  if (!user) throw new ApiError(401, 'Sign in to connect to Mira.');
+  const tokenResult = await user.getIdTokenResult(forceRefresh);
+  return {
+    userId: user.uid,
+    token: tokenResult.token,
+    expiresAt: Date.parse(tokenResult.expirationTime) / 1000,
+  };
 }
 
-export async function getDemoSession(): Promise<DemoSession> {
-  if (!activeSession || activeSession.expires_at <= Date.now() / 1000 + 30) {
+export async function getAuthenticatedSession(): Promise<AuthenticatedSession> {
+  const userId = firebaseAuth.currentUser?.uid;
+  if (!userId) throw new ApiError(401, 'Sign in to connect to Mira.');
+  if (activeSession?.userId !== userId || activeSession.expiresAt <= Date.now() / 1000 + 30) {
     if (!creatingSession) {
-      creatingSession = createSession()
+      creatingSession = createAuthenticatedSession()
         .then((value) => {
           activeSession = value;
           return value;
@@ -85,13 +97,14 @@ export async function getDemoSession(): Promise<DemoSession> {
   return activeSession;
 }
 
-/** Renew once only after a worker confirms that the cached capability is invalid. */
-export async function renewDemoSession(rejected: DemoSession): Promise<DemoSession> {
-  if (activeSession?.session_id === rejected.session_id && activeSession.capability === rejected.capability)
-    activeSession = undefined;
-  if (activeSession && activeSession.expires_at > Date.now() / 1000 + 30) return activeSession;
+/** Force-refresh the signed-in user's Firebase ID token after a confirmed 401. */
+export async function renewAuthenticatedSession(rejected: AuthenticatedSession): Promise<AuthenticatedSession> {
+  const user = firebaseAuth.currentUser;
+  if (!user || user.uid !== rejected.userId) throw new ApiError(401, 'Sign in to connect to Mira.');
+  if (activeSession?.userId === rejected.userId && activeSession.token !== rejected.token &&
+      activeSession.expiresAt > Date.now() / 1000 + 30) return activeSession;
   if (!creatingSession) {
-    creatingSession = createSession()
+    creatingSession = createAuthenticatedSession(true)
       .then((value) => {
         activeSession = value;
         return value;
@@ -105,7 +118,7 @@ export async function renewDemoSession(rejected: DemoSession): Promise<DemoSessi
 
 export async function requestWithRenewal<T>(
   path: string,
-  session: DemoSession,
+  session: AuthenticatedSession,
   body?: unknown,
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   options?: { signal?: AbortSignal },
@@ -114,7 +127,7 @@ export async function requestWithRenewal<T>(
     return await request<T>(path, session, body, method, options);
   } catch (error) {
     if (!(error instanceof ApiError) || error.status !== 401 || options?.signal?.aborted) throw error;
-    const renewed = await renewDemoSession(session);
+    const renewed = await renewAuthenticatedSession(session);
     return request<T>(path, renewed, body, method, options);
   }
 }

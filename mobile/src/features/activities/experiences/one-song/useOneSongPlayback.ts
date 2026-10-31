@@ -21,7 +21,11 @@ export function useOneSongPlayback(x: OneSongExperience) {
 
   const pause = React.useCallback(() => {
     generation.current += 1;
-    player.pause();
+    try {
+      void Promise.resolve(player.pause()).catch(() => undefined);
+    } catch {
+      // The playlist may already be releasing during navigation or cleanup.
+    }
     return setAudioModeAsync({ interruptionMode: 'mixWithOthers', shouldPlayInBackground: false }).catch(() => undefined);
   }, [player]);
 

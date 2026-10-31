@@ -1,6 +1,6 @@
 const { withAndroidManifest } = require('expo/config-plugins');
 
-// Private LAN demo only. No public deployment; no provider key is in the app.
+// EAS enables this plugin only for the development-client profile.
 module.exports = config => withAndroidManifest(config, config => {
   const application = config.modResults.manifest.application?.[0];
   if (application) application.$['android:usesCleartextTraffic'] = 'true';

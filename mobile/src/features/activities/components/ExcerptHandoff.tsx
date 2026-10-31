@@ -86,7 +86,7 @@ export function ExcerptHandoff({ source, onOpenInTalk }: {
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
-  header: { minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center' },
+  header: { minHeight: 56, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center' },
   close: { minHeight: 48, minWidth: 48, alignItems: 'center', justifyContent: 'center' },
   content: { paddingHorizontal: 22, paddingTop: 8, paddingBottom: 24, gap: 16, maxWidth: 660, width: '100%', alignSelf: 'center' },
   input: { minHeight: 180, padding: 14, borderRadius: 16, borderWidth: 1 },

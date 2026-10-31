@@ -1,7 +1,7 @@
 import React from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { ActionButton, useTheme } from '../../components/ui';
 import { useTalkSession } from './hooks/useTalkSession';
 import { useTalkMotion } from './hooks/useTalkMotion';
@@ -17,7 +17,7 @@ import { UrgentHelpPanel } from './components/UrgentHelpPanel';
 
 export default function TalkScreen() {
   const {
-    messages, state, error, sessionEnded, contextMatches, contextNotice,
+    messages, state, error, sessionEnded, contextMatches,
     textMode, text, sending, urgent, moment, proposal, showCaptions,
     quietReturnMessage, activeVoice, controlCaption,
     setUrgent, setTextMode, setText, setShowCaptions, acceptProposal,
@@ -28,6 +28,13 @@ export default function TalkScreen() {
   const { height, fontScale } = useWindowDimensions();
   const motionAllowed = useTalkMotion(!textMode && !urgent && !showCaptions);
   const conversationScroll = React.useRef<ScrollView>(null);
+  React.useEffect(() => {
+    if (!textMode) return;
+    const subscription = Keyboard.addListener('keyboardDidShow', () => {
+      requestAnimationFrame(() => conversationScroll.current?.scrollToEnd({ animated: false }));
+    });
+    return () => subscription.remove();
+  }, [textMode]);
   const presentation = talkPresentation(state, sessionEnded, error);
   const hasOffer = !!proposal?.intervention;
   const compact = hasOffer || height < 640 || fontScale > 1.5;
@@ -61,6 +68,10 @@ export default function TalkScreen() {
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.page, { backgroundColor: colors.canvas }]}>
       <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TalkHeader onHelp={openHelp} />
+        {!urgent && <ActionButton label="Call Mira" variant="quiet" onPress={() => {
+          endVoice();
+          router.push('/call');
+        }} />}
         {urgent ? <UrgentHelpPanel onClose={() => setUrgent(false)} /> : <>
           {textMode ? <>
             <ScrollView
@@ -69,6 +80,7 @@ export default function TalkScreen() {
               contentContainerStyle={styles.textContent}
               keyboardShouldPersistTaps="handled"
               keyboardDismissMode="on-drag"
+              onLayout={() => conversationScroll.current?.scrollToEnd({ animated: false })}
               onContentSizeChange={() => conversationScroll.current?.scrollToEnd({ animated: false })}
             >
               {!!quietReturnMessage && <View style={[styles.quietReturn, { backgroundColor: colors.soft }]}>
@@ -78,7 +90,6 @@ export default function TalkScreen() {
               <TalkTextPanel
                 messages={messages}
                 title="Your conversation will appear here."
-                contextNotice={contextNotice}
                 contextMatches={contextMatches}
                 decision={proposal}
                 onAccept={accept}
@@ -122,7 +133,7 @@ export default function TalkScreen() {
           </>}
         </>}
       </KeyboardAvoidingView>
-      <TalkConversationSheet visible={showCaptions && !textMode && !urgent} onClose={() => setShowCaptions(false)} messages={messages} contextNotice={contextNotice} contextMatches={contextMatches} />
+      <TalkConversationSheet visible={showCaptions && !textMode && !urgent} onClose={() => setShowCaptions(false)} messages={messages} contextMatches={contextMatches} />
     </SafeAreaView>
   );
 }

@@ -76,6 +76,6 @@ export default function DoScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center' },
+  header: { minHeight: 56, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center' },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
 });

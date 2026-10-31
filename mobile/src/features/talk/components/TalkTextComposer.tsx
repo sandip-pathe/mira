@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { useTheme } from '../../../components/ui';
 
@@ -17,11 +17,11 @@ export function TalkTextComposer({ text, onChangeText, onSend, sending, onSwitch
   const disabled = !text.trim() || sending;
   return (
     <View style={[styles.area, { backgroundColor: colors.canvas }]}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Switch to voice" onPress={onSwitchToVoice} style={({ pressed }) => [styles.voice, pressed && { backgroundColor: colors.soft }]}>
-        <MaterialDesignIcons name="microphone-outline" size={20} color={colors.primary} />
-        <Text style={[typography.button, { color: colors.primary }]}>Switch to voice</Text>
-      </Pressable>
-      <View style={[styles.composer, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+      <View style={styles.row}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Switch to voice" onPress={onSwitchToVoice} style={({ pressed }) => [styles.voice, { backgroundColor: pressed ? colors.pressed : colors.primary }]}>
+          <MaterialDesignIcons name="microphone-outline" size={22} color={colors.onPrimary} />
+        </Pressable>
+        <View style={[styles.composer, { backgroundColor: colors.surface, borderColor: colors.line }]}>
         <TextInput
           accessibilityLabel="Message to Mira"
           value={text}
@@ -40,15 +40,17 @@ export function TalkTextComposer({ text, onChangeText, onSend, sending, onSwitch
         <Pressable accessibilityRole="button" accessibilityLabel="Send message" accessibilityState={{ disabled, busy: sending }} disabled={disabled} onPress={onSend} style={({ pressed }) => [styles.send, { backgroundColor: disabled ? colors.disabled : pressed ? colors.pressed : colors.primary }]}>
           {sending ? <ActivityIndicator color={colors.disabledInk} /> : <MaterialDesignIcons name="arrow-up" size={24} color={disabled ? colors.disabledInk : colors.onPrimary} />}
         </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  area: { width: '100%', maxWidth: 660, alignSelf: 'center', paddingHorizontal: 22, paddingTop: 4, paddingBottom: 18, gap: 4 },
-  voice: { minHeight: 48, alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 8, borderRadius: 16 },
-  composer: { flexDirection: 'row', alignItems: 'flex-end', gap: 10, borderWidth: 1, borderRadius: 24, paddingLeft: 16, paddingRight: 4, paddingVertical: 4 },
+  area: { width: '100%', maxWidth: 660, alignSelf: 'center', paddingHorizontal: 22, paddingTop: 4, paddingBottom: 8 },
+  row: { flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  voice: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 24 },
+  composer: { flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 10, borderWidth: 1, borderRadius: 24, paddingLeft: 16, paddingRight: 4, paddingVertical: 4 },
   input: { flex: 1, minHeight: 48, paddingVertical: 12 },
   send: { width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center' },
 });

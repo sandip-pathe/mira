@@ -8,7 +8,9 @@
 **Use:** Current evaluation uses private, synthetic data. This operating restriction does not lower the quality required of the app's core workflows. Public use requires separate review.  
 **Engineering plan:** [Product review and implementation plan](product_engineering_review.md). Estimates will follow the agreed implementation slices.
 
-**Data ownership update:** The user's later offline-first decision supersedes any earlier server-persistence wording in this V0 document. Private Journal entries, drafts, excerpts, preferences, activity progress, and voice-note references stay on-device. The server is limited to explicitly requested AI/provider workers and operational session capabilities. See the [offline-first plan and execution ledger](mira_offline_first_plan.md) for the implemented boundary and migration limitations.
+**Data ownership update:** The user's later offline-first decision supersedes any earlier server-persistence wording in this V0 document. Private Journal entries, drafts, excerpts, preferences, and activity progress stay on-device; previously saved voice-note references remain readable but new Journal recording has been removed. Firebase Email/Password sign-in identifies existing accounts, and the server verifies Firebase ID tokens. The server is limited to explicitly requested AI/provider workers and temporary voice relay state. See the [offline-first plan and execution ledger](mira_offline_first_plan.md) for the implemented boundary and migration limitations.
+
+**Journal interaction update (2026-10-28):** Journal is a local writing space. Keep optional starter prompts; remove voice recording, AI follow-ups, and Journal transcription. Enter separates text entries, Backspace removes that boundary, and saved text entries display a separator line. A fixed writing bar stays above the keyboard. Its single **Save** action finalizes the session locally and returns.
 
 > The proposal called this V0.02, but the repository already defines V0.02 as the installed fixed-action demo. V0.03 is the next-build label so the two scopes stay clear.
 
@@ -178,7 +180,7 @@ sequenceDiagram
     participant AI as OpenAI
     App->>Local: Select only relevant, consented context
     App->>API: Requested operation + bounded context
-    API->>API: Check expiring session capability
+    API->>API: Verify Firebase ID token
     API->>AI: Process this request
     AI-->>API: Text / structured result / credential
     API-->>App: Return worker result
@@ -187,19 +189,19 @@ sequenceDiagram
 
 The phone bundles activity content and runs activity lifecycles. It chooses any relevant Journal excerpts or opted-in activity preferences locally, then sends only bounded selected context with a user-requested Talk worker call. The server validates requests and the model's structured selector result against the eligible catalog. An offer never starts an activity; the person confirms on the phone.
 
-FastAPI keeps an expiring demo capability and temporary tool-call bookkeeping in process memory. It has no account system or private-data database. Current worker routes include `/text`, `/voice`, `/voice/transcription`, `/tool-calls`, `/tools`, `/journal-follow-up`, `/transcriptions`, and `/task-reset/organize`. Old private-data endpoints return an update-required response. The long-lived OpenAI API key stays on the server; provider-side processing and retention are separate from Mira's server-storage policy.
+Firebase Authentication provides email/password sign-in for existing accounts. FastAPI verifies Firebase ID tokens on `/workers/*` routes. Temporary voice relay bookkeeping is held per Firebase UID in process memory and disappears on restart; shared storage is still needed for multiple server replicas. There is no private-data database. Journal writing stays on-device and has no recording, AI follow-up, transcription, or upload route. Old private-data endpoints return an update-required response. The long-lived OpenAI API key stays on the server; provider-side processing and retention are separate from Mira's server-storage policy.
 
 ## 10. Voice, privacy, and help boundaries
 
 - Keep OpenAI Realtime and the existing React Native WebRTC path for voice.
 - Mic is off by default. Preserve explicit hold-to-talk: set `turn_detection: null`, enable the mic only while held, clear the input buffer on press, cancel and clear Mira's output when interrupted, then commit input and request a response on release. No automatic voice detection.
 - If voice disconnects, preserve the visible conversation and offer Retry voice or Continue with text through the existing OpenAI/FastAPI path. If the provider or server is unavailable, say Mira is temporarily offline; keep Journal drafts and previously loaded activity content usable.
-- Do not retain raw Talk transcripts or raw voice audio. Journal voice transcripts are editable before save. Journal entries are private by default; the person selects and edits an excerpt, then separately approves it before Talk can retrieve it. Show the source. Revocation or deletion blocks future retrieval.
-- Use a short-lived demo capability with no account creation. Keep private data on-device; local deletion and revocation are handled by the app.
+- Do not retain raw Talk transcripts or raw voice audio. Journal stores user text and local playable voice notes without transcription or AI follow-ups. Journal entries are private by default; the person selects and edits an excerpt, then separately approves it before Talk can retrieve it. Show the source. Revocation or deletion blocks future retrieval.
+- Use Firebase Email/Password sign-in for existing accounts. Do not expose account creation in Mira. Keep private data on-device; local deletion and revocation are handled by the app. Add a server-side account allowlist and usage limits before public exposure.
 - Use synthetic, non-urgent data for the demo. Do not log journal text, saved preference text, voice content, or credentials.
 - Keep the existing persistent Help control and accurately labeled support placeholder. No Mpower connection, clinician directory, live handoff, monitoring, or reliable crisis detection is included.
 - Preserve the exact scripted emergency demo behavior from V0.02: only the recognized sentence `I am in immediate danger and need emergency help now.` stops voice output and shows “This demo is not crisis support and is not connected to Mpower. Contact local emergency services or someone you trust now.” This is not general crisis detection. Do not replace it with an AI safety classifier or claim comprehensive screening.
-- Keep the OpenAI long-lived key on the server; return only short-lived session credentials and require the existing expiring demo-session capability for relayed tools and writes. This remains a private-demo boundary, not production authentication.
+- Keep the OpenAI long-lived key on the server; return only short-lived Realtime credentials and require a verified Firebase ID token for worker requests. This remains a private-demo boundary until an account allowlist and usage controls are in place.
 - Do not use Mpower branding or imply clinical endorsement without approval. Keep controls accessible: at least 48 dp targets, screen-reader labels and state announcements, and state cues that do not rely on color alone.
 - Before any public pilot, get Mpower clinical, privacy, security, and legal review of catalog content, consent, retention, and operating responsibilities.
 

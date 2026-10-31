@@ -38,7 +38,7 @@ Module._load = function(name, parent, isMain) {
     } },
   };
   if (name === './api' && parent?.filename.endsWith('transcriptCapture.ts')) return {
-    getDemoSession: async () => ({ session_id: 'demo', capability: 'cap' }),
+    getAuthenticatedSession: async () => ({ userId: 'firebase-user', token: 'firebase-id-token' }),
     request: async path => { assert.match(path, /voice\/transcription$/); return { value: 'short_lived_key' }; },
   };
   if (name === './voice' && parent?.filename.endsWith('transcriptCapture.ts')) return {

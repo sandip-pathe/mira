@@ -2,6 +2,14 @@
 !Dockerfile
 !server/
 !server/**
+server/.venv
+server/.venv/**
+server/**/__pycache__/
+server/**/*.pyc
+server/data/
+server/data/**
+server/**/*.sqlite3
+server/**/*.db
 server/.env
 server/.env.*
 !server/.env.example

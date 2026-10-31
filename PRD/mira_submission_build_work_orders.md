@@ -81,7 +81,7 @@ Done when: unapproved access, repeated minting, concurrency, restart behavior, e
 
 ## SUB-04 — Host the backend independently
 
-Implementation note: root `Dockerfile` and `.dockerignore` package FastAPI, its dependencies, and the shared activity catalog without environment files. The image uses one Uvicorn worker and stores the budget ledger at `/data/review-budget.sqlite3`; the selected host must mount persistent storage at `/data`. Host choice and live deployment are still pending.
+Implementation note: root `Dockerfile` and `.dockerignore` package FastAPI, its dependencies, and the shared activity catalog without environment files, local virtualenvs, or SQLite data. The image uses one Uvicorn worker, exposes a `/health` check, and stores the budget ledger at `/data/review-budget.sqlite3`; the selected host must mount persistent storage at `/data`. Local run instructions are in the README. Host choice, image build verification, and live deployment are still pending.
 
 1. Select a host with stable HTTPS, outbound access to Firebase/OpenAI/Bolna, and persistent storage for allowances. Choose service size and sleeping/always-on behavior for the review window.
 2. Package FastAPI with its Python dependencies and the bundled catalog at the paths the server expects. Put provider secrets only in the host's secret settings; match the Firebase project.

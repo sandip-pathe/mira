@@ -48,6 +48,14 @@ Journal drafts, saved entries, Continue items, and explicit activity preferences
 
 ## Bolna × Mira
 
+<p>
+  <a href="https://www.bolna.ai/">
+    <img src="submission/deck/assets/bolna-logo.png" alt="Bolna" width="150">
+  </a>
+  <br>
+  <strong>Powered by Bolna</strong>
+</p>
+
 Mira is being submitted to the **[Bolna Symphony Buildathon](https://www.bolna.ai/symphony/buildathon)**. The build-and-submit window is **15–31 October 2026**, with the finale at Symphony on **20 November 2026**.
 
 Mira began as a companion app before the Buildathon. The submission adds **Call Mira**, a Bolna-powered voice experience inside that app.
@@ -64,7 +72,7 @@ The Bolna agent follows Mira's conversational prompt. The app asks FastAPI for a
 
 The [agent prompt](docs/bolna-mira-agent-prompt.md), [reusable agent configuration](server/bolna_agent_config.json), and [call implementation notes](docs/bolna-native-call-progress.md) describe the current integration. Product screenshots and the final call walkthrough will be added when available.
 
-**Current status:** the Bolna browser conversation and Android development-build compilation have been confirmed. The latest native call flow, audio routing, and standalone APK still need their physical Android walkthrough. Source implementation is not a claim of completed device verification.
+**Current status:** the Bolna browser conversation works, and an earlier Android development build compiled. The current call flow and speaker routing are implemented in source; device verification is intentionally deferred. The standalone APK remains blocked on hosting the backend at a stable HTTPS address.
 
 ## A little about the technology
 
@@ -116,15 +124,19 @@ FastAPI creates an authenticated call session. The Android app connects to the B
 
 ### 4. A call screen built for a real conversation
 
-Connecting, ringing, then talking. Mute, select an audio route, minimize, or end the call. The final walkthrough will show these behaviors on the Android build.
+The implemented caller flow includes connection states, mute, audio routing, minimize, and hang-up. Physical Android verification is deferred and is not presented as completed.
 
 ### 5. Try Mira. Tell us where voice helps
 
-The app brings together Bolna calling, Talk, local Journal drafts, and nine optional Activities. The standalone APK and physical call walkthrough are the next verification steps. The question behind Mira: can a voice-first companion make it easier to begin?
+The app brings together Bolna calling, Talk, local Journal drafts, and nine optional Activities. The standalone APK depends on backend hosting; physical call verification is deferred. The question behind Mira: can a voice-first companion make it easier to begin?
 
 </details>
 
 ## Run Mira locally
+
+### Containerized API
+
+The root `Dockerfile` packages FastAPI and the shared activity catalog. From the repository root, build and run it with `docker build -t mira-api .` and `docker run --rm -p 8000:8000 --env-file server/.env -v mira-review-data:/data mira-api`. The named volume preserves the review-budget ledger across container replacement. Hosted deployments should provide provider/reviewer values as host secrets, mount persistent storage at `/data`, and run one process/replica while voice relay state remains in memory. The image exposes `/health`; host selection, deployment, and live verification remain pending.
 
 You need Node.js / npm, Python 3.12+, `uv`, provider credentials, and access to the configured Firebase project. Native calling requires a development APK; Expo Go cannot supply the app's native call modules. The EAS cloud-build path does not require Android Studio or a local Android SDK.
 
@@ -200,7 +212,7 @@ The shared catalog is [`mobile/assets/catalog/activities.json`](mobile/assets/ca
 
 Normal worker limits are 120 requests/minute and 10,000/day per account, with a 1,000/minute process-wide cap. Reviewer mode adds an allowlist, access expiry, durable OpenAI budget reservations, and tighter per-account allowances. It disables direct OpenAI Realtime and Brain Dump transcription; Bolna call minting has its own allowance and cooldown. The requested provider-side call-duration limit still needs verification. These controls and remaining release decisions are recorded in the submission work orders.
 
-## Focused checks and device verification
+## Focused checks and deferred device verification
 
 From the repository root:
 
@@ -221,7 +233,7 @@ npx expo export --platform android
 
 `node tests/device-storage.cjs` (Node 24+) covers SQLite import, rollback, and restart. `node tests/device-backup.cjs` checks Android backup resources. The optional live provider probe, `server/.venv/Scripts/python.exe -m server.probe_provider`, uses synthetic inputs and real provider events.
 
-These checks do not establish physical Android audio behavior. The OnePlus walkthrough must cover sign-in, two-way call audio, mute/routing, minimize/return, cancellation/retry, Talk hold/release, Journal save/reopen, and offline Activities. Full coordination between the separate Bolna and OpenAI audio sessions remains tracked in [`TODOS.md`](TODOS.md).
+Automated checks do not establish physical Android audio behavior. As requested, the OnePlus walkthrough is deferred; when device verification resumes, it should cover sign-in, two-way call audio, mute/routing, minimize/return, cancellation/retry, Talk hold/release, Journal save/reopen, and offline Activities. Full coordination between the separate Bolna and OpenAI audio sessions remains tracked in [`TODOS.md`](TODOS.md).
 
 ## Project references
 

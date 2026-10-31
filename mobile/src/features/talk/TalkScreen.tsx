@@ -14,8 +14,10 @@ import { TalkVoicePanel } from './components/TalkVoicePanel';
 import { PresenceHero } from './components/PresenceHero';
 import { TalkConversationSheet } from './components/TalkConversationSheet';
 import { UrgentHelpPanel } from './components/UrgentHelpPanel';
+import { callController, isCallLive, useMiraCall } from '../call/callController';
 
 export default function TalkScreen() {
+  const call = useMiraCall();
   const {
     messages, state, error, sessionEnded, contextMatches,
     textMode, text, sending, urgent, moment, proposal, showCaptions,
@@ -68,8 +70,9 @@ export default function TalkScreen() {
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.page, { backgroundColor: colors.canvas }]}>
       <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <TalkHeader onHelp={openHelp} />
-        {!urgent && <ActionButton label="Call Mira" variant="quiet" onPress={() => {
+        {!urgent && <ActionButton label={isCallLive(call.state) ? 'Return to call' : 'Call Mira'} variant="quiet" onPress={() => {
           endVoice();
+          void callController.start();
           router.push('/call');
         }} />}
         {urgent ? <UrgentHelpPanel onClose={() => setUrgent(false)} /> : <>
@@ -95,6 +98,7 @@ export default function TalkScreen() {
                 onAccept={accept}
                 onDecline={() => void declineProposal()}
                 failedText={failedText}
+                error={error}
                 waitingForReply={waitingForReply}
                 onRetry={() => void sendText(failedText)}
               />

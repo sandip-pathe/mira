@@ -1,4 +1,5 @@
-import { AppState, PermissionsAndroid, Platform } from 'react-native';
+import { AppState, NativeModules, PermissionsAndroid, Platform } from 'react-native';
+import { claimMicrophone } from './microphoneLease';
 import { ApiError, AuthenticatedSession, Message, renewAuthenticatedSession, request } from './api';
 import { SupportDecision } from './interventions';
 import type { ContextMatch, MomentState } from '../features/talk/conversation';
@@ -104,6 +105,7 @@ export async function requestMicrophonePermission(context: 'talk' | 'brain_dump'
 }
 
 export class Voice {
+  private releaseMicrophone?: () => void;
   private pc: any;
   private channel: any;
   private stream: any;
@@ -180,6 +182,7 @@ export class Voice {
       if (epoch !== this.epoch || AppState.currentState !== 'active') return;
       const pc = new RTCPeerConnection({ iceServers: [] });
       this.pc = pc;
+      if (Platform.OS === 'android') await NativeModules.MiraCallNotification?.startTalkAudio();
       // Negotiate the audio channel now; acquire a microphone track only during a hold.
       this.audioSender = pc.addTransceiver('audio', { direction: 'sendrecv' }).sender;
       const channel = pc.createDataChannel('oai-events');
@@ -206,6 +209,7 @@ export class Voice {
         if (epoch !== this.epoch) return;
         if (pc.connectionState === 'connected') {
           this.peerConnected = true;
+          if (Platform.OS === 'android') void NativeModules.MiraCallNotification?.startTalkAudio();
           clearTimeout(this.reconnectTimer);
           this.reconnectTimer = undefined;
           this.maybeReady();
@@ -364,6 +368,7 @@ export class Voice {
       track.stop();
     });
     stream?.release();
+    this.releaseMicrophone?.(); this.releaseMicrophone = undefined;
     return this.replaceAudioTrack(null).catch(() => {});
   }
   private replaceAudioTrack(track: any) {
@@ -402,6 +407,7 @@ export class Voice {
     this.send({ type: 'input_audio_buffer.clear' });
     this.callbacks.turn('starting');
     try {
+      this.releaseMicrophone = claimMicrophone(this);
       const stream = await this.mediaDevices.getUserMedia({ audio: true, video: false });
       const track = stream.getAudioTracks()[0];
       if (!track) throw new Error('Microphone is unavailable. You can retry or use text.');
@@ -411,6 +417,8 @@ export class Voice {
         return;
       }
       this.stream = stream;
+      // WebRTC may retake audio focus when capture starts; keep Talk on speaker.
+      if (Platform.OS === 'android') await NativeModules.MiraCallNotification?.startTalkAudio();
       track.enabled = true;
       await this.replaceAudioTrack(track);
       if (!this.held || holdAttempt !== this.holdAttempt || !this.ready) {
@@ -719,6 +727,7 @@ export class Voice {
   close(notify = true) {
     this.connectController?.abort();
     this.connectController = undefined;
+    if (Platform.OS === 'android') void NativeModules.MiraCallNotification?.stopTalkAudio();
     this.toolAbortControllers.forEach((controller) => controller.abort());
     this.toolAbortControllers.clear();
     void this.stopCapture();

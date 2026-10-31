@@ -1,4 +1,5 @@
 import { AppState } from 'react-native';
+import { claimMicrophone } from './microphoneLease';
 import { getAuthenticatedSession, requestWithRenewal } from './api';
 import { requestMicrophonePermission } from './voice';
 
@@ -28,6 +29,7 @@ export function transformInsertionAnchor(previous: string, next: string, positio
 
 /** Run-scoped, manual-turn WebRTC capture. It has no response.create or Talk callbacks. */
 export class TranscriptCapture {
+  private releaseMicrophone?: () => void;
   private pc: any;
   private channel: any;
   private stream: any;
@@ -183,6 +185,7 @@ export class TranscriptCapture {
     if (!this.held || this.requestId !== requestId || !this.ready || !this.mediaDevices || !this.sender) return;
     this.callbacks.state('starting', requestId);
     try {
+      this.releaseMicrophone = claimMicrophone(this);
       const stream = await this.mediaDevices.getUserMedia({ audio: true, video: false });
       const track = stream.getAudioTracks()[0];
       if (!track) throw new Error('Microphone is unavailable. Your typed draft is still here.');
@@ -306,6 +309,7 @@ export class TranscriptCapture {
     this.stream = undefined;
     stream?.getTracks().forEach((track: any) => { track.enabled = false; track.stop(); });
     stream?.release?.();
+    this.releaseMicrophone?.(); this.releaseMicrophone = undefined;
     try { await this.sender?.replaceTrack(null); } catch { /* Capture is already stopped locally. */ }
   }
 

@@ -13,8 +13,9 @@ import { themePreferenceMigration } from './migrations/011-theme-preference';
 import { journalMessagesMigration } from './migrations/012-journal-messages';
 import { journalMessagesRecoveryMigration } from './migrations/013-journal-messages-recovery';
 import { journalMessagesRetirementMigration } from './migrations/014-journal-messages-retirement';
+import { firstRunMigration } from './migrations/015-first-run';
 
-const migrations = [deviceCollectionsMigration, journalMigration, consentMigration, activityTakeawaysMigration, savedActionsMigration, breathingPreferencesMigration, savedWordingsMigration, savedReachOutDraftsMigration, moveScenePreferencesMigration, soundscapePreferencesMigration, themePreferenceMigration, journalMessagesMigration, journalMessagesRecoveryMigration, journalMessagesRetirementMigration];
+const migrations = [deviceCollectionsMigration, journalMigration, consentMigration, activityTakeawaysMigration, savedActionsMigration, breathingPreferencesMigration, savedWordingsMigration, savedReachOutDraftsMigration, moveScenePreferencesMigration, soundscapePreferencesMigration, themePreferenceMigration, journalMessagesMigration, journalMessagesRecoveryMigration, journalMessagesRetirementMigration, firstRunMigration];
 let opening: Promise<SQLiteDatabase> | undefined;
 let operations: Promise<unknown> = Promise.resolve();
 

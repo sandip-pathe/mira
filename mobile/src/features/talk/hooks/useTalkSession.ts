@@ -13,9 +13,16 @@ import { currentConsentRevision } from '../data/contextRepository';
 import { getContextSnapshot } from '../../../shared/context/contextService';
 import { normalizeSupportDecision } from '../data/orchestrationContract';
 import { stageReachOutContext } from '../../../shared/reachOutContextHandoff';
+import { updateCallConversation } from '../../call/callContext';
+import { consumeCallTalkReturn } from '../../call/callTalkReturn';
+import { useAuth } from '../../../shared/AuthProvider';
 
 export function useTalkSession() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
+  useEffect(() => {
+    if (user) updateCallConversation(user.uid, messages);
+  }, [messages, user]);
   const [connectionState, setConnectionState] = useState<VoiceTransportState>('disconnected');
   const connectionRef = useRef<VoiceTransportState>('disconnected');
   const [turnState, setTurnState] = useState<VoiceTurnState>('idle');
@@ -355,6 +362,12 @@ export function useTalkSession() {
       focusedRef.current = true;
       const transfer = peekTalkTransfer();
       const quietMusicReturn = consumeQuietTalkReturn();
+      const callReturn = consumeCallTalkReturn();
+      if (callReturn) {
+        stopVoice();
+        updateTextMode(true);
+        setQuietReturnMessage('Your Talk conversation is still here. Continue by typing below.');
+      }
       if (transfer) {
         setText((current) =>
           current.trim() ? `${current.trim()}\n\n${transfer.text}` : transfer.text,
@@ -438,7 +451,7 @@ export function useTalkSession() {
         const revision = await currentConsentRevision();
         if (revision !== approvedContext.revision) throw new Error('Shared context changed. Retry to use current consent.');
         return {
-          messages: next,
+          messages: next.slice(-20),
           context_matches: approvedContext.matches,
           approved_preferences: approvedContext.preferences,
           consent_revision: revision,
@@ -487,10 +500,14 @@ export function useTalkSession() {
       });
       setContextMatches(result.context_matches ?? []);
       handleDecision(decision);
-    } catch {
+    } catch (error) {
       if (attempt === textAttempt.current) {
         setFailedText(content);
         setWaitingForReply(false);
+        const unavailable = error instanceof TypeError || requestController.signal.aborted ||
+          (error instanceof ApiError && (error.status === 0 || error.status >= 500));
+        setError(unavailable ? 'Mira is temporarily offline. Your Journal and saved Actions are still available.'
+          : error instanceof ApiError ? error.message : '');
       }
     } finally {
       clearTimeout(requestTimeout);

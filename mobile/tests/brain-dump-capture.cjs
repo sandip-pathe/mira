@@ -28,6 +28,7 @@ class Peer {
 let track;
 const originalLoad = Module._load;
 Module._load = function(name, parent, isMain) {
+  if (name === './microphoneLease') return require('./load-microphone-lease.cjs');
   if (name === 'react-native') return { AppState: appState };
   if (name === 'react-native-webrtc') return {
     RTCPeerConnection: Peer,
@@ -39,7 +40,7 @@ Module._load = function(name, parent, isMain) {
   };
   if (name === './api' && parent?.filename.endsWith('transcriptCapture.ts')) return {
     getAuthenticatedSession: async () => ({ userId: 'firebase-user', token: 'firebase-id-token' }),
-    request: async path => { assert.match(path, /voice\/transcription$/); return { value: 'short_lived_key' }; },
+    requestWithRenewal: async path => { assert.match(path, /voice\/transcription$/); return { value: 'short_lived_key' }; },
   };
   if (name === './voice' && parent?.filename.endsWith('transcriptCapture.ts')) return {
     requestMicrophonePermission: (...args) => permission(...args),

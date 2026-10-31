@@ -55,15 +55,46 @@ export async function request<T>(
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: options?.signal ?? AbortSignal.timeout(50000),
   });
-  if (!response.ok)
-    throw new ApiError(
-      response.status,
-      response.status === 401
-        ? 'Sign-in expired. Reconnect to continue.'
+  if (!response.ok) {
+    let reviewerError: string | undefined;
+    if ([402, 403, 429, 503].includes(response.status)) {
+      try {
+        const payload = await response.clone().json() as { detail?: string | { code?: string; reset_at?: string } };
+        const detail = payload.detail;
+        const code = typeof detail === 'string' ? detail : detail?.code;
+        const retryAt = typeof detail === 'object' && detail?.reset_at
+          ? new Date(detail.reset_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
+          : undefined;
+        reviewerError = code === 'reviewer_access_expired'
+          ? 'Mira reviewer access has ended. Contact the submission owner.'
+          : code === 'reviewer_access_denied'
+            ? 'This account does not have Mira reviewer access. Contact the submission owner.'
+            : code === 'review_budget_exhausted'
+              ? 'The shared $20 OpenAI review budget cannot cover this request. Contact the submission owner if you need more access.'
+              : code === 'daily_allowance_reached'
+                ? `Today's AI allowance is used up.${retryAt ? ` It resets after ${retryAt}.` : ''}`
+                : code === 'bolna_daily_allowance_reached'
+                  ? `Today's call allowance is used up.${retryAt ? ` It resets after ${retryAt}.` : ''}`
+                  : code === 'call_cooldown'
+                    ? `Please wait before starting another call.${retryAt ? ` Try again after ${retryAt}.` : ''}`
+                    : code === 'paid_operations_paused'
+                      ? 'Mira has paused new paid features. Your Journal and saved Actions are still available.'
+                      : code === 'direct_openai_voice_paused'
+                        ? 'Live Talk voice is paused during review. Use text Talk or Call Mira instead.'
+                        : undefined;
+      } catch {
+        // Keep the standard response below if the server did not return JSON.
+      }
+    }
+    const message = response.status === 401
+      ? 'Sign-in expired. Reconnect to continue.'
+      : reviewerError ?? (response.status === 403
+        ? 'Mira reviewer access is unavailable. Contact the submission owner.'
         : response.status === 503
           ? 'Mira is temporarily offline.'
-          : 'Request failed. Try again.',
-    );
+          : 'Request failed. Try again.');
+    throw new ApiError(response.status, message);
+  }
   return response.json();
 }
 

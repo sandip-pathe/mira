@@ -133,7 +133,7 @@ async def run_activity_assistance(request: UntangleDumpRequest | RefineDumpReque
         operation = 'untangle_dump'
     try:
         result = await provider('responses', json={
-            'model': os.getenv('OPENAI_TEXT_MODEL', 'gpt-4.1-mini'), 'store': False,
+            'model': 'gpt-4.1-mini', 'store': False,
             'instructions': prompt,
             'input': json.dumps(model_input, ensure_ascii=False),
             'max_output_tokens': 420,
@@ -176,6 +176,10 @@ async def run_activity_assistance(request: UntangleDumpRequest | RefineDumpReque
         if isinstance(request, RefineDumpRequest):
             for name in request.dismissed_sections:
                 setattr(sections, name, '')
+    except HTTPException as error:
+        if error.status_code in (402, 429, 503):
+            raise
+        raise HTTPException(503, detail='This suggestion is unavailable. Your writing is still here.') from None
     except Exception:
         raise HTTPException(503, detail='This suggestion is unavailable. Your writing is still here.') from None
     return ActivityAssistanceResponse(operation=operation, request_id=request.request_id,

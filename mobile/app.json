@@ -2,9 +2,10 @@
   "expo": {
     "name": "Mira",
     "slug": "mira-native-spike",
+    "scheme": "mira",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/brand/mira-launcher-foreground.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -30,10 +31,8 @@
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "backgroundColor": "#F7F1E7",
+        "foregroundImage": "./assets/brand/mira-launcher-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -44,7 +43,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak.",
+          "microphonePermission": "Mira uses your microphone while you hold to speak in Talk or Brain Dump, and during a Call Mira call until you mute or hang up.",
           "enableBackgroundRecording": false,
           "enableBackgroundPlayback": false
         }
@@ -52,11 +51,25 @@
       [
         "@config-plugins/react-native-webrtc",
         {
-          "microphonePermission": "Mira uses your microphone for Talk and optional Brain Dump transcription only while you hold to speak."
+          "microphonePermission": "Mira uses your microphone while you hold to speak in Talk or Brain Dump, and during a Call Mira call until you mute or hang up."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/mira-launcher-foreground.png",
+          "imageWidth": 152,
+          "resizeMode": "contain",
+          "backgroundColor": "#F7F1E7",
+          "dark": {
+            "image": "./assets/brand/mira-launcher-foreground.png",
+            "backgroundColor": "#17241D"
+          }
         }
       ],
       "./plugins/withPrivateDemoHttp",
       "./plugins/withDeviceOnlyData",
+      "./plugins/withMiraCalls",
       "expo-router",
       "expo-font",
       "expo-sqlite"

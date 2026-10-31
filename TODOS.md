@@ -19,6 +19,18 @@ These items are deliberately outside Mira V0's connected phone demo. Revisit the
 
 ## Engineering
 
+### Coordinate Talk Realtime with Bolna calls
+
+**What:** Add one app-level audio owner for OpenAI Realtime Talk and Bolna calls. Starting a Bolna call should suspend or close the Talk WebRTC session without losing its text conversation; ending or failing the call should restore Talk and its speaker route. Define what text chat can do during a call and how interruptions, retries, and route restoration behave.
+
+**Why:** The microphone lease prevents both features from capturing at once, but their separate WebRTC connections still compete for Android audio focus and routing. This can interrupt or break audio when a Bolna call starts while Realtime is connected.
+
+**Context:** Deliberately deferred while other Call Mira work continues. Keep the explicit hold-to-talk behavior in Talk. Do not allow both providers to own live audio at the same time.
+
+**Effort:** M
+**Priority:** P1
+**Depends on:** Call lifecycle and audio route behavior being settled.
+
 ### Route Realtime voice to connected earphones
 
 **What:** Add Android Bluetooth permission handling and explicit voice-call audio routing so Mira uses connected Bluetooth or wired earphones, with a speaker option where appropriate.

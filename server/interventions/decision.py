@@ -71,6 +71,7 @@ async def select_support(
     result = await provider("responses", json={
         "model": model,
         "store": False,
+        "max_output_tokens": 450,
         "instructions": instructions,
         "input": json.dumps({"conversation": decision_input.model_dump(), "eligible_catalog": [
             {key: item[key] for key in ("id", "title", "summary", "category", "situation_fit", "personalization_signals", "delivery_modes", "requires_person", "duration_seconds")}

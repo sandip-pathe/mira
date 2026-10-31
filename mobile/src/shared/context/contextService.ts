@@ -1,7 +1,7 @@
 import { selectContext } from './contextRepository';
 import type { ContextSnapshot } from './contracts';
 
-export type ContextPurpose = 'talk' | 'activity_selection' | 'activity_assistance' | 'personalization';
+export type ContextPurpose = 'talk' | 'call' | 'activity_selection' | 'activity_assistance' | 'personalization';
 export type ContextScope = 'shared_context' | 'reuse_preference';
 export type ScopedContextSnapshot = ContextSnapshot & {
   purpose: ContextPurpose;
@@ -10,6 +10,7 @@ export type ScopedContextSnapshot = ContextSnapshot & {
 
 const purposeScopes: Record<ContextPurpose, readonly ContextScope[]> = {
   talk: ['shared_context', 'reuse_preference'],
+  call: ['shared_context', 'reuse_preference'],
   activity_selection: ['shared_context', 'reuse_preference'],
   activity_assistance: ['shared_context', 'reuse_preference'],
   personalization: ['reuse_preference'],

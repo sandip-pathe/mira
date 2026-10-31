@@ -2,6 +2,8 @@
 
 Research date: 30 October 2026 (Asia/Calcutta). This document covers the event and submission package. Provider migration and implementation are separate.
 
+Android reviewer packaging, access, credit controls, branding, hosting, and build sequencing are planned in the [submission build work orders](../PRD/mira_submission_build_work_orders.md). That plan does not authorize implementation or a build.
+
 ## Official sources
 
 - Event and FAQ: https://www.bolna.ai/symphony/buildathon

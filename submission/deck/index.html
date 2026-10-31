@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Mira is a voice-first companion for everyday difficult moments.">
+  <title>Mira · Symphony Buildathon</title>
+  <link rel="stylesheet" href="vendor/reset.css">
+  <link rel="stylesheet" href="vendor/reveal.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --paper:#f3ead8; --paper2:#e9dec8; --ink:#28291f; --olive:#687344; --moss:#929863; --clay:#bd7950; --rust:#a9573c; --line:#d4c6aa; --serif:Georgia,'Times New Roman',serif; }
+    html,body { background:var(--paper); }
+    .reveal { color:var(--ink); font-family:'DM Sans',sans-serif; font-size:25px; }
+    .reveal .slides { text-align:left; }
+    .reveal .slides section { box-sizing:border-box; height:100%; padding:58px 76px; background:var(--paper); }
+    .reveal h1,.reveal h2,.reveal h3 { color:var(--ink); font-family:Manrope,sans-serif; font-weight:600; letter-spacing:-.05em; line-height:1.08; margin:0; text-transform:none; }
+    .reveal h1 { font-size:2.6em; max-width:720px; }
+    .reveal h2 { font-size:1.72em; max-width:900px; }
+    .reveal h3 { font-size:.8em; letter-spacing:-.025em; }
+    .reveal p { color:#62614f; font-size:.68em; line-height:1.5; margin:.65em 0 0; }
+    .reveal strong { color:var(--ink); font-weight:700; }
+    .reveal .controls { display:none; }
+    .reveal .progress { color:var(--clay); height:3px; }
+    .reveal .slide-number { color:#77735f; background:transparent; font-size:11px; }
+    .eyebrow { color:var(--olive); font:700 12px 'DM Sans',sans-serif; letter-spacing:.18em; text-transform:uppercase; margin:0 0 18px; }
+    .brand-mark { display:inline-block; width:72px; height:30px; background:#315A45; mask:url('assets/mira-signature.png') center / contain no-repeat; -webkit-mask:url('assets/mira-signature.png') center / contain no-repeat; }
+    .foot { position:absolute; left:76px; right:76px; bottom:25px; display:flex; justify-content:space-between; color:#77735f; font-size:10px; letter-spacing:.1em; }
+    .cover { overflow:hidden; background:radial-gradient(ellipse at 85% 45%,#d8c9a955,transparent 42%),var(--paper)!important; }
+    .cover-copy { position:absolute; z-index:2; top:16%; left:4.5%; width:43%; }
+    .cover h1 { max-width:560px; font-size:2.25em; }
+    .cover .lead { color:#555644; font-size:.78em; max-width:450px; margin-top:22px; }
+    .cover-art { position:absolute; width:50%; right:2%; top:24%; }
+    .cover-art img { display:block; width:100%; max-width:none; margin:0; filter:drop-shadow(0 16px 24px #53472a24); }
+    .buildathon { display:inline-flex; margin-top:28px; padding:9px 14px; border:1px solid #a5a27a; border-radius:99px; color:#58613a; font-size:12px; letter-spacing:.06em; }
+    .map { display:grid; grid-template-columns:1fr 90px 1.22fr; gap:20px; align-items:center; margin-top:54px; }
+    .map-start { background:var(--ink); color:var(--paper); border-radius:26px; padding:28px; min-height:195px; display:flex; flex-direction:column; justify-content:space-between; }
+    .map-start small { color:#c8c4a8; font-size:12px; letter-spacing:.12em; text-transform:uppercase; }
+    .map-start strong { color:var(--paper); font:600 1.05em Manrope,sans-serif; }
+    .map-start span { color:#d5cbb6; font-size:.55em; line-height:1.5; }
+    .map-arrows { text-align:center; color:var(--clay); font-size:36px; }
+    .choices { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .choice { min-height:90px; padding:16px 18px; border:1px solid var(--line); border-radius:18px; background:#fbf6eb; }
+    .choice b { display:block; color:var(--olive); font:700 11px 'DM Sans'; letter-spacing:.1em; text-transform:uppercase; }
+    .choice strong { display:block; margin-top:8px; font-size:.62em; }
+    .choice span { display:block; color:#6d6b59; font-size:.47em; margin-top:4px; }
+    .user-choice { color:#79745f; font-size:12px; text-align:center; margin-top:13px; letter-spacing:.05em; }
+    .architecture { display:grid; grid-template-columns:1fr 110px 1fr 110px 1fr; align-items:center; gap:12px; margin:70px 0 0; }
+    .arch-node { min-height:155px; border-radius:24px; padding:23px 20px; background:#fbf6eb; border:1px solid var(--line); display:flex; flex-direction:column; justify-content:center; }
+    .arch-node.primary { background:#e4e7d2; border-color:#c3c99d; }
+    .arch-node .kind { color:var(--olive); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.12em; }
+    .arch-node strong { margin-top:13px; font:600 .9em Manrope,sans-serif; }
+    .arch-node span { color:#6d6b59; font-size:.49em; line-height:1.45; margin-top:8px; }
+    .arch-arrow { text-align:center; color:var(--clay); font-size:30px; }
+    .separate-path { position:relative; width:max-content; margin:30px auto 0; padding:13px 22px; border:1px dashed #b9a67e; border-radius:99px; color:#69664f; font-size:.52em; }
+    .separate-path b { color:var(--rust); }
+    .call-layout { display:grid; grid-template-columns:.9fr 1.1fr; gap:70px; align-items:center; height:100%; }
+    .call-copy p { max-width:410px; }
+    .call-steps { margin-top:27px; display:grid; gap:11px; }
+    .call-step { display:grid; grid-template-columns:34px 1fr; gap:12px; align-items:center; color:#62614f; font-size:.53em; }
+    .call-step b { width:30px; height:30px; display:grid; place-items:center; border-radius:50%; background:#e1e4cf; color:var(--olive); font-size:12px; }
+    .phone-zone { min-height:480px; border-radius:34px; background:radial-gradient(ellipse at 50% 45%,#d8c9a9 0,transparent 57%),#e9dfcb; display:grid; place-items:center; position:relative; }
+    .phone { position:relative; width:220px; height:400px; padding:33px 20px 20px; border:6px solid #45463a; border-radius:36px; background:#f6f0e3; box-shadow:0 22px 38px #49422a2b; text-align:center; }
+    .phone:before { content:''; position:absolute; top:9px; left:calc(50% - 26px); width:52px; height:9px; border-radius:99px; background:#45463a; }
+    .phone-label { margin-top:7px; color:var(--olive); font-size:9px; font-weight:700; letter-spacing:.16em; }
+    .phone-avatar { width:124px; height:124px; overflow:hidden; border-radius:50%; margin:20px auto 15px; background:#e6ddc9; border:1px solid #c9bd9e; box-shadow:0 0 0 9px #c1c59b55; }
+    .phone-avatar img { height:100%; width:auto; max-width:none; margin:0; }
+    .phone h3 { font-size:23px; }
+    .phone .state { color:#6d6b59; font-size:10px; margin-top:4px; }
+    .wave { display:flex; justify-content:center; align-items:center; gap:4px; height:32px; margin:19px 0; }
+    .wave i { display:block; width:3px; border-radius:5px; background:var(--olive); height:9px; }
+    .wave i:nth-child(3n) { height:22px; }.wave i:nth-child(2n) { height:15px; }.wave i:nth-child(5n) { height:27px; }
+    .phone-controls { display:flex; justify-content:center; align-items:center; gap:20px; }
+    .phone-controls b { width:43px; height:43px; display:grid; place-items:center; border-radius:50%; background:#e3dfd0; color:#525343; font:700 9px 'DM Sans'; }
+    .phone-controls b.end { width:50px;height:50px;background:var(--rust);color:#fff8ec; }
+    .status-flow { display:flex; justify-content:center; align-items:center; gap:9px; margin-top:28px; color:#65634f; font-size:11px; }
+    .status-flow span { padding:8px 11px; border-radius:99px; background:#f7f1e5; border:1px solid var(--line); }
+    .status-flow i { color:var(--clay); font-style:normal; }
+    .final-grid { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; height:100%; }
+    .proof { display:grid; gap:15px; margin-top:28px; }
+    .proof div { display:grid; grid-template-columns:30px 1fr; gap:12px; align-items:start; color:#62614f; font-size:.56em; line-height:1.45; }
+    .proof b { color:var(--clay); font-size:13px; }
+    .cta-card { padding:30px; border-radius:28px; background:#e5e7d3; border:1px solid #c5c99e; }
+    .cta-card h3 { margin-top:15px; font-size:1.1em; }
+    .cta-card p { font-size:.57em; }
+    .repo { display:inline-block; margin-top:23px; padding:12px 17px; color:#fff8e9; background:var(--olive); border-radius:99px; text-decoration:none; font-size:13px; font-weight:700; }
+    .pending { margin-top:15px; color:#6d6b59; font-size:11px; line-height:1.5; }
+    .notes { display:none; }
+    @media print { .reveal .slides section {padding:46px 60px} .foot {left:60px;right:60px} }
+  </style>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+  <section class="cover">
+    <div class="cover-copy">
+      <span class="brand-mark" role="img" aria-label="Mira"></span>
+      <div style="height:42px"></div>
+      <div class="eyebrow">A voice-first companion</div>
+      <h1>When words feel hard,<br>start with a call.</h1>
+      <p class="lead">Talk it through with Mira. Find one small next step when you’re ready.</p>
+      <div class="buildathon">Built with Bolna voice AI </div>
+    </div>
+    <div class="cover-art"><img src="assets/little-company-plate.png" alt="Mira’s green companion, a sprout, and a journal"></div>
+    <div class="foot"><span>MIRA · VOICE, REFLECTION, SMALL STEPS</span><span>01 / 05</span></div>
+    <aside class="notes">Mira is a companion for everyday difficult moments. The idea is simple: make it easy to begin talking, then leave the next step in the person’s hands.</aside>
+  </section>
+
+  <section>
+    <div class="eyebrow">One calm starting point</div>
+    <h2>Start talking. Choose what helps next.</h2>
+    <p>The app gives people a few ways to meet the moment, without making them follow a fixed program.</p>
+    <div class="map" aria-label="Mira's Talk, Journal, and Activities surfaces">
+      <div class="map-start"><small>Begin in Talk</small><strong>Say what’s on your mind.</strong><span>Call Mira, type, or hold to talk.</span></div>
+      <div class="map-arrows">→</div>
+      <div>
+        <div class="choices">
+          <div class="choice"><b>Keep talking</b><strong>Call Mira</strong><span>Bolna voice agent</span></div>
+          <div class="choice"><b>Write</b><strong>Journal</strong><span>Drafts saved on device</span></div>
+          <div class="choice"><b>Speak</b><strong>Hold to talk</strong><span>Push-to-talk in Talk</span></div>
+          <div class="choice"><b>Try something</b><strong>Activities</strong><span>Small optional exercises</span></div>
+        </div>
+        <div class="user-choice">People move between these when they choose.</div>
+      </div>
+    </div>
+    <div class="foot"><span>NO REQUIRED SEQUENCE · NO PERFECT PROMPT NEEDED</span><span>02 / 05</span></div>
+    <aside class="notes">Talk, Journal, and Activities are separate app surfaces. Call Mira is powered by Bolna; Talk’s text and hold-to-talk paths remain on the existing OpenAI integration. Moving between surfaces is the person’s choice.</aside>
+  </section>
+
+  <section>
+    <div class="eyebrow">The voice stack</div>
+    <h2>Bolna powers the call. The app shapes the experience.</h2>
+    <div class="architecture" aria-label="Call connection diagram">
+      <div class="arch-node primary"><div class="kind">On the phone</div><strong>Mira app</strong><span>Native Android call UI and audio</span></div>
+      <div class="arch-arrow">⇄<br><small style="font-size:10px;color:#77735f">session</small></div>
+      <div class="arch-node"><div class="kind">Mira backend</div><strong>FastAPI</strong><span>Authenticates and hands off the call session</span></div>
+      <div class="arch-arrow">⇄<br><small style="font-size:10px;color:#77735f">voice</small></div>
+      <div class="arch-node primary"><div class="kind">Voice agent</div><strong>Bolna</strong><span>Runs the live Call Mira conversation</span></div>
+    </div>
+    <div class="separate-path">Separate Talk paths: <b>OpenAI</b> · text chat + hold-to-talk</div>
+    <div class="foot"><span>BOLNA IS IN THE CORE CALL EXPERIENCE</span><span>03 / 05</span></div>
+    <aside class="notes">This diagram shows the current call implementation: the app requests an authenticated session from FastAPI, then connects to the Bolna voice agent. OpenAI remains in the separate Talk text and push-to-talk paths; it is not the call engine.</aside>
+  </section>
+
+  <section>
+    <div class="call-layout">
+      <div class="call-copy">
+        <div class="eyebrow">Call Mira</div>
+        <h2>A call screen built for a real conversation.</h2>
+        <p>Connecting, ringing, then talking. The person can mute, change the audio route, minimize, or hang up.</p>
+        <div class="call-steps">
+          <div class="call-step"><b>1</b><span>Tap Call Mira from the app.</span></div>
+          <div class="call-step"><b>2</b><span>See the call state while Mira connects.</span></div>
+          <div class="call-step"><b>3</b><span>Talk naturally; end whenever you like.</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="phone-zone">
+          <div class="phone" aria-label="Illustrative Mira call screen">
+            <div class="phone-label">CALL MIRA</div>
+            <div class="phone-avatar"><img src="assets/mascot-poses.png" alt="Mira companion"></div>
+            <h3>Mira</h3><div class="state">Connected · 02:18</div>
+            <div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="phone-controls"><b>MIC</b><b>AUDIO</b><b class="end">END</b></div>
+          </div>
+        </div>
+        <div class="status-flow"><span>Connecting</span><i>→</i><span>Ringing</span><i>→</i><span>Connected</span></div>
+      </div>
+    </div>
+    <div class="foot"><span>CALL UI SHOWN IS AN ILLUSTRATION · DEVICE WALKTHROUGH STILL PENDING</span><span>04 / 05</span></div>
+    <aside class="notes">This is a visual representation of the in-app call screen, not a device screenshot. The screen and call lifecycle exist in source. A standalone build and physical Android call walkthrough are still needed before claiming device-verified behavior.</aside>
+  </section>
+
+  <section>
+    <div class="final-grid">
+      <div>
+        <div class="eyebrow">Built, then verified on device</div>
+        <h2>Mira is ready for its next real conversation.</h2>
+        <div class="proof">
+          <div><b>01</b><span>Bolna-backed Call Mira flow implemented in the Android app.</span></div>
+          <div><b>02</b><span>Talk, on-device Journal drafts, and nine optional Activities are in the app.</span></div>
+          <div><b>03</b><span>Next gate: standalone APK and physical call walkthrough.</span></div>
+        </div>
+      </div>
+      <div class="cta-card">
+        <span class="brand-mark" role="img" aria-label="Mira"></span>
+        <h3>Try Mira. Tell us where voice helps.</h3>
+        <p>We’re building around one question: can a voice-first companion make it easier to begin?</p>
+        <a class="repo" href="https://github.com/sandip-pathe/mira">Explore the project ↗</a>
+        <div class="pending">Product video and APK links will be added to the submission form when ready.</div>
+      </div>
+    </div>
+    <div class="foot"><span>BUILT FOR THE BOLNA SYMPHONY BUILDATHON</span><span>05 / 05</span></div>
+    <aside class="notes">The implementation is in the repository, with a standalone APK and device walkthrough still to complete. Keep the submission links in the form up to date. Do not describe the call as device-verified until the physical check is done.</aside>
+  </section>
+</div></div>
+<script src="vendor/reveal.js"></script>
+<script src="vendor/notes.js"></script>
+<script>
+  Reveal.initialize({ hash:true, controls:false, progress:true, slideNumber:'c/t', transition:'fade', backgroundTransition:'fade', center:false, width:1280, height:720, margin:0, pdfSeparateFragments:false, pdfMaxPagesPerSlide:1, showNotes:false, plugins:[RevealNotes] });
+</script>
+</body>
+</html>

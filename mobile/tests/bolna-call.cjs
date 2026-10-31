@@ -13,9 +13,14 @@ const exportsObject = {};
 vm.runInNewContext(output, {
   exports: exportsObject, AbortController, setTimeout, clearTimeout,
   require(name) {
+    if (name.includes('microphoneLease')) return require('./load-microphone-lease.cjs');
+    if (name === './callContext') return {
+      prepareCallContext: async () => ({ context_version: 1, consent_revision: 1 }),
+      isCallContextCurrent: async () => true,
+    };
     if (name === 'sip.js') return { SessionState: { Established: 'Established', Establishing: 'Establishing' } };
     if (name.includes('shared/api')) return {
-      getAuthenticatedSession: async () => ({}), requestWithRenewal: () => session,
+      getAuthenticatedSession: async () => ({ userId: 'test' }), requestWithRenewal: () => session,
     };
     if (name === 'react-native-webrtc') return {
       mediaDevices: { getUserMedia: async () => { microphoneRequests++; throw Error('unexpected mic'); } },
@@ -27,7 +32,7 @@ vm.runInNewContext(output, {
   const states = [];
   const call = new exportsObject.BolnaCall(state => states.push(state));
   const starting = call.start();
-  await Promise.resolve();
+  await new Promise(setImmediate);
   call.stop();
   deliverSession({});
   await starting;

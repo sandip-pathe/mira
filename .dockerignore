@@ -1,0 +1,11 @@
+**
+!Dockerfile
+!server/
+!server/**
+server/.env
+server/.env.*
+!server/.env.example
+!mobile/
+!mobile/assets/
+!mobile/assets/catalog/
+!mobile/assets/catalog/activities.json

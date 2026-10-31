@@ -34,15 +34,18 @@ class Peer {
 }
 const api = { request: async (url, _, body) => {
   if (url.endsWith('/voice')) return { value: 'ephemeral_test', generation: 1 };
-  if (url.includes('/tool-calls?')) return { registered: true };
+  if (url.includes('/tool-calls?')) return { contract_version: 1, registered: true };
   if (url.endsWith('/tools')) {
     if (holdTool) await new Promise(resolve => { delayedTool = resolve; });
-    return { call_id: body.call_id, result: { decision: { route: 'offer_intervention', intervention: { id: 'pause_60s', title: 'A short pause' } } } };
+    return { contract_version: 1, call_id: body.call.call_id, result: { decision: { route: 'offer_intervention', intervention: { id: 'pause_60s', title: 'A short pause' } } } };
   }
   throw new Error('Unexpected endpoint');
 } };
 const originalLoad = Module._load;
 Module._load = function(name, parent, isMain) {
+  if (name === './microphoneLease') return require('./load-microphone-lease.cjs');
+  if (name.endsWith('contextRepository')) return { currentConsentRevision: async () => 1 };
+  if (name.endsWith('contextService')) return { getContextSnapshot: async () => ({ revision: 1, preferences: [], matches: [] }) };
   if (name === 'react-native') return { AppState: appState, Platform: { OS: 'android' }, PermissionsAndroid: {
     PERMISSIONS: { RECORD_AUDIO: 'mic' }, RESULTS: { GRANTED: 'granted' }, check: async () => false, request: async () => 'granted',
   } };
@@ -68,7 +71,7 @@ loaded.paths = module.paths;
 loaded._compile(compiled, filename);
 const { Voice } = loaded.exports;
 const voice = new Voice({ transport: value => states.push(value), turn: value => metrics.push(value), audioLevel() {}, message: value => messages.push(value),
-  error: value => errors.push(value), decision: value => decisions.push(value), moment() {}, context() {}, urgentHelp() {} });
+  error: value => errors.push(value), decision: value => decisions.push(value), moment() {}, context() {}, urgentHelp() {}, declinedInterventions: () => [] });
 const emit = event => pc.channel.onmessage({ data: JSON.stringify(event) });
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -110,7 +113,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   emit({ type: 'input_audio_buffer.committed' });
   emit({ type: 'conversation.item.input_audio_transcription.completed', transcript: 'A second user turn.' });
   emit({ type: 'response.created', response: { id: 'response_two' } });
-  emit({ type: 'response.function_call_arguments.done', call_id: 'call_one', name: 'choose_support', arguments: '{"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
+  emit({ type: 'response.function_call_arguments.done', call_id: 'call_one', name: 'choose_support', arguments: '{"contract_version":1,"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
   emit({ type: 'response.done', response: { id: 'response_two', status: 'completed' } });
   await settle();
   assert(sent.some(event => event.item?.type === 'function_call_output' && event.item.call_id === 'call_one'));
@@ -120,7 +123,7 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   // Cancel while the tool is in flight; its late result cannot restart output.
   holdTool = true;
   emit({ type: 'response.created', response: { id: 'response_three' } });
-  emit({ type: 'response.function_call_arguments.done', call_id: 'call_two', name: 'choose_support', arguments: '{"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
+  emit({ type: 'response.function_call_arguments.done', call_id: 'call_two', name: 'choose_support', arguments: '{"contract_version":1,"user_message":"I feel stuck","situation_summary":"Stuck","current_need":"A next step"}' });
   await settle();
   voice.cancel();
   const count = sent.length;
@@ -153,6 +156,15 @@ const settle = () => new Promise(resolve => setImmediate(resolve));
   assert.equal(oldTrack.stopped, true);
   assert.equal(metrics.at(-1), 'idle');
   assert.equal(errors.length, 0);
+  const releaseCallMic = require('./load-microphone-lease.cjs').claimMicrophone({});
+  const beforeBlockedCapture = track;
+  await voice.press();
+  assert.equal(track, beforeBlockedCapture, 'Talk must not request a native microphone during a Mira call');
+  assert.match(errors.at(-1), /Microphone is in use/);
+  releaseCallMic();
+  await voice.press();
+  assert.equal(track.enabled, true, 'hold-to-talk can capture again after the call ends');
+  voice.cancel();
   voice.close();
   console.log('Voice controller: mic gate, release, cancellation, relay, late-tool cancellation passed. Native Android gate remains pending.');
 })().catch(error => { voice.close(); console.error(error); process.exitCode = 1; }).finally(() => { Module._load = originalLoad; });

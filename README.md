@@ -1,76 +1,236 @@
-# Mira connected phone demo
+﻿<p align="center">
+  <img src="submission/deck/assets/mira-signature-forest.png" alt="Mira" width="190">
+</p>
 
-Mira's current v0.03 demo includes Talk, Journal, and an Actions library with nine canonical activities: Grounding, Paced Breathing, Brain Dump, One Small Step, Notice & Name, Unsent Letter, Reach Out, Move / Change Your Scene, and One Song Break. Current surfaces offer only these nine; transitional catalog entries remain for compatible legacy records. Talk uses explicit hold-to-talk. Brain Dump's optional held speech is a transcription-only path whose physical Android behavior still requires verification.
+<p align="center"><strong>When words feel hard, start with a call.</strong></p>
+<p align="center">A companion for talking things through, making room to write, and finding one small next step.</p>
 
-**Demo development direction:** We do not want to hold back on technology or capabilities. Build a compelling demonstration of what Mira can do, and track production hardening separately. The next activity experience is proposed in the [activity upgrade plan](PRD/mira_activity_upgrade_plan.md), including a review of the supplied proposal and ordered implementation steps.
+## Product launch video
 
-## Run
+**[Watch Mira — video coming soon](https://example.com/mira-product-launch-video)**
 
-No Android Studio, Android SDK, or adb is needed for the cloud-build path.
+The product recording will go here. This is a placeholder link.
 
-1. Put the OpenAI key in `server/.env` using `server/.env.example`. Never put it in a mobile environment variable.
-2. Run the API from the project root:
+<!-- Replace the video URL above with the final public recording. -->
 
-   ```powershell
-   uv venv server/.venv
-   uv pip install --python server/.venv/Scripts/python.exe -r server/requirements.txt
-   server/.venv/Scripts/python.exe -m uvicorn server.app:app --host 0.0.0.0 --port 8000 --no-access-log
-   ```
+<p align="center">
+  <img src="submission/deck/assets/little-company-plate.png" alt="Mira's companion character, an activities motif, and a journal" width="820">
+</p>
 
-3. Mira uses Firebase Email/Password sign-in for existing accounts. The Firebase web-app configuration is in `mobile/src/shared/firebase.ts`; no Firebase environment variables or service-account key are needed. Email/Password must be enabled in Firebase Authentication. The app does not create accounts.
-4. Private Journal, memory, feedback, activity-catalog, and activity-run APIs are retired. The legacy test database was deleted without import. New Journal text entries, drafts, excerpts, Continue items, and explicit preferences are stored on-device. Previously saved voice-note references remain stored on-device. Task dumps and default Talk transcripts are not stored. Metro proxies worker requests to local FastAPI, so the phone does not need direct access to port 8000.
-5. Build the installable APK:
+## Try Mira on Android
 
-   ```powershell
-   cd mobile
-   npm ci
-   npx eas-cli login
-   npx eas-cli build:configure --platform android
-   npx eas-cli build --platform android --profile development
-   ```
+**[Download the Android APK — coming soon](https://example.com/mira-android.apk)**
 
-   EAS creates/links the project and manages the Android signing key. This development profile allows private-LAN HTTP and needs Metro. Install the APK from the EAS build URL/QR on the OnePlus.
+The standalone APK will be linked here when ready. This is a placeholder, not an installable download. Review access uses an existing account; credentials are supplied privately with the submission.
 
-   For a standalone `offline-gate` APK, first put the hosted HTTPS API origin in `expo.extra.apiUrl` in `mobile/app.json`, then build with `--profile offline-gate`. That profile refuses to build without an HTTPS URL and excludes the development-only cleartext HTTP plugin. The standalone APK does not use Metro.
+<!-- Replace the APK URL above with the final standalone EAS artifact or release download. -->
 
-6. Start Metro using a tunnel when Windows or the Wi-Fi blocks local connections:
+## Meet Mira
 
-   ```powershell
-   npx expo start --dev-client --tunnel
-   ```
+Some days, even explaining what is on your mind feels like work. Mira gives you a place to begin without preparing a perfect prompt or committing to a program.
 
-   Open the returned development-client link on the phone with Mira installed. Keep FastAPI, Metro, and the Expo tunnel running. `expo-constants` reads the current server host; app worker traffic uses the same origin and Metro forwards `/workers/*` and `/health` to local FastAPI. Keep synthetic data only; the tunnel URL is public while running.
+Call Mira and talk naturally. Write something down in Journal. Try a short activity if that feels useful. A conversation can be enough; there is no required next step.
 
-The development APK needs Metro while testing. Expo Go is secondary; full Talk voice requires this APK. Saved Journal entries stay private until a selected excerpt is separately approved. Helpful action lessons are shown before saving and stay off unless the person opts in. Journal supports revoking/deleting both kinds of context. Brain Dump transcription is an explicit online operation, and Talk audio goes directly to OpenAI over WebRTC. Talk history and active moment state stay in app memory only, for voice retry or text continuation.
+### Talk, write, or try something small
 
-## Nine-activity physical gate
+| Experience | What it offers |
+| --- | --- |
+| **Call Mira** | An in-app voice call powered by Bolna, with a dedicated caller screen, connection states, mute, audio-route selection, minimize, and hang-up controls. |
+| **Talk** | Text chat and explicit hold-to-talk: hold to speak, release to listen. These paths use the existing OpenAI integration. |
+| **Journal** | A space to write, save, and reopen text entries on the device. Journal has no microphone, voice recording, or AI follow-up. |
+| **Activities** | Nine optional ways to pause, reflect, or find a manageable next step. |
 
-The public catalog source is [`mobile/assets/catalog/activities.json`](mobile/assets/catalog/activities.json). The app bundles this JSON and the Python selector reads the same definitions. Keep this asset in server deployment packages for support selection. Activities, lifecycle, Continue, preferences, Journal, and Talk context use device data. Optional AI task sorting and Brain Dump transcription still require a connection. See the [offline-first plan and ledger](PRD/mira_offline_first_plan.md) for implementation and verification limits.
+The activity library includes **Grounding, Paced Breathing, Brain Dump, One Small Step, Notice & Name, Unsent Letter, Reach Out, Move / Change Your Scene, and One Song Break**. People choose what to try and when to stop.
 
-Check catalog compatibility without running the API or OpenAI: from `mobile`, run `node tests/activity-catalog.cjs`. This checks all definitions and aliases against both the TypeScript and Python adapters.
+Journal drafts, saved entries, Continue items, and explicit activity preferences live on the device. A person can separately approve an excerpt or preference for use in a conversation. Calls receive a small snapshot of selected context, rather than access to the private Journal.
 
-Run `node tests/activity-run.cjs` for focused local activity/Continue/preference checks with the network disabled and the native filesystem mocked. These checks do not replace physical Android flow verification.
+<!-- Add actual app screenshots and walkthrough links here when supplied. -->
 
-OF-03 adds `expo-sqlite` 57.0.4. Continue items, existing saved-letter archives, and explicit activity preferences use `mira-private.db` on the device. On first access, each old JSON collection is validated and imported transactionally; only a verified committed import permits removal of its old file. Failed imports retain the source, and migration markers prevent stale files from restoring deleted records.
+## Bolna × Mira
 
-Journal browsing, writing, saving, reopening, and deletion work locally. Starter prompts stay optional; Enter separates text entries and Backspace removes the boundary. One fixed Save action finalizes the session and returns. Journal has no voice recording, playback, AI follow-up, or transcription worker. Text and voice Talk select approved context and opted-in preferences on-device; only bounded relevant results and explicit support requests go to workers. Talk tab focus and local activity choices do not call the server. OF-07 retired the old private-data APIs and deleted the legacy test database without import. Focused checks are listed in the offline-first plan.
+Mira is being submitted to the **[Bolna Symphony Buildathon](https://www.bolna.ai/symphony/buildathon)**. The build-and-submit window is **15–31 October 2026**, with the finale at Symphony on **20 November 2026**.
 
-Android backup/transfer exclusions are generated by `plugins/withDeviceOnlyData.js`; iOS backup exclusions are not yet implemented. Older APKs cannot use the new SQLite module and show an update message. The final standalone Android build and device gate are recorded in the plan ledger. `node tests/device-storage.cjs` (Node 24+) covers SQLite import/rollback/restart; `node tests/device-backup.cjs` checks backup resources and the composed Expo manifest.
+Mira began as a companion app before the Buildathon. The submission adds **Call Mira**, a Bolna-powered voice experience inside that app.
 
-Use [`docs/nine_activity_demo_checklist.md`](docs/nine_activity_demo_checklist.md) for the activity matrix, cross-flow checks, exact automated evidence, and outstanding device validation. Use synthetic inputs only. No physical Android device was connected during the current final integration pass; do not treat mock tests or an Android bundle export as device acceptance. Work Order 11 Brain Dump capture remains pending OnePlus verification.
+### What we built with Bolna
 
-## Focused local checks
+- **An in-app call:** speak with Mira from the Android app without placing a phone-number call.
+- **A distinct caller experience:** connecting, provider-reported ringing, connected, reconnecting, ended, and failed states, with call duration and retry.
+- **Android call integration:** native audio, a minimized call bar, mute and audio controls, and notification actions to return to or end the call.
+- **Context at the start of a call:** a bounded selection of recent Talk messages, approved excerpts, and saved preferences, passed into the Bolna agent's session data.
+- **A way back to Talk:** after a failed call, continue with the existing text conversation. Call-only speech is not automatically imported into Talk or Journal.
+
+The Bolna agent follows Mira's conversational prompt. The app asks FastAPI for a short-lived call session, then connects to Bolna using SIP signaling over a secure WebSocket and native WebRTC audio. The account API key stays on the backend. This implementation uses SIP.js with a native media adapter; it does not put the browser SDK inside a WebView.
+
+The [agent prompt](docs/bolna-mira-agent-prompt.md), [reusable agent configuration](server/bolna_agent_config.json), and [call implementation notes](docs/bolna-native-call-progress.md) describe the current integration. Product screenshots and the final call walkthrough will be added when available.
+
+**Current status:** the Bolna browser conversation and Android development-build compilation have been confirmed. The latest native call flow, audio routing, and standalone APK still need their physical Android walkthrough. Source implementation is not a claim of completed device verification.
+
+## A little about the technology
+
+Mira is a React Native / Expo Android app with a FastAPI backend. Firebase provides email/password sign-in. Device storage uses SQLite and local files. Bolna runs Call Mira; OpenAI supports text, hold-to-talk, and optional activity assistance.
+
+```mermaid
+flowchart LR
+    App["Mira Android app"] -->|"Firebase ID token + selected context"| API["FastAPI"]
+    API -->|"Mint call session"| Bolna["Bolna voice agent"]
+    API -->|"Short-lived credentials"| App
+    App <-->|"Live call audio over WebRTC"| Bolna
+    App -->|"Text and activity requests"| API
+    API --> OpenAI["OpenAI"]
+    App <-->|"Separate hold-to-talk WebRTC path"| OpenAI
+    App --- Local["On-device Journal, Continue items, preferences"]
+```
+
+FastAPI handles authentication, call-session creation, and model-backed workers. Call audio goes between the app and Bolna; FastAPI is not an audio relay. The app selects approved context locally before requesting a session. Calling, Talk, Journal, and Activities remain separate surfaces; a call does not automatically start an activity or save a transcript.
+
+| Part | Current implementation |
+| --- | --- |
+| Mobile | Expo SDK 57, React Native 0.86, React 19, TypeScript, Expo Router |
+| Calling | Bolna, SIP.js, React Native WebRTC, Android CallKeep integration |
+| Authentication | Firebase email/password accounts and backend ID-token verification |
+| Backend | Python / FastAPI; authenticated worker endpoints |
+| Local data | Expo SQLite and device files |
+| Other AI paths | OpenAI Realtime for hold-to-talk; Responses-backed text and assistance workers |
+
+## Pitch deck
+
+**[Read the five-slide PDF](submission/deck/Mira-Symphony-Buildathon.pdf)** · **[Reveal.js HTML deck](submission/deck/index.html)** · [Deck assets and notes](submission/deck/README.md)
+
+GitHub displays the HTML source rather than running the presentation inside the README. Download the deck folder and open `index.html` in a browser, or read the text version below. The folder includes copies of the artwork used by the deck.
+
+<details>
+<summary><strong>The pitch, in five slides</strong></summary>
+
+### 1. When words feel hard, start with a call
+
+Mira is a voice-first companion for everyday difficult moments. Talk it through and find one small next step when you are ready.
+
+### 2. Start talking. Choose what helps next
+
+Call Mira, type, or hold to talk. Journal offers space to write; Activities offer optional small exercises. People move between these when they choose.
+
+### 3. Bolna powers the call. The app shapes the experience
+
+FastAPI creates an authenticated call session. The Android app connects to the Bolna voice agent with native audio. OpenAI remains in the separate text and hold-to-talk paths.
+
+### 4. A call screen built for a real conversation
+
+Connecting, ringing, then talking. Mute, select an audio route, minimize, or end the call. The final walkthrough will show these behaviors on the Android build.
+
+### 5. Try Mira. Tell us where voice helps
+
+The app brings together Bolna calling, Talk, local Journal drafts, and nine optional Activities. The standalone APK and physical call walkthrough are the next verification steps. The question behind Mira: can a voice-first companion make it easier to begin?
+
+</details>
+
+## Run Mira locally
+
+You need Node.js / npm, Python 3.12+, `uv`, provider credentials, and access to the configured Firebase project. Native calling requires a development APK; Expo Go cannot supply the app's native call modules. The EAS cloud-build path does not require Android Studio or a local Android SDK.
+
+### 1. Configure the backend
+
+Create `server/.env` from [`server/.env.example`](server/.env.example) if it does not already exist, then fill in:
+
+| Setting | Purpose |
+| --- | --- |
+| `OPENAI_API_KEY` | Talk text, hold-to-talk, and optional assistance/transcription paths |
+| `BOLNA_API_KEY` | Server-side Bolna account access |
+| `BOLNA_AGENT_ID` | The configured Mira voice agent |
+
+Keep provider secrets in `server/.env`, never in `EXPO_PUBLIC_*` variables or the APK. The example also documents reviewer access, usage allowances, and budget settings. Local development leaves reviewer mode disabled by default.
+
+From the repository root:
 
 ```powershell
-   server/.venv/Scripts/python.exe -m unittest server.test_contract server.test_offline_cutover
+uv venv server/.venv
+uv pip install --python server/.venv/Scripts/python.exe -r server/requirements.txt
+server/.venv/Scripts/python.exe -m uvicorn server.app:app --host 0.0.0.0 --port 8000 --no-access-log
+```
+
+Health endpoint: `http://127.0.0.1:8000/health` on the development computer.
+
+### 2. Set up sign-in
+
+The Firebase web-app configuration is in [`mobile/src/shared/firebase.ts`](mobile/src/shared/firebase.ts). The backend verifies tokens for the same project in [`server/firebase_auth.py`](server/firebase_auth.py). Enable Email/Password in Firebase Authentication and provision an account. The app currently signs in existing accounts; it does not offer public account creation. Firebase environment variables and a service-account key are not required by this implementation.
+
+### 3. Build and install the development APK
+
+```powershell
 cd mobile
+npm ci
+npx eas-cli login
+npx eas-cli build --platform android --profile development
+```
+
+Install the APK from the EAS build link on the Android phone. EAS manages the signing key. Changes to native call modules or config plugins require a new APK; restarting Metro is not enough.
+
+### 4. Start Metro
+
+With FastAPI still running, start Metro from `mobile`:
+
+```powershell
+npx expo start --dev-client --tunnel
+```
+
+Open the returned development-client link with Mira installed. Keep FastAPI, Metro, and the tunnel running. Tunnel worker traffic passes through Metro to local FastAPI; direct LAN development uses the computer's address on port 8000. `127.0.0.1` on the phone points to the phone itself.
+
+### Standalone Android APK
+
+The `development` profile needs Metro. To create an APK that runs independently:
+
+1. Deploy the backend to a stable HTTPS origin.
+2. Set `expo.extra.apiUrl` in [`mobile/app.json`](mobile/app.json) to that origin.
+3. From `mobile`, run `npx eas-cli build --platform android --profile offline-gate`.
+
+The `offline-gate` profile requires an HTTPS API URL and excludes the development-only cleartext HTTP plugin. It does not need Metro, but calls and AI requests still need an internet connection and the hosted backend.
+
+The root [Dockerfile](Dockerfile) packages FastAPI and the shared activity catalog. Run one server process/replica: temporary voice state and rolling request limits are process-local. In reviewer mode, mount persistent storage for `MIRA_BUDGET_DB_PATH`, configure the reviewer allowlist/access deadline, and set the provider-side budget and call limits. See the [submission work orders](PRD/mira_submission_build_work_orders.md) for the remaining hosting and release steps.
+
+## Offline behavior and development notes
+
+- **Available locally:** Journal browsing, writing, saving, reopening, and deletion; bundled Activities; saved Continue items and explicit preferences.
+- **Needs a connection:** Call Mira, Talk AI, optional task sorting, and Brain Dump's transcription-only held speech. Journal has no speech-capture path.
+- **Conversation lifetime:** default Talk history and active moment state stay in app memory for retry or text continuation. Task dumps are not stored as default Talk history. Call-only speech is not imported into Talk.
+- **Context choices:** only selected approved excerpts and opted-in preferences are sent to workers. Sharing can be revoked or deleted in Journal. Helpful activity lessons are shown before saving and stay off unless the person opts in.
+- **Storage:** `mira-private.db` holds SQLite-backed local records. Legacy JSON imports are validated transactionally; failed imports retain their source. Older APKs without the SQLite module need an update. Android backup/transfer exclusions are generated; iOS backup exclusions remain pending.
+- **Retired APIs:** private Journal, memory, feedback, activity-catalog, and activity-run server APIs are retired. The legacy test database was deleted without import. Historical voice-note references may remain locally, but Journal no longer records or plays voice notes.
+
+The shared catalog is [`mobile/assets/catalog/activities.json`](mobile/assets/catalog/activities.json). Both the app and Python selector read it; server deployment packages must include it. Current surfaces expose the nine canonical activities, while aliases remain for compatible legacy records.
+
+Normal worker limits are 120 requests/minute and 10,000/day per account, with a 1,000/minute process-wide cap. Reviewer mode adds an allowlist, access expiry, durable OpenAI budget reservations, and tighter per-account allowances. It disables direct OpenAI Realtime and Brain Dump transcription; Bolna call minting has its own allowance and cooldown. The requested provider-side call-duration limit still needs verification. These controls and remaining release decisions are recorded in the submission work orders.
+
+## Focused checks and device verification
+
+From the repository root:
+
+```powershell
+server/.venv/Scripts/python.exe -m unittest server.test_contract server.test_offline_cutover server.test_bolna
+```
+
+From `mobile`:
+
+```powershell
 npx tsc --noEmit
 node tests/voice-gate.cjs
+node tests/activity-catalog.cjs
+node tests/activity-run.cjs
+node tests/bolna-call.cjs
 npx expo export --platform android
 ```
 
-The phone sends Firebase ID tokens to `/workers/*`; FastAPI verifies them against the configured Firebase project. Each account is capped at 120 worker requests/minute and 10,000/day; all accounts share a 1,000/minute process cap. These generous rolling limits and temporary voice-relay state are in memory, so deploy exactly one server process/replica. They reset on restart and are not a public-service billing boundary. Tool calls are bound to the current voice generation, validated, expire after 30 seconds, and cannot execute twice. This verifies the relay contract, not independent provider-event authenticity: the signed-in demo phone remains trusted. Server-side sideband ownership is deferred as specified in `TODOS.md`. Use only the isolated private synthetic-data demo.
+`node tests/device-storage.cjs` (Node 24+) covers SQLite import, rollback, and restart. `node tests/device-backup.cjs` checks Android backup resources. The optional live provider probe, `server/.venv/Scripts/python.exe -m server.probe_provider`, uses synthetic inputs and real provider events.
 
-Implementation references: [OpenAI WebRTC](https://developers.openai.com/api/docs/guides/voice-webrtc?api=realtime), [OpenAI push-to-talk](https://developers.openai.com/api/docs/guides/realtime-conversations#push-to-talk), [React Native WebRTC](https://react-native-webrtc.github.io/handbook/guides/basic-usage.html), [Expo SDK 57 audio](https://docs.expo.dev/versions/v57.0.0/sdk/audio/), and [EAS development builds](https://docs.expo.dev/develop/development-builds/create-a-build/).
+These checks do not establish physical Android audio behavior. The OnePlus walkthrough must cover sign-in, two-way call audio, mute/routing, minimize/return, cancellation/retry, Talk hold/release, Journal save/reopen, and offline Activities. Full coordination between the separate Bolna and OpenAI audio sessions remains tracked in [`TODOS.md`](TODOS.md).
 
-The optional live provider-contract probe is `server/.venv/Scripts/python.exe -m server.probe_provider`. It uses synthetic text and the real Realtime tool events; it is not a substitute for native audio or the physical gate.
+## Project references
+
+- [Product requirements](PRD/mira_prd.md)
+- [Submission build work orders](PRD/mira_submission_build_work_orders.md)
+- [Call implementation and verification record](docs/bolna-native-call-progress.md)
+- [Nine-activity device checklist](docs/nine_activity_demo_checklist.md)
+- [Offline-first plan and ledger](PRD/mira_offline_first_plan.md)
+- [Activity upgrade proposal](PRD/mira_activity_upgrade_plan.md)
+- [Deferred work](TODOS.md)
+
+Implementation documentation: [Bolna Web Call](https://github.com/bolna-ai/web-call), [OpenAI WebRTC](https://developers.openai.com/api/docs/guides/voice-webrtc?api=realtime), [OpenAI push-to-talk](https://developers.openai.com/api/docs/guides/realtime-conversations#push-to-talk), [React Native WebRTC](https://react-native-webrtc.github.io/handbook/guides/basic-usage.html), [Expo audio](https://docs.expo.dev/versions/v57.0.0/sdk/audio/), and [EAS development builds](https://docs.expo.dev/develop/development-builds/create-a-build/).

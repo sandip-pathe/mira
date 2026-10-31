@@ -6,6 +6,8 @@ node_modules/
 __pycache__/
 *.pyc
 *.db
+*.sqlite3
+server/data/
 mobile/android/
 mobile/ios/
 mobile/.expo/

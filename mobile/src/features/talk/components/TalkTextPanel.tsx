@@ -8,7 +8,7 @@ import { ContextSources } from './ContextSources';
 import { ConversationMessages } from './ConversationMessages';
 import { InterventionOffer } from './InterventionOffer';
 
-export function TalkTextPanel({ messages, title, contextMatches, decision, onAccept, onDecline, failedText, waitingForReply, onRetry }: {
+export function TalkTextPanel({ messages, title, contextMatches, decision, onAccept, onDecline, failedText, waitingForReply, onRetry, error }: {
   messages: Message[];
   title: string;
   contextMatches: ContextMatch[];
@@ -18,6 +18,7 @@ export function TalkTextPanel({ messages, title, contextMatches, decision, onAcc
   failedText: string;
   waitingForReply: boolean;
   onRetry: () => void;
+  error?: string;
 }) {
   const { colors, typography } = useTheme();
   return (
@@ -27,7 +28,7 @@ export function TalkTextPanel({ messages, title, contextMatches, decision, onAcc
       <ContextSources matches={contextMatches} />
       {decision?.intervention && <InterventionOffer decision={decision} onAccept={onAccept} onDecline={onDecline} />}
       {!!failedText && <View style={styles.failure}>
-        <Text accessibilityRole="alert" style={[typography.support, { color: colors.error }]}>Couldn’t get a reply. Your message is still here.</Text>
+        <Text accessibilityRole="alert" style={[typography.support, { color: colors.error }]}>{error || 'Couldn’t get a reply. Your message is still here.'}</Text>
         <ActionButton label="Try again" variant="quiet" onPress={onRetry} />
       </View>}
     </View>

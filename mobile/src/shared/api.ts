@@ -7,7 +7,22 @@ export type Message = { role: 'user' | 'assistant'; content: string };
 let activeSession: AuthenticatedSession | undefined;
 let creatingSession: Promise<AuthenticatedSession> | undefined;
 
-function resolveApiOrigin() {
+const API_CONFIG_TTL_MS = 30_000;
+const API_CONFIG_TIMEOUT_MS = 4_000;
+const API_CONFIG_URL = (
+  Constants.expoConfig?.extra?.apiConfigUrl
+  || process.env.EXPO_PUBLIC_API_CONFIG_URL
+  || ''
+).trim();
+
+function resolveBundledApiOrigin() {
+  const configured = (
+    Constants.expoConfig?.extra?.apiUrl
+    || process.env.EXPO_PUBLIC_API_URL
+    || ''
+  ).trim();
+  if (configured) return configured.replace(/\/$/, '');
+
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
     const host = hostUri.split('/')[0].replace(/:\d+$/, '');
@@ -19,13 +34,62 @@ function resolveApiOrigin() {
       return `https://${host}`;
     return `http://${host}:8000`;
   }
-  const configured = Constants.expoConfig?.extra?.apiUrl;
-  return (typeof configured === 'string' && configured.trim())
-    || process.env.EXPO_PUBLIC_API_URL
-    || '';
+  return '';
 }
 
-export const API_URL = resolveApiOrigin().replace(/\/$/, '');
+function normalizeRemoteApiOrigin(value: unknown): string | undefined {
+  if (typeof value !== 'string' || !value.trim()) return undefined;
+  try {
+    const url = new URL(value.trim());
+    if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
+      return undefined;
+    }
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return undefined;
+  }
+}
+
+let cachedApiOrigin: { value: string; expiresAt: number } | undefined;
+let resolvingApiOrigin: Promise<string> | undefined;
+
+async function resolveApiOrigin(): Promise<string> {
+  const now = Date.now();
+  if (cachedApiOrigin && now < cachedApiOrigin.expiresAt) return cachedApiOrigin.value;
+  if (resolvingApiOrigin) return resolvingApiOrigin;
+
+  resolvingApiOrigin = (async () => {
+    const fallback = resolveBundledApiOrigin();
+    if (!API_CONFIG_URL) return fallback;
+
+    try {
+      const separator = API_CONFIG_URL.includes('?') ? '&' : '?';
+      const response = await fetch(`${API_CONFIG_URL}${separator}_=${now}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+        signal: AbortSignal.timeout(API_CONFIG_TIMEOUT_MS),
+      });
+      if (!response.ok) throw new Error('Backend configuration is unavailable');
+      const config = await response.json() as { apiUrl?: unknown };
+      const remoteOrigin = normalizeRemoteApiOrigin(config.apiUrl);
+      if (remoteOrigin) {
+        cachedApiOrigin = { value: remoteOrigin, expiresAt: now + API_CONFIG_TTL_MS };
+        return remoteOrigin;
+      }
+    } catch {
+      // Keep using the last known endpoint or bundled fallback when offline.
+    }
+
+    const origin = cachedApiOrigin?.value || fallback;
+    cachedApiOrigin = { value: origin, expiresAt: now + API_CONFIG_TTL_MS };
+    return origin;
+  })();
+
+  try {
+    return await resolvingApiOrigin;
+  } finally {
+    resolvingApiOrigin = undefined;
+  }
+}
 
 export class ApiError extends Error {
   constructor(
@@ -44,9 +108,10 @@ export async function request<T>(
   method?: 'GET' | 'POST' | 'PATCH' | 'DELETE',
   options?: { signal?: AbortSignal },
 ): Promise<T> {
-  if (!API_URL) throw new ApiError(0, 'Server URL is not configured for this build.');
+  const apiOrigin = await resolveApiOrigin();
+  if (!apiOrigin) throw new ApiError(0, 'No server URL is available. Check your connection and backend configuration.');
   const verb = method ?? (body === undefined ? 'GET' : 'POST');
-  const response = await fetch(API_URL + path, {
+  const response = await fetch(apiOrigin + path, {
     method: verb,
     headers: {
       ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),

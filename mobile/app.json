@@ -76,6 +76,7 @@
     ],
     "extra": {
       "apiUrl": "",
+      "apiConfigUrl": "https://sandip-pathe.github.io/mira/backend.json",
       "eas": {
         "projectId": "a39636fc-d431-4128-9971-6fd271bf5cf6"
       }

@@ -15,9 +15,11 @@ module.exports = ({ config }) => {
   }
 
   const apiUrl = (process.env.EXPO_PUBLIC_API_URL || appConfig.extra.apiUrl || '').trim();
-  if (profile && profile !== 'development' && !/^https:\/\//i.test(apiUrl)) {
-    throw new Error('Set the hosted HTTPS API URL in expo.extra.apiUrl in mobile/app.json before building a standalone APK.');
+  const apiConfigUrl = (process.env.EXPO_PUBLIC_API_CONFIG_URL || appConfig.extra.apiConfigUrl || '').trim();
+  if (profile && profile !== 'development' && !/^https:\/\//i.test(apiUrl) && !/^https:\/\//i.test(apiConfigUrl)) {
+    throw new Error('Set an HTTPS backend API URL or runtime API config URL before building a standalone APK.');
   }
   if (apiUrl) appConfig.extra.apiUrl = apiUrl;
+  if (apiConfigUrl) appConfig.extra.apiConfigUrl = apiConfigUrl;
   return appConfig;
 };

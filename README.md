@@ -103,12 +103,11 @@ FastAPI handles authentication, call-session creation, and model-backed workers.
 
 ## Pitch deck
 
-**[Read the five-slide PDF](submission/deck/Mira-Symphony-Buildathon.pdf)** · **[Reveal.js HTML deck](submission/deck/index.html)** · [Deck assets and notes](submission/deck/README.md)
+[Mira pitch deck](https://sandip-pathe.github.io/mira/)
 
-GitHub displays the HTML source rather than running the presentation inside the README. Download the deck folder and open `index.html` in a browser, or read the text version below. The folder includes copies of the artwork used by the deck.
 
 <details>
-<summary><strong>The pitch, in five slides</strong></summary>
+<summary><strong>Read</strong></summary>
 
 ### 1. When words feel hard, start with a call
 

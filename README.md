@@ -2,10 +2,9 @@
   <img src="mobile/assets/brand/mira-signature.png" alt="Mira" width="210">
 </p>
 
-<p align="center"><strong>When words feel hard, start with a call.</strong><br>A companion for talking things through, making room to write, and finding one small next step.</p>
+<p align="center"><strong>When words feel hard, start with a call.</strong><br>A companion to help you talk things through, make room to write, and find one small next step.</p>
 
 <p align="center">
-  <a href="https://github.com/sandip-pathe/mira/releases/download/v1.0.0/Mira-Android-v1.0.0-build-2.apk"><img src="mobile/assets/brand/mira-launcher-icon.png" alt="Mira app icon" width="42" align="middle"></a>
   <a href="https://github.com/sandip-pathe/mira/releases/download/v1.0.0/Mira-Android-v1.0.0-build-2.apk"><img src="https://img.shields.io/badge/Download%20for%20Android-APK%20%7C%20v1.0.0-2E7D5B?style=for-the-badge&logo=android&logoColor=white" alt="Download Mira for Android"></a>
   <a href="https://sandip-pathe.github.io/mira/"><img src="https://img.shields.io/badge/Pitch%20deck-View-476B5A?style=for-the-badge&logo=google-slides&logoColor=white" alt="View the pitch deck"></a>
 </p>
@@ -16,17 +15,17 @@
   <img src="mobile/assets/brand/little-company-plate.png" alt="Mira companion, activities, and journal" width="850">
 </p>
 
-## 🌿 Meet Mira
+## Meet Mira
 
-Mira makes it easier to begin when explaining everything feels like too much. Call, type, write privately, or choose a small activity—there is no required next step.
+Mira makes it easier to begin when explaining everything feels like too much. You can call, type, write privately, or choose a small activity. There is no required next step.
 
 | ☎️ Call Mira | 💬 Talk | 📓 Journal | ✨ Activities |
 | --- | --- | --- | --- |
 | A natural voice conversation with Mira, powered by Bolna. | Text chat and hold-to-talk voice, powered by OpenAI. | Write and revisit entries stored on the device. | Nine optional ways to pause, reflect, or find a next step. |
 
-Journal entries stay on the device. Mira receives only context a person chooses to share. Call audio is not automatically added to Talk or Journal.
+Journal entries stay on the device. Mira receives only the context you choose to share. Call audio is not automatically added to Talk or Journal.
 
-## 🤝 Bolna × Mira
+## Bolna × Mira
 
 <p>
   <a href="https://www.bolna.ai/">
@@ -36,16 +35,16 @@ Journal entries stay on the device. Mira receives only context a person chooses 
   <strong>Powered by Bolna</strong>
 </p>
 
-Mira brings **Call Mira** to the [Bolna Symphony Buildathon](https://www.bolna.ai/symphony/buildathon): an in-app voice conversation with Mira, built around Bolna’s voice agent.
+Mira's **Call Mira** feature is an in-app voice conversation built around Bolna's voice agent for the [Bolna Symphony Buildathon](https://www.bolna.ai/symphony/buildathon).
 
-- **Talk naturally:** Mira’s Bolna agent uses her calm, warm companion personality.
-- **A native caller screen:** connection states, call timer, mute, audio routing, minimize, and hang-up.
-- **Context at call start:** only selected, bounded Talk context and approved preferences are sent with the session.
-- **A path back to Talk:** after a failed call, continue the existing text conversation; call speech is not copied into Talk or Journal.
+- Talk naturally with Mira's Bolna agent, which uses her calm, warm companion personality.
+- Use a native caller screen with connection states, a call timer, mute, audio routing, minimize, and hang-up controls.
+- Start a call with only the selected, limited Talk context and approved preferences sent with the session.
+- After a failed call, continue your existing text conversation in Talk. Call speech is not copied into Talk or Journal.
 
-FastAPI verifies sign-in and requests a short-lived Bolna session. The app connects through SIP signaling and native WebRTC audio; provider credentials stay on the backend. See the [Mira agent prompt](docs/bolna-mira-agent-prompt.md), [agent configuration](server/bolna_agent_config.json), and [native call notes](docs/bolna-native-call-progress.md).
+FastAPI verifies sign-in and requests a short-lived Bolna session. The app connects through SIP signaling and native WebRTC audio. Provider credentials stay on the backend. See the [Mira agent prompt](docs/bolna-mira-agent-prompt.md), [agent configuration](server/bolna_agent_config.json), and [native call notes](docs/bolna-native-call-progress.md).
 
-## 🧩 How it works
+## How it works
 
 ```mermaid
 flowchart LR
@@ -56,18 +55,24 @@ flowchart LR
     App --- Local["On-device Journal and activities"]
 ```
 
-**Built with:** React Native · Expo · Firebase Auth · FastAPI · Bolna · OpenAI · SQLite
+Built with React Native · Expo · Firebase Auth · FastAPI · Bolna · OpenAI · SQLite
 
-## 📲 Install on Android
+## Install on Android
 
-Use the green **Download for Android** button above, or visit the [Mira v1.0.0 release page](https://github.com/sandip-pathe/mira/releases/tag/v1.0.0). Open the APK on your phone to install; Android may ask you to allow installs from your browser. Sign in or create an account to use Mira. Updates are installed manually from a newer release.
+Use the green **Download for Android** button above, or visit the [Mira v1.0.0 release page](https://github.com/sandip-pathe/mira/releases/tag/v1.0.0).
 
-## 🛠️ Run locally
+1. Open the APK on your phone to install Mira.
+2. If Android asks, allow installs from your browser.
+3. Sign in or create an account to use Mira.
 
-You’ll need Node.js/npm, Python 3.12+, `uv`, and credentials for the configured Firebase, OpenAI, and Bolna services.
+To update Mira, manually install the APK from a newer release.
+
+## Run locally
+
+You need Node.js and npm, Python 3.12 or later, `uv`, and credentials for the configured Firebase, OpenAI, and Bolna services.
 
 1. Copy `server/.env.example` to `server/.env` and add the provider keys.
-2. Start FastAPI from the repo root:
+2. From the repository root, create a virtual environment, install the dependencies, and start FastAPI:
 
    ```powershell
    uv venv server/.venv
@@ -75,11 +80,12 @@ You’ll need Node.js/npm, Python 3.12+, `uv`, and credentials for the configure
    server/.venv/Scripts/python.exe -m uvicorn server.app:app --host 0.0.0.0 --port 8000
    ```
 
-3. In `mobile`, install packages with `npm ci`, then run `npx expo start --dev-client --tunnel` with a development APK installed.
+3. In `mobile`, install packages with `npm ci`.
+4. With a development APK installed, run `npx expo start --dev-client --tunnel` from `mobile`.
 
-The submission APK uses the HTTPS API endpoint configured in `mobile/eas.json`. Create a newer standalone APK with `npx eas-cli build --platform android --profile submission` from `mobile`, then attach it to a [new GitHub Release](https://github.com/sandip-pathe/mira/releases/new).
+The submission APK uses the HTTPS API endpoint configured in `mobile/eas.json`. To create a newer standalone APK, run `npx eas-cli build --platform android --profile submission` from `mobile`. Attach the APK to a [new GitHub Release](https://github.com/sandip-pathe/mira/releases/new).
 
-## 🔗 Project links
+## Project links
 
 - [Pitch deck](https://sandip-pathe.github.io/mira/)
 - [Android downloads and release history](https://github.com/sandip-pathe/mira/releases)

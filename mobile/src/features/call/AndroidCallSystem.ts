@@ -97,6 +97,9 @@ export class AndroidCallSystem {
   ringing(value: boolean) {
     if (!this.closed) NativeModules.MiraCallNotification?.setRinging?.(this.uuid, value);
   }
+  proximityScreenOff(enabled: boolean, waitForFar = false) {
+    if (!this.closed) NativeModules.MiraCallNotification?.setProximityScreenOff?.(this.uuid, enabled, waitForFar);
+  }
   mute(value: boolean) { if (!this.closed) this.keep?.setMutedCall(this.uuid, value); }
   status(value: string) {
     if (!this.closed) void NativeModules.MiraCallNotification?.show(this.uuid, value)
@@ -116,6 +119,7 @@ export class AndroidCallSystem {
   stop() {
     if (this.closed) return;
     NativeModules.MiraCallNotification?.setRinging?.(this.uuid, false);
+    NativeModules.MiraCallNotification?.setProximityScreenOff?.(this.uuid, false, true);
     this.closed = true; this.cancelStart?.();
     this.listeners.forEach(listener => listener.remove()); this.listeners = [];
     this.keep?.endCall(this.uuid);

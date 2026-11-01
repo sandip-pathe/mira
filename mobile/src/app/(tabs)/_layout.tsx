@@ -73,7 +73,10 @@ export default function MainTabs() {
           title: 'Journal',
         }}
         listeners={{
-          tabPress: () => router.navigate('/you/new'),
+          tabPress: (event) => {
+            event.preventDefault();
+            router.navigate('/you/new');
+          },
         }}
       />
     </Tabs>

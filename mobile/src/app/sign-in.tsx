@@ -33,24 +33,13 @@ export default function SignInScreen() {
   const [registering, setRegistering] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState('');
-  const scrollRef = React.useRef<ScrollView>(null);
-  const passwordHasFocus = React.useRef(false);
+  const [keyboardOpen, setKeyboardOpen] = React.useState(false);
 
   React.useEffect(() => {
-    const subscription = Keyboard.addListener('keyboardDidShow', () => {
-      if (passwordHasFocus.current) scrollRef.current?.scrollToEnd({ animated: true });
-    });
-    return () => subscription.remove();
+    const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardOpen(true));
+    const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardOpen(false));
+    return () => { show.remove(); hide.remove(); };
   }, []);
-
-  function revealPasswordField() {
-    passwordHasFocus.current = true;
-    requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
-  }
-
-  function hidePasswordField() {
-    passwordHasFocus.current = false;
-  }
 
   async function submit() {
     if (busy || !email.trim() || !password) return;
@@ -71,6 +60,7 @@ export default function SignInScreen() {
   }
 
   function changeMode() {
+    Keyboard.dismiss();
     setRegistering((value) => !value);
     setError('');
     setConfirmPassword('');
@@ -79,20 +69,21 @@ export default function SignInScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: colors.canvas }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={styles.keyboard} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
-          ref={scrollRef}
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[styles.scroll, keyboardOpen && styles.scrollWithKeyboard]}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         >
-          <View style={styles.content}>
-            <BrandArtwork part="companion" size={112} />
-            <Image source={wordmark} resizeMode="contain" accessibilityLabel="Mira" style={[styles.wordmark, { tintColor: colors.primary }]} />
+          <View style={[styles.content, keyboardOpen && styles.contentWithKeyboard]}>
+            {!keyboardOpen && <>
+              <View style={styles.artwork}><BrandArtwork part="companion" size={112} /></View>
+              <Image source={wordmark} resizeMode="contain" accessibilityLabel="Mira" style={[styles.wordmark, { tintColor: colors.primary }]} />
+            </>}
             <Text style={[typography.screenTitle, styles.title, { color: colors.ink }]}>{registering ? 'Create your account' : 'Welcome back'}</Text>
-            <Text style={[typography.body, styles.subtitle, { color: colors.muted }]}>
+            {!keyboardOpen && <Text style={[typography.body, styles.subtitle, { color: colors.muted }]}>
               {registering ? 'Create an account to start using Mira.' : 'Sign in to continue to Mira.'}
-            </Text>
+            </Text>}
             <TextInput
               accessibilityLabel="Email address"
               autoCapitalize="none"
@@ -120,8 +111,6 @@ export default function SignInScreen() {
                 value={password}
                 onChangeText={setPassword}
                 editable={!busy}
-                onFocus={revealPasswordField}
-                onBlur={hidePasswordField}
                 onSubmitEditing={() => registering ? undefined : void submit()}
                 returnKeyType={registering ? 'next' : 'done'}
                 style={[styles.input, styles.passwordInput, typography.body, { color: colors.ink, borderColor: colors.line, backgroundColor: colors.surface }]}
@@ -150,8 +139,6 @@ export default function SignInScreen() {
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 editable={!busy}
-                onFocus={revealPasswordField}
-                onBlur={hidePasswordField}
                 onSubmitEditing={() => void submit()}
                 returnKeyType="done"
                 style={[styles.input, typography.body, { color: colors.ink, borderColor: colors.line, backgroundColor: colors.surface }]}
@@ -181,7 +168,10 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   keyboard: { flex: 1 },
   scroll: { flexGrow: 1, justifyContent: 'center', paddingVertical: 28 },
+  scrollWithKeyboard: { justifyContent: 'center', paddingVertical: 8 },
   content: { justifyContent: 'center', gap: 16, width: '100%', maxWidth: 480, alignSelf: 'center', paddingHorizontal: 24 },
+  contentWithKeyboard: { justifyContent: 'flex-start', gap: 12 },
+  artwork: { alignItems: 'center' },
   wordmark: { width: 128, height: 42, alignSelf: 'center', marginTop: -8 },
   title: { textAlign: 'center', marginTop: 4 },
   subtitle: { textAlign: 'center', marginBottom: 8 },

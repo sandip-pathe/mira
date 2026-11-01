@@ -26,7 +26,7 @@ export function ThemePickerButton() {
       onPress={() => setVisible(true)}
       style={({ pressed }) => [styles.button, pressed && { backgroundColor: colors.soft }]}
     >
-      <MaterialDesignIcons name="theme-light-dark" size={22} color={colors.ink} />
+      <MaterialDesignIcons name="theme-light-dark" size={26} color={colors.ink} />
       <Modal visible={visible} transparent animationType="fade" onRequestClose={() => setVisible(false)}>
         <Pressable style={[styles.backdrop, { backgroundColor: '#00000066' }]} onPress={() => setVisible(false)}>
           <Pressable accessibilityRole="none" onPress={() => {}} style={[styles.sheet, { backgroundColor: colors.canvas }]}>

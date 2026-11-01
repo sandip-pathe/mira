@@ -71,6 +71,12 @@
       "./plugins/withDeviceOnlyData",
       "./plugins/withMiraCalls",
       "expo-router",
+      [
+        "expo-status-bar",
+        {
+          "style": "dark"
+        }
+      ],
       "expo-font",
       "expo-sqlite"
     ],

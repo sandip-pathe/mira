@@ -1,14 +1,16 @@
 import React from 'react';
-import { router } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
+import JournalEntryScreen from '../../../features/journal/JournalEntryScreen';
 import { useJournal } from '../../../features/journal/JournalProvider';
 
 export default function NewJournalEntryRoute() {
   const { startJournal } = useJournal();
+  const [started, setStarted] = React.useState(false);
 
-  React.useEffect(() => {
+  useFocusEffect(React.useCallback(() => {
     startJournal();
-    router.replace('/you/entry');
-  }, [startJournal]);
+    setStarted(true);
+  }, [startJournal]));
 
-  return null;
+  return started ? <JournalEntryScreen /> : null;
 }

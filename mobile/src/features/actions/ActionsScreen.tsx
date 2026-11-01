@@ -1,10 +1,12 @@
 import React from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ActionButton, HelpButton, ThemePickerButton, useTheme } from '../../components/ui';
+import { signOut } from 'firebase/auth';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { ActionButton, ThemePickerButton, useTheme } from '../../components/ui';
 import { BrandArtwork } from '../../components/ui/BrandArtwork';
-import { emitUrgentHelp } from '../../shared/demoEvents';
+import { firebaseAuth } from '../../shared/firebase';
 import { activityGroups, getBundledActivities } from '../activities/data/catalog';
 import { canonicalActivityId, type RegisteredActivityId } from '../../shared/activityRegistry';
 import { rankPromotedActivities } from '../../shared/context/preferenceFeatures';
@@ -14,23 +16,6 @@ import { useActivityLibrary } from './hooks/useActivityLibrary';
 
 const catalog = getBundledActivities();
 const stableCatalogOrder = activityGroups.flatMap((group) => group.ids);
-
-function showHelp() {
-  Alert.alert('Help', 'Choose a support route or urgent help.', [
-    {
-      text: 'Support route',
-      onPress: () => Alert.alert(
-        'Support route',
-        'This prototype is not connected to Mpower support. Ask the Mpower team which route belongs here.',
-      ),
-    },
-    {
-      text: 'Urgent help now',
-      onPress: () => { emitUrgentHelp(); router.push('/(tabs)/index'); },
-    },
-    { text: 'Close', style: 'cancel' },
-  ]);
-}
 
 export default function ActionsScreen() {
   const { colors, typography } = useTheme();
@@ -56,7 +41,10 @@ export default function ActionsScreen() {
         <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.ink }]}>Activities</Text>
         <View style={styles.headerActions}>
           <ThemePickerButton />
-          <HelpButton onPress={showHelp} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Log out" onPress={() => void signOut(firebaseAuth)}
+            style={({ pressed }) => [styles.headerIcon, pressed && { backgroundColor: colors.soft }]}>
+            <MaterialDesignIcons name="logout" size={26} color={colors.ink} />
+          </Pressable>
         </View>
       </View>
       <ScrollView ref={scroll} contentContainerStyle={styles.content}>
@@ -78,12 +66,9 @@ export default function ActionsScreen() {
         </View>}
         {activityGroups.map((group) => {
           const groupIds = group.ids.filter((id) => !promotedIds.has(id));
-          if (!groupIds.length && group.title !== 'Express') return null;
+          if (!groupIds.length) return null;
           return <View key={group.title}>
             <Text accessibilityRole="header" style={[typography.groupHeading, { color: colors.ink }]}>{group.title}</Text>
-            {group.title === 'Express' && <ActivityLibraryRow title="Journal"
-              summary="Recent entries and a new entry" icon={activityIcons.journal}
-              onPress={() => router.push('/you')} />}
             {groupIds.map((id) => renderActivity(id))}
           </View>;
         })}
@@ -97,10 +82,11 @@ export default function ActionsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   header: {
-    minHeight: 56, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
+    minHeight: 68, paddingHorizontal: 22, flexDirection: 'row', alignItems: 'center',
     justifyContent: 'space-between', gap: 12, maxWidth: 660, width: '100%', alignSelf: 'center',
   },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  headerIcon: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 16 },
   content: { paddingHorizontal: 22, paddingBottom: 28, gap: 22, maxWidth: 660, width: '100%', alignSelf: 'center' },
   intro: { minHeight: 116, flexDirection: 'row', alignItems: 'center', gap: 8 },
   invitation: { flex: 1 },

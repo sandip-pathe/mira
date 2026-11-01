@@ -69,12 +69,13 @@ export default function TalkScreen() {
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={[styles.page, { backgroundColor: colors.canvas }]}>
       <KeyboardAvoidingView style={styles.page} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <TalkHeader onHelp={openHelp} />
-        {!urgent && <ActionButton label={isCallLive(call.state) ? 'Return to call' : 'Call Mira'} variant="quiet" onPress={() => {
-          endVoice();
-          void callController.start();
+        <TalkHeader onHelp={openHelp} callLabel={isCallLive(call.state) ? 'Return to call' : 'Call Mira'} onCall={() => {
+          if (!isCallLive(call.state)) {
+            endVoice();
+            void callController.start();
+          }
           router.push('/call');
-        }} />}
+        }} />
         {urgent ? <UrgentHelpPanel onClose={() => setUrgent(false)} /> : <>
           {textMode ? <>
             <ScrollView

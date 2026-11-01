@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { BrandArtwork } from '../components/ui/BrandArtwork';
@@ -11,6 +11,8 @@ const wordmark = require('../../assets/brand/mira-signature.png');
 export function WelcomeScreen({ replay = false }: { replay?: boolean }) {
   const { colors, typography } = useTheme();
   const { finishWelcome } = useFirstRun();
+  const { width } = useWindowDimensions();
+  const pager = React.useRef<ScrollView>(null);
   const [page, setPage] = React.useState(0);
   const [busy, setBusy] = React.useState(false);
 
@@ -18,6 +20,7 @@ export function WelcomeScreen({ replay = false }: { replay?: boolean }) {
     if (busy) return;
     if (page === 0) {
       setPage(1);
+      pager.current?.scrollTo({ x: width, animated: true });
       return;
     }
     setBusy(true);
@@ -40,6 +43,11 @@ export function WelcomeScreen({ replay = false }: { replay?: boolean }) {
     }
   }
 
+  function goToPage(nextPage: number) {
+    setPage(nextPage);
+    pager.current?.scrollTo({ x: width * nextPage, animated: true });
+  }
+
   return (
     <SafeAreaView style={[styles.page, { backgroundColor: colors.canvas }]}>
       <View style={styles.brandRow}>
@@ -50,43 +58,53 @@ export function WelcomeScreen({ replay = false }: { replay?: boolean }) {
         </Pressable>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <BrandArtwork part={page === 0 ? 'listening' : 'companion'} size={page === 0 ? 164 : 148} />
-        {page === 0 ? (
-          <>
-            <Text accessibilityRole="header" style={[typography.screenTitle, styles.title, { color: colors.ink }]}>Meet Mira</Text>
-            <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Talk things through and find a next step that feels right for you.</Text>
-            <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-              <Text style={[typography.sheetSection, { color: colors.ink }]}>Talk</Text>
-              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Chat by text or hold to talk. Release the button when you finish speaking.</Text>
+      <ScrollView
+        ref={pager}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(event) => setPage(Math.round(event.nativeEvent.contentOffset.x / width))}
+        style={styles.pager}
+      >
+        {[0, 1].map((pageIndex) => (
+          <ScrollView key={pageIndex} style={{ width }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <BrandArtwork part={pageIndex === 0 ? 'listening' : 'companion'} size={pageIndex === 0 ? 164 : 148} />
+            {pageIndex === 0 ? (
+              <>
+                <Text accessibilityRole="header" style={[typography.screenTitle, styles.title, { color: colors.ink }]}>Meet Mira</Text>
+                <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Talk things through and find a next step that feels right for you.</Text>
+                <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+                  <Text style={[typography.sheetSection, { color: colors.ink }]}>Talk</Text>
+                  <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Chat by text or hold to talk. Release the button when you finish speaking.</Text>
+                </View>
+                <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+                  <Text style={[typography.sheetSection, { color: colors.ink }]}>Call Mira</Text>
+                  <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Speak naturally. Mute or end the call whenever you want.</Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text accessibilityRole="header" style={[typography.screenTitle, styles.title, { color: colors.ink }]}>A space that stays yours</Text>
+                <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Your Journal entries stay on this device.</Text>
+                <View style={[styles.noteCard, { backgroundColor: colors.soft }]}>
+                  <Text style={[typography.sheetSection, styles.noteTitle, { color: colors.ink }]}>Microphone</Text>
+                  <Text style={[typography.support, styles.cardBody, { color: colors.ink }]}>Talk uses your mic while you hold to speak. Calls use it until you mute or end.</Text>
+                </View>
+                <View style={[styles.allowanceCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+                  <Text style={[typography.sheetSection, { color: colors.ink }]}>Account</Text>
+                  <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Sign in to use Mira. Talk and calls need internet.</Text>
+                </View>
+              </>
+            )}
+            <View accessibilityLabel={'Introduction, step ' + (pageIndex + 1) + ' of 2'} style={styles.progress}>
+              {[0, 1].map((index) => <View key={index} style={[styles.progressBar, { backgroundColor: index === pageIndex ? colors.primary : colors.line }]} />)}
             </View>
-            <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-              <Text style={[typography.sheetSection, { color: colors.ink }]}>Call Mira</Text>
-              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Speak naturally. Mute or end the call whenever you want.</Text>
-            </View>
-          </>
-        ) : (
-          <>
-            <Text accessibilityRole="header" style={[typography.screenTitle, styles.title, { color: colors.ink }]}>A space that stays yours</Text>
-            <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Your Journal entries stay on this device.</Text>
-            <View style={[styles.noteCard, { backgroundColor: colors.soft }]}>
-              <Text style={[typography.sheetSection, styles.noteTitle, { color: colors.ink }]}>Your microphone</Text>
-              <Text style={[typography.body, styles.noteBody, { color: colors.ink }]}>Talk listens only while you hold the button. A Call Mira call uses your microphone until you mute or end it. Mira asks for permission when you choose voice.</Text>
-            </View>
-            <View style={[styles.allowanceCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
-              <Text style={[typography.sheetSection, { color: colors.ink }]}>Your Mira account</Text>
-              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Sign in or create an account to use Mira. Talk and Call Mira need an internet connection.</Text>
-            </View>
-            <Text style={[typography.support, styles.reviewNote, { color: colors.muted }]}>Your Journal entries stay on this device.</Text>
-          </>
-        )}
-        <View accessibilityLabel={'Introduction, step ' + (page + 1) + ' of 2'} style={styles.progress}>
-          {[0, 1].map((index) => <View key={index} style={[styles.progressBar, { backgroundColor: index === page ? colors.primary : colors.line }]} />)}
-        </View>
+          </ScrollView>
+        ))}
       </ScrollView>
 
       <View style={styles.footer}>
-        {page === 1 && <Pressable accessibilityRole="button" disabled={busy} onPress={() => setPage(0)}
+        {page === 1 && <Pressable accessibilityRole="button" disabled={busy} onPress={() => goToPage(0)}
           style={({ pressed }) => [styles.back, { borderColor: colors.line }, pressed && styles.pressed]}>
           <Text style={[typography.button, { color: colors.ink }]}>Back</Text>
         </Pressable>}
@@ -106,7 +124,7 @@ const styles = StyleSheet.create({
   brandRow: { minHeight: 56, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wordmark: { width: 102, height: 36 },
   skip: { minWidth: 64, minHeight: 44, paddingHorizontal: 12, borderWidth: 1, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  scroll: { flex: 1 },
+  pager: { flex: 1 },
   content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingTop: 12, paddingBottom: 24, gap: 14 },
   title: { textAlign: 'center', maxWidth: 380 },
   intro: { textAlign: 'center', maxWidth: 360, marginBottom: 4 },
@@ -114,9 +132,7 @@ const styles = StyleSheet.create({
   cardBody: { lineHeight: 21 },
   noteCard: { alignSelf: 'stretch', width: '100%', maxWidth: 460, borderRadius: 20, padding: 20, gap: 8 },
   noteTitle: { textAlign: 'center' },
-  noteBody: { textAlign: 'center', lineHeight: 25 },
   allowanceCard: { alignSelf: 'stretch', width: '100%', maxWidth: 460, borderWidth: 1, borderRadius: 18, paddingHorizontal: 20, paddingVertical: 16, gap: 8 },
-  reviewNote: { textAlign: 'center', marginTop: 4 },
   progress: { flexDirection: 'row', gap: 8, paddingTop: 4 },
   progressBar: { width: 24, height: 4, borderRadius: 2 },
   footer: { minHeight: 76, paddingHorizontal: 24, paddingTop: 8, paddingBottom: 12, flexDirection: 'row', gap: 12, alignItems: 'center', justifyContent: 'center' },

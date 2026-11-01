@@ -9,6 +9,7 @@ import android.media.ToneGenerator;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.telecom.Connection;
 import androidx.core.app.NotificationCompat;
 import com.facebook.react.ReactPackage;
@@ -28,10 +29,27 @@ public class MiraCallPackage implements ReactPackage {
     private static boolean previousSpeakerphone;
     private static android.media.AudioDeviceInfo previousCommunicationDevice;
     private static boolean talkAudioActive;
+    private static PowerManager.WakeLock proximityWakeLock;
+    private static String proximityUuid;
     private static synchronized void stopRingback() {
         if (ringback != null) {
             ringback.stopTone(); ringback.release(); ringback = null; ringbackUuid = null;
         }
+    }
+    private static synchronized void stopProximity(String uuid) {
+        stopProximity(uuid, true);
+    }
+    private static synchronized void stopProximity(String uuid, boolean waitForFar) {
+        if (proximityWakeLock == null || (uuid != null && !uuid.equals(proximityUuid))) return;
+        try {
+            if (proximityWakeLock.isHeld()) {
+                try {
+                    if (waitForFar) proximityWakeLock.release(PowerManager.RELEASE_FLAG_WAIT_FOR_NO_PROXIMITY);
+                    else proximityWakeLock.release();
+                }
+                catch (RuntimeException error) { if (proximityWakeLock.isHeld()) proximityWakeLock.release(); }
+            }
+        } finally { proximityWakeLock = null; proximityUuid = null; }
     }
     public List<NativeModule> createNativeModules(ReactApplicationContext context) {
         return Collections.singletonList(new CallNotification(context));
@@ -42,6 +60,7 @@ public class MiraCallPackage implements ReactPackage {
         @Override public void onReceive(Context context, Intent intent) {
             String uuid = intent.getStringExtra("uuid");
             Connection connection = VoiceConnectionService.getConnection(uuid);
+            stopProximity(uuid);
             if (connection != null) { stopRingback(); connection.onDisconnect(); }
         }
     }
@@ -50,7 +69,7 @@ public class MiraCallPackage implements ReactPackage {
         CallNotification(ReactApplicationContext context) { super(context); }
         @Override public String getName() { return "MiraCallNotification"; }
 
-        @Override public void invalidate() { stopRingback(); super.invalidate(); }
+        @Override public void invalidate() { stopRingback(); stopProximity(null); super.invalidate(); }
 
         @ReactMethod public void startTalkAudio(Promise promise) {
             try {
@@ -114,6 +133,24 @@ public class MiraCallPackage implements ReactPackage {
             }
         }
 
+        @ReactMethod public void setProximityScreenOff(String uuid, boolean enabled, boolean waitForFar) {
+            synchronized (MiraCallPackage.class) {
+                if (!enabled) { stopProximity(uuid, waitForFar); return; }
+                if (VoiceConnectionService.getConnection(uuid) == null) return;
+                Context context = getReactApplicationContext();
+                PowerManager manager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                if (manager == null || !manager.isWakeLockLevelSupported(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK)) return;
+                if (proximityWakeLock != null && uuid.equals(proximityUuid) && proximityWakeLock.isHeld()) return;
+                stopProximity(null);
+                try {
+                    proximityWakeLock = manager.newWakeLock(PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, "Mira:CallProximity");
+                    proximityWakeLock.setReferenceCounted(false);
+                    proximityUuid = uuid;
+                    proximityWakeLock.acquire();
+                } catch (RuntimeException error) { stopProximity(uuid); }
+            }
+        }
+
         @ReactMethod public void prepare(Promise promise) {
             if (Build.VERSION.SDK_INT >= 26) {
                 NotificationManager manager = (NotificationManager) getReactApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
@@ -129,6 +166,7 @@ public class MiraCallPackage implements ReactPackage {
                     }
                     public void onFocusLost() {
                         stopRingback();
+                        stopProximity(null);
                         if (getReactApplicationContext().hasActiveReactInstance()) {
                             getReactApplicationContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                                 .emit("MiraCallFocus", false);

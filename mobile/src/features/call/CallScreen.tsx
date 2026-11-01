@@ -2,7 +2,6 @@ import React from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { useTheme } from '../../components/ui';
 import { useTalkMotion } from '../talk/hooks/useTalkMotion';
@@ -15,12 +14,12 @@ type IconName = React.ComponentProps<typeof MaterialDesignIcons>['name'];
 const routeIcon = (name?: string): IconName => name === 'Bluetooth' ? 'bluetooth-audio'
   : name === 'Headset' ? 'headphones' : name === 'Speaker' ? 'volume-high' : 'cellphone-sound';
 
-function RoundControl({ icon, label, onPress, selected = false, disabled = false }: {
-  icon: IconName; label: string; onPress: () => void; selected?: boolean; disabled?: boolean;
+function RoundControl({ icon, label, onPress, selected = false, disabled = false, accessibilityLabel = label }: {
+  icon: IconName; label: string; onPress: () => void; selected?: boolean; disabled?: boolean; accessibilityLabel?: string;
 }) {
   const { typography } = useTheme();
   return <Pressable onPress={onPress} disabled={disabled} accessibilityRole="button"
-    accessibilityLabel={label} accessibilityState={{ disabled, selected }}
+    accessibilityLabel={accessibilityLabel} accessibilityState={{ disabled, selected }}
     style={({ pressed }) => [styles.control, disabled && styles.disabled, pressed && styles.pressed]}>
     <View style={[styles.controlDisc, selected && styles.selectedDisc]}>
       <MaterialDesignIcons name={icon} size={27} color={selected ? c.canvas : c.ink} />
@@ -37,7 +36,7 @@ export default function CallScreen() {
   const duration = useCallDuration(call.connectedAt, call.endedAt);
   const live = isCallLive(call.state);
   const compact = height < 720 || fontScale > 1.3;
-  const portraitSize = Math.max(120, Math.min(compact ? 176 : 248, width - 112));
+  const portraitSize = Math.max(104, Math.min(compact ? 144 : 200, width - 136));
   const motionAllowed = useTalkMotion(live && !call.held);
   const selectedRoute = call.routes.find(route => route.selected)?.name;
   const pending = live && !call.connectedAt;
@@ -56,14 +55,11 @@ export default function CallScreen() {
   };
 
   return <SafeAreaView style={styles.page}>
-    <StatusBar style="light" />
     <View style={styles.header}>
       <Pressable onPress={minimize} accessibilityRole="button" accessibilityLabel={live ? 'Minimize call' : 'Return to Talk'}
         style={({ pressed }) => [styles.headerButton, pressed && styles.pressed]}>
         <MaterialDesignIcons name={live ? 'chevron-down' : 'arrow-left'} size={27} color={c.ink} />
       </Pressable>
-      <Text style={[typography.eyebrow, styles.eyebrow]}>CALL MIRA</Text>
-      <View style={styles.headerSpacer} />
     </View>
     <ScrollView style={styles.scroll} contentContainerStyle={[styles.content, compact && styles.compactContent]}
       showsVerticalScrollIndicator={false}>
@@ -86,7 +82,11 @@ export default function CallScreen() {
         {live && <View style={styles.controls}>
           <RoundControl icon={call.muted ? 'microphone-off' : 'microphone-outline'} label={call.muted ? 'Unmute' : 'Mute'}
             selected={call.muted} onPress={callController.mute} />
-          <RoundControl icon={routeIcon(selectedRoute)} label={selectedRoute ? audioRouteLabel(selectedRoute) : 'Audio'}
+          <RoundControl icon="volume-high" label="Speaker"
+            accessibilityLabel={selectedRoute === 'Speaker' ? 'Turn speaker off' : 'Turn speaker on'}
+            selected={selectedRoute === 'Speaker'} disabled={!call.routes.length}
+            onPress={() => void callController.route(selectedRoute === 'Speaker' ? 'Phone' : 'Speaker')} />
+          <RoundControl icon="headphones" label="Audio"
             onPress={() => setShowRoutes(true)} disabled={!call.routes.length} />
           <RoundControl icon="arrow-collapse-down" label="Minimize" onPress={minimize} />
         </View>}
@@ -128,10 +128,8 @@ export default function CallScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: c.canvas },
-  header: { paddingHorizontal: 24, paddingTop: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  header: { paddingHorizontal: 24, paddingTop: 8, flexDirection: 'row', alignItems: 'center' },
   headerButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderRadius: 24, backgroundColor: c.surface },
-  headerSpacer: { width: 48 },
-  eyebrow: { color: c.muted, letterSpacing: 2.5 },
   scroll: { flex: 1 },
   content: { flexGrow: 1, paddingHorizontal: 28, paddingTop: 20, paddingBottom: 24, gap: 28 },
   compactContent: { paddingTop: 8, gap: 16 },
@@ -149,7 +147,7 @@ const styles = StyleSheet.create({
   footer: { gap: 20, width: '100%', maxWidth: 420, alignSelf: 'center' },
   controls: { flexDirection: 'row', justifyContent: 'space-between', gap: 12 },
   control: { flex: 1, alignItems: 'center', gap: 10, minHeight: 96 },
-  controlDisc: { width: 64, height: 64, borderRadius: 32, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, justifyContent: 'center', alignItems: 'center' },
+  controlDisc: { width: 56, height: 56, borderRadius: 28, backgroundColor: c.surface, borderWidth: 1, borderColor: c.line, justifyContent: 'center', alignItems: 'center' },
   selectedDisc: { backgroundColor: c.ink, borderColor: c.ink },
   controlLabel: { color: c.ink, textAlign: 'center' },
   disabled: { opacity: 0.45 },

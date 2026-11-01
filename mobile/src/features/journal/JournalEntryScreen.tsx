@@ -25,7 +25,7 @@ import { useJournal } from './JournalProvider';
 
 export default function JournalEntryScreen() {
   const journal = useJournal();
-  const { colors, paper, typography, isDark } = useTheme();
+  const { colors, paper, typography } = useTheme();
   const [sheet, setSheet] = React.useState<'prompts' | 'style'>();
   const [keyboardOpen, setKeyboardOpen] = React.useState(false);
   const closeRef = React.useRef(journal.closeJournal);
@@ -80,7 +80,7 @@ export default function JournalEntryScreen() {
 
   async function finishSession() {
     Keyboard.dismiss();
-    if (await saveCurrentSession()) router.back();
+    if (await saveCurrentSession()) router.replace('/you');
   }
   function openSheet(next: 'prompts' | 'style') {
     Keyboard.dismiss();
@@ -92,7 +92,7 @@ export default function JournalEntryScreen() {
       edges={['top', 'left', 'right']}
       style={[styles.safe, { backgroundColor: colors.canvas }]}
     >
-      <Stack.Screen options={{ headerShown: false, statusBarStyle: isDark ? 'light' : 'dark' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <KeyboardAvoidingView
         style={styles.page}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -101,7 +101,17 @@ export default function JournalEntryScreen() {
           <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.ink }]}>
             Journal
           </Text>
-          <HelpButton onPress={showHelpOptions} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="All journal entries"
+              onPress={() => router.replace('/you')}
+              style={({ pressed }) => [styles.headerAction, pressed && { backgroundColor: colors.soft }]}
+            >
+              <MaterialDesignIcons name="notebook-outline" size={26} color={colors.ink} />
+            </Pressable>
+            <HelpButton onPress={showHelpOptions} />
+          </View>
         </View>
         <View style={[styles.page, { backgroundColor: background }]}>
           {loading ? (
@@ -162,10 +172,10 @@ export default function JournalEntryScreen() {
                       disabled={busy}
                       accessibilityState={{ disabled: busy }}
                       onPress={() => openSheet('prompts')}
-                      style={styles.pickPrompt}
+                      style={({ pressed }) => [styles.pickPrompt, { opacity: busy ? 0.4 : pressed ? 0.65 : 1 }]}
+                      accessibilityLabel="Change writing prompt"
                     >
-                      <Text style={[typography.support, { color: paper.primary }]}>Prompts</Text>
-                      <MaterialDesignIcons name="chevron-down" size={18} color={paper.primary} />
+                      <MaterialDesignIcons name="refresh" size={24} color={paper.primary} />
                     </Pressable>
                   </View>
                 )}

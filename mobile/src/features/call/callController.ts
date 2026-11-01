@@ -42,7 +42,7 @@ class CallController {
       this.update({ state, error: error ?? '',
         ...(state === 'connected' && !this.snapshot.connectedAt ? { connectedAt: Date.now() } : {}) });
       if (state === 'connected') this.system?.connected();
-      this.system?.ringing(state === 'ringing' && !this.snapshot.held);
+      this.system?.ringing((state === 'connecting' || state === 'ringing') && !this.snapshot.held);
       this.system?.status(state === 'reconnecting' ? 'Reconnecting…' : state === 'connected' ? 'Call in progress' : 'Calling Mira…');
     });
     this.call = call;
@@ -53,7 +53,9 @@ class CallController {
       hold: held => {
         if (current()) {
           call.hold(held); this.update({ held });
-          system.ringing(this.snapshot.state === 'ringing' && !held);
+          system.ringing((this.snapshot.state === 'connecting' || this.snapshot.state === 'ringing') && !held);
+          const selectedRoute = this.snapshot.routes.find(route => route.selected)?.name;
+          system.proximityScreenOff(!held && (!selectedRoute || selectedRoute === 'Phone'));
         }
       },
       routes: routes => { if (current()) this.update({ routes }); },
@@ -65,7 +67,12 @@ class CallController {
     try {
       call.reserveMicrophone();
       await system.start();
-      if (current()) await call.start();
+      if (current()) {
+        try { await system.route('Phone'); } catch { /* Keep Telecom's earpiece default if it declines the route update. */ }
+        const selectedRoute = this.snapshot.routes.find(route => route.selected)?.name;
+        system.proximityScreenOff(!selectedRoute || selectedRoute === 'Phone');
+        await call.start();
+      }
     } catch (error) {
       if (current()) this.finish('failed', error instanceof Error ? error.message : 'Call could not start.');
     }
@@ -92,7 +99,11 @@ class CallController {
     this.call?.mute(muted); this.system?.mute(muted); this.update({ muted });
   };
   route = async (name: string) => {
-    try { await this.system?.route(name); }
+    try {
+      await this.system?.route(name);
+      const selectedRoute = this.snapshot.routes.find(route => route.selected)?.name ?? name;
+      this.system?.proximityScreenOff(selectedRoute === 'Phone');
+    }
     catch { this.update({ error: 'Audio route could not change. Try again.' }); }
   };
 }

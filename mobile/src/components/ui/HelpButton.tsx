@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { useTheme } from './theme';
 
 export function HelpButton({ onPress }: { onPress: () => void }) {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
@@ -12,19 +12,15 @@ export function HelpButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       style={({ pressed }) => [styles.button, pressed && { backgroundColor: colors.soft }]}
     >
-      <MaterialDesignIcons name="help-circle-outline" size={20} color={colors.ink} />
-      <Text style={[typography.button, { color: colors.ink }]}>Help</Text>
+      <MaterialDesignIcons name="help-circle-outline" size={26} color={colors.ink} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
+    width: 48,
     minHeight: 48,
-    minWidth: 72,
-    paddingHorizontal: 8,
-    flexDirection: 'row',
-    gap: 8,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 16,

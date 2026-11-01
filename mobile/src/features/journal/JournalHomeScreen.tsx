@@ -2,15 +2,13 @@ import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { Stack, router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { signOut } from 'firebase/auth';
-import { ActionButton, HelpButton, ThemePickerButton, useTheme } from '../../components/ui';
+import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
+import { HelpButton, useTheme } from '../../components/ui';
 import { showHelpOptions } from '../../shared/showHelpOptions';
-import { BrandArtwork } from '../../components/ui/BrandArtwork';
 import { FeedbackSection } from './components/FeedbackSection';
 import { MemorySections } from './components/MemorySections';
 import { styles } from './components/journalStyles';
 import { useJournal } from './JournalProvider';
-import { firebaseAuth } from '../../shared/firebase';
 
 export default function JournalHomeScreen() {
   const {
@@ -28,7 +26,7 @@ export default function JournalHomeScreen() {
     refreshJournalSessions,
     deleteJournal,
   } = useJournal();
-  const { colors, typography, isDark } = useTheme();
+  const { colors, typography } = useTheme();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -51,17 +49,22 @@ export default function JournalHomeScreen() {
       edges={['top', 'left', 'right']}
       style={[styles.safe, { backgroundColor: colors.canvas }]}
     >
-      <Stack.Screen options={{ headerShown: false, statusBarStyle: isDark ? 'light' : 'dark' }} />
+      <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.header}>
         <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.ink }]}>
           Journal
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Sign out" onPress={() => void signOut(firebaseAuth)}
-            style={{ minHeight: 44, justifyContent: 'center', paddingHorizontal: 8 }}>
-            <Text style={[typography.support, { color: colors.primary }]}>Sign out</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="New journal entry"
+            accessibilityState={{ disabled: busy || loading }}
+            disabled={busy || loading}
+            onPress={startNewEntry}
+            style={({ pressed }) => [styles.headerAction, pressed && { backgroundColor: colors.soft }]}
+          >
+            <MaterialDesignIcons name="plus" size={28} color={colors.ink} />
           </Pressable>
-          <ThemePickerButton />
           <HelpButton onPress={showHelpOptions} />
         </View>
       </View>
@@ -70,23 +73,6 @@ export default function JournalHomeScreen() {
         contentContainerStyle={styles.homeContent}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.homeArt}>
-          <BrandArtwork part="journal" size={135} />
-        </View>
-        <Text style={[typography.journalHomeTitle, { color: colors.ink }]}>
-          A new page, whenever you want.
-        </Text>
-        <ActionButton
-          label="+  New entry"
-          accessibilityLabel="New journal entry"
-          disabled={busy || loading}
-          onPress={startNewEntry}
-        />
-        <ActionButton
-          label="Reopen Mira introduction"
-          variant="quiet"
-          onPress={() => router.push('/guide')}
-        />
         {!!status && (
           <Text
             accessibilityLiveRegion="polite"
@@ -99,7 +85,7 @@ export default function JournalHomeScreen() {
           accessibilityRole="header"
           style={[typography.groupHeading, styles.recentHeading, { color: colors.ink }]}
         >
-          Recent sessions
+          All entries
         </Text>
         {loading ? (
           <ActivityIndicator color={colors.primary} />

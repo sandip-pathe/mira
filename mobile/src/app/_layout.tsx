@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider, useTheme } from '../components/ui/theme';
@@ -53,7 +52,12 @@ function RootNavigator({ ready }: { ready: boolean }) {
   const { colors, isDark, themeReady } = useTheme();
   const { user, ready: authReady } = useAuth();
   const { welcomeCompleted } = useFirstRun();
+  // Dev builds can open the UI without Firebase; server-backed features still require a session.
+  const authRequired = !__DEV__;
+  const canOpenApp = !authRequired || !!user;
+  const appReady = ready && themeReady && (!authRequired || authReady) && welcomeCompleted !== null;
   const userId = user?.uid;
+  const statusBarStyle = isDark ? 'light' : 'dark';
   React.useEffect(() => {
     if (!userId) callController.reset();
     return () => callController.reset();
@@ -61,17 +65,21 @@ function RootNavigator({ ready }: { ready: boolean }) {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.canvas }]}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      {!(ready && themeReady && authReady && welcomeCompleted !== null) && <StartupScreen />}
-      {ready && themeReady && authReady && welcomeCompleted !== null && (
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.canvas } }}>
+      {!appReady && <StartupScreen />}
+      {appReady && (
+        <Stack screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.canvas },
+          statusBarStyle,
+          statusBarAnimation: 'fade',
+        }}>
           <Stack.Protected guard={!welcomeCompleted}>
             <Stack.Screen name="welcome" />
           </Stack.Protected>
-          <Stack.Protected guard={!user}>
+          <Stack.Protected guard={authRequired && !user}>
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
-          <Stack.Protected guard={!!user}>
+          <Stack.Protected guard={canOpenApp}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="do" options={{ presentation: 'card' }} />
             <Stack.Screen name="guide" options={{ presentation: 'card' }} />
@@ -79,7 +87,7 @@ function RootNavigator({ ready }: { ready: boolean }) {
           </Stack.Protected>
         </Stack>
       )}
-      {!!user && welcomeCompleted && ready && themeReady && authReady && <OngoingCallBar />}
+      {!!user && welcomeCompleted && appReady && authReady && <OngoingCallBar />}
     </View>
   );
 }

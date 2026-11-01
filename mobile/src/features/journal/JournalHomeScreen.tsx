@@ -82,6 +82,11 @@ export default function JournalHomeScreen() {
           disabled={busy || loading}
           onPress={startNewEntry}
         />
+        <ActionButton
+          label="Reopen Mira introduction"
+          variant="quiet"
+          onPress={() => router.push('/guide')}
+        />
         {!!status && (
           <Text
             accessibilityLiveRegion="polite"

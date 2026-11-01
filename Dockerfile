@@ -1,8 +1,7 @@
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    MIRA_BUDGET_DB_PATH=/data/review-budget.sqlite3
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 

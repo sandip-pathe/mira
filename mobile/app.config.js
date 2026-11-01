@@ -12,14 +12,22 @@ module.exports = ({ config }) => {
   );
   if (profile === 'development') {
     appConfig.plugins.push('./plugins/withPrivateDemoHttp');
+  } else {
+    // The WebRTC config plugin requests this overlay permission for debugging;
+    // the standalone app has no overlay feature and should not ship it.
+    appConfig.android = {
+      ...appConfig.android,
+      blockedPermissions: [...new Set([
+        ...(appConfig.android?.blockedPermissions ?? []),
+        'android.permission.SYSTEM_ALERT_WINDOW',
+      ])],
+    };
   }
 
   const apiUrl = (process.env.EXPO_PUBLIC_API_URL || appConfig.extra.apiUrl || '').trim();
-  const apiConfigUrl = (process.env.EXPO_PUBLIC_API_CONFIG_URL || appConfig.extra.apiConfigUrl || '').trim();
-  if (profile && profile !== 'development' && !/^https:\/\//i.test(apiUrl) && !/^https:\/\//i.test(apiConfigUrl)) {
-    throw new Error('Set an HTTPS backend API URL or runtime API config URL before building a standalone APK.');
+  if (profile && profile !== 'development' && !/^https:\/\//i.test(apiUrl)) {
+    throw new Error('Set EXPO_PUBLIC_API_URL or expo.extra.apiUrl to the HTTPS backend origin before building a standalone APK.');
   }
   if (apiUrl) appConfig.extra.apiUrl = apiUrl;
-  if (apiConfigUrl) appConfig.extra.apiConfigUrl = apiConfigUrl;
   return appConfig;
 };

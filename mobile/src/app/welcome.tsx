@@ -1,13 +1,14 @@
 import React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { BrandArtwork } from '../components/ui/BrandArtwork';
 import { useTheme } from '../components/ui/theme';
 import { useFirstRun } from '../shared/FirstRunProvider';
 
 const wordmark = require('../../assets/brand/mira-signature.png');
 
-export default function WelcomeScreen() {
+export function WelcomeScreen({ replay = false }: { replay?: boolean }) {
   const { colors, typography } = useTheme();
   const { finishWelcome } = useFirstRun();
   const [page, setPage] = React.useState(0);
@@ -22,6 +23,7 @@ export default function WelcomeScreen() {
     setBusy(true);
     try {
       await finishWelcome();
+      if (replay && router.canGoBack()) router.back();
     } finally {
       setBusy(false);
     }
@@ -32,6 +34,7 @@ export default function WelcomeScreen() {
     setBusy(true);
     try {
       await finishWelcome();
+      if (replay && router.canGoBack()) router.back();
     } finally {
       setBusy(false);
     }
@@ -55,7 +58,7 @@ export default function WelcomeScreen() {
             <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Talk things through and find a next step that feels right for you.</Text>
             <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <Text style={[typography.sheetSection, { color: colors.ink }]}>Talk</Text>
-              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Hold to speak. Release when you are done.</Text>
+              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Chat by text or hold to talk. Release the button when you finish speaking.</Text>
             </View>
             <View style={[styles.modeCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
               <Text style={[typography.sheetSection, { color: colors.ink }]}>Call Mira</Text>
@@ -68,9 +71,13 @@ export default function WelcomeScreen() {
             <Text style={[typography.body, styles.intro, { color: colors.muted }]}>Your Journal entries stay on this device.</Text>
             <View style={[styles.noteCard, { backgroundColor: colors.soft }]}>
               <Text style={[typography.sheetSection, styles.noteTitle, { color: colors.ink }]}>Your microphone</Text>
-              <Text style={[typography.body, styles.noteBody, { color: colors.ink }]}>Talk listens while you hold the button. A Call Mira call uses your microphone until you mute or end it. Mira asks for permission when you choose voice.</Text>
+              <Text style={[typography.body, styles.noteBody, { color: colors.ink }]}>Talk listens only while you hold the button. A Call Mira call uses your microphone until you mute or end it. Mira asks for permission when you choose voice.</Text>
             </View>
-            <Text style={[typography.support, styles.reviewNote, { color: colors.muted }]}>Sign in with the review account supplied with Mira.</Text>
+            <View style={[styles.allowanceCard, { backgroundColor: colors.surface, borderColor: colors.line }]}>
+              <Text style={[typography.sheetSection, { color: colors.ink }]}>Your Mira account</Text>
+              <Text style={[typography.support, styles.cardBody, { color: colors.muted }]}>Sign in or create an account to use Mira. Talk and Call Mira need an internet connection.</Text>
+            </View>
+            <Text style={[typography.support, styles.reviewNote, { color: colors.muted }]}>Your Journal entries stay on this device.</Text>
           </>
         )}
         <View accessibilityLabel={'Introduction, step ' + (page + 1) + ' of 2'} style={styles.progress}>
@@ -85,12 +92,14 @@ export default function WelcomeScreen() {
         </Pressable>}
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: busy }} disabled={busy} onPress={() => void continueToMira()}
           style={({ pressed }) => [styles.primaryButton, { backgroundColor: colors.primary }, pressed && styles.pressed]}>
-          <Text style={[typography.button, styles.primaryLabel, { color: colors.onPrimary }]}>{busy ? 'Opening...' : page === 0 ? 'Continue' : 'Get started'}</Text>
+          <Text style={[typography.button, styles.primaryLabel, { color: colors.onPrimary }]}>{busy ? 'Opening...' : replay && page === 1 ? 'Done' : page === 0 ? 'Continue' : 'Get started'}</Text>
         </Pressable>
       </View>
     </SafeAreaView>
   );
 }
+
+export default WelcomeScreen;
 
 const styles = StyleSheet.create({
   page: { flex: 1 },
@@ -106,6 +115,7 @@ const styles = StyleSheet.create({
   noteCard: { alignSelf: 'stretch', width: '100%', maxWidth: 460, borderRadius: 20, padding: 20, gap: 8 },
   noteTitle: { textAlign: 'center' },
   noteBody: { textAlign: 'center', lineHeight: 25 },
+  allowanceCard: { alignSelf: 'stretch', width: '100%', maxWidth: 460, borderWidth: 1, borderRadius: 18, paddingHorizontal: 20, paddingVertical: 16, gap: 8 },
   reviewNote: { textAlign: 'center', marginTop: 4 },
   progress: { flexDirection: 'row', gap: 8, paddingTop: 4 },
   progressBar: { width: 24, height: 4, borderRadius: 2 },

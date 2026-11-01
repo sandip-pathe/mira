@@ -74,6 +74,7 @@ function RootNavigator({ ready }: { ready: boolean }) {
           <Stack.Protected guard={!!user}>
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="do" options={{ presentation: 'card' }} />
+            <Stack.Screen name="guide" options={{ presentation: 'card' }} />
             <Stack.Screen name="call" options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
           </Stack.Protected>
         </Stack>

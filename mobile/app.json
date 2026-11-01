@@ -5,7 +5,7 @@
     "scheme": "mira",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/brand/mira-launcher-foreground.png",
+    "icon": "./assets/brand/mira-launcher-icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
@@ -13,14 +13,14 @@
     },
     "android": {
       "package": "com.sandi.mira",
+      "versionCode": 2,
       "allowBackup": false,
+      "softwareKeyboardLayoutMode": "resize",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.ACCESS_NETWORK_STATE",
-        "android.permission.CAMERA",
         "android.permission.INTERNET",
-        "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.WAKE_LOCK",
         "android.permission.BLUETOOTH",
         "android.permission.VIBRATE"
@@ -32,7 +32,7 @@
       ],
       "adaptiveIcon": {
         "backgroundColor": "#F7F1E7",
-        "foregroundImage": "./assets/brand/mira-launcher-foreground.png"
+        "foregroundImage": "./assets/brand/mira-launcher-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
@@ -75,8 +75,7 @@
       "expo-sqlite"
     ],
     "extra": {
-      "apiUrl": "",
-      "apiConfigUrl": "https://sandip-pathe.github.io/mira/backend.json",
+      "apiUrl": "https://3.104.124.56",
       "eas": {
         "projectId": "a39636fc-d431-4128-9971-6fd271bf5cf6"
       }

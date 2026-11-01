@@ -1,12 +1,10 @@
 """Stateless worker API for the Mira mobile app."""
 import asyncio
-from contextvars import ContextVar
 import json
 import hashlib
 import os
 import time
 from collections import defaultdict, deque
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
@@ -23,37 +21,18 @@ from .interventions.client_registry import compatible_ids
 from .workers.activity_assistance import ActivityAssistanceRequest, run_activity_assistance
 from .firebase_auth import FirebaseAuthUnavailable, verify_firebase_uid
 from .bolna import BolnaCallContext, mint_call_session
-from .budget import (
-    BudgetDenied,
-    release_bolna_rejected,
-    release_openai_rejected,
-    reserve_bolna,
-    reserve_openai,
-    response_usage_micros,
-    settle_openai,
-    finish_bolna,
-    estimate_openai_reservation_micros,
-)
 
 load_dotenv(Path(__file__).with_name('.env'))
 app = FastAPI(title='Mira native spike')
 INSTANCE_ID = str(uuid4())
 voice_states: dict[str, dict] = {}
-# This service is intentionally deployed as one process/replica. These rolling
-# limits protect the provider key from accidental or abusive request volume.
+# This service is intentionally deployed as one process/replica. The rolling
+# request-rate limits protect provider keys from accidental request loops.
 request_windows: dict[str, deque] = defaultdict(deque)
 global_request_window: deque = deque()
 USER_REQUESTS_PER_MINUTE = 120
-USER_REQUESTS_PER_DAY = 10000
 GLOBAL_REQUESTS_PER_MINUTE = 1000
-REVIEWER_ACCESS_REQUIRED = os.getenv('MIRA_REVIEWER_ACCESS_REQUIRED', 'false').strip().lower() == 'true'
-REVIEWER_UIDS = frozenset(
-    uid.strip() for uid in os.getenv('MIRA_REVIEWER_UIDS', '').split(',') if uid.strip()
-)
-REVIEW_ACCESS_UNTIL = os.getenv('MIRA_REVIEW_ACCESS_UNTIL', '').strip()
 PAID_OPERATIONS_ENABLED = os.getenv('MIRA_PAID_OPERATIONS_ENABLED', 'true').strip().lower() == 'true'
-authorized_uid: ContextVar[str | None] = ContextVar('authorized_uid', default=None)
-authorized_operation_id: ContextVar[str | None] = ContextVar('authorized_operation_id', default=None)
 
 
 @app.middleware('http')
@@ -198,21 +177,6 @@ async def authorize(authorization: str | None):
         raise HTTPException(503, detail='Sign-in verification is temporarily unavailable') from None
     if not uid:
         raise HTTPException(401, detail='Sign-in expired or invalid')
-    if REVIEWER_ACCESS_REQUIRED:
-        if not REVIEWER_UIDS or not REVIEW_ACCESS_UNTIL:
-            raise HTTPException(503, detail='Reviewer access is not configured')
-        try:
-            access_deadline = datetime.strptime(
-                REVIEW_ACCESS_UNTIL, '%Y-%m-%dT%H:%M:%SZ'
-            ).replace(tzinfo=timezone.utc).timestamp()
-        except ValueError:
-            raise HTTPException(503, detail='Reviewer access is not configured') from None
-        if time.time() >= access_deadline:
-            raise HTTPException(403, detail='reviewer_access_expired')
-        if uid not in REVIEWER_UIDS:
-            raise HTTPException(403, detail='reviewer_access_denied')
-    authorized_uid.set(uid)
-    authorized_operation_id.set(str(uuid4()))
     now = time.time()
     bucket = request_windows[uid]
     while bucket and bucket[0] <= now - 86400:
@@ -221,7 +185,7 @@ async def authorize(authorization: str | None):
         global_request_window.popleft()
     # Keep the 24-hour history while counting this shorter window.
     minute_count = sum(1 for timestamp in bucket if timestamp > now - 60)
-    if minute_count >= USER_REQUESTS_PER_MINUTE or len(bucket) >= USER_REQUESTS_PER_DAY:
+    if minute_count >= USER_REQUESTS_PER_MINUTE:
         raise HTTPException(429, detail='Mira request limit reached. Try again later.')
     if len(global_request_window) >= GLOBAL_REQUESTS_PER_MINUTE:
         raise HTTPException(429, detail='Mira is busy. Try again shortly.')
@@ -255,42 +219,14 @@ async def provider(path: str, **kwargs):
     key = os.getenv('OPENAI_API_KEY')
     if not key:
         raise HTTPException(503, detail='Mira is temporarily offline')
-    reservation_id = None
-    uid = authorized_uid.get()
-    if REVIEWER_ACCESS_REQUIRED:
-        if not uid:
-            raise HTTPException(401, detail='Sign in to continue')
-        try:
-            operation_id = authorized_operation_id.get()
-            if not operation_id:
-                raise HTTPException(401, detail='Sign in to continue')
-            request_body = kwargs.get('json')
-            reserve = estimate_openai_reservation_micros(
-                request_body if isinstance(request_body, dict) else {}
-            )
-            reservation_id = reserve_openai(uid, path, operation_id, reserve)
-        except BudgetDenied as error:
-            raise HTTPException(error.status, detail={
-                'code': error.code, 'reset_at': error.reset_at,
-            }) from None
     try:
         async with httpx.AsyncClient(timeout=45) as client:
             response = await client.post('https://api.openai.com/v1/' + path,
                 headers={'Authorization': 'Bearer ' + key}, **kwargs)
         if not response.is_success:
-            if reservation_id and 400 <= response.status_code < 500:
-                release_openai_rejected(reservation_id)
-            elif reservation_id:
-                settle_openai(reservation_id, None)
             raise HTTPException(503, detail='Mira is temporarily offline')
-        result = response.json()
-        if reservation_id:
-            settle_openai(reservation_id, response_usage_micros(result))
-        return result
+        return response.json()
     except (httpx.HTTPError, ValueError):
-        if reservation_id:
-            # The request may have reached the provider; retain its full reservation.
-            settle_openai(reservation_id, None)
         raise HTTPException(503, detail='Mira is temporarily offline') from None
 
 async def choose_support(arguments: dict, *, compatible_activity_ids: set[str] | None = None,
@@ -313,7 +249,7 @@ async def choose_support(arguments: dict, *, compatible_activity_ids: set[str] |
             model='gpt-4.1-mini',
         )
     except HTTPException as error:
-        if error.status_code in (402, 429):
+        if error.status_code == 429:
             raise
         return listening_decision()
     if decision.get('route') == 'offer_intervention':
@@ -331,32 +267,20 @@ async def choose_support(arguments: dict, *, compatible_activity_ids: set[str] |
 
 @app.get('/health')
 def health():
-    return {'status': 'ok', 'provider_configured': bool(os.getenv('OPENAI_API_KEY')),
-        'server_instance_id': INSTANCE_ID}
+    openai_configured = bool(os.getenv('OPENAI_API_KEY', '').strip())
+    bolna_configured = bool(os.getenv('BOLNA_API_KEY', '').strip() and os.getenv('BOLNA_AGENT_ID', '').strip())
+    return {
+        'status': 'ok',
+        'provider_configured': openai_configured,
+        'providers': {'openai': openai_configured, 'bolna': bolna_configured},
+        'server_instance_id': INSTANCE_ID,
+    }
 
 @app.post('/workers/bolna/session')
 async def bolna_session(request: BolnaCallContext | None = None,
                         authorization: str | None = Header(default=None)):
-    uid = await authorize(authorization)
-    reservation_id = None
-    if REVIEWER_ACCESS_REQUIRED:
-        try:
-            operation_id = authorized_operation_id.get()
-            if not operation_id:
-                raise HTTPException(401, detail='Sign in to continue')
-            reservation_id = reserve_bolna(uid, operation_id)
-        except BudgetDenied as error:
-            raise HTTPException(error.status, detail={
-                'code': error.code, 'reset_at': error.reset_at,
-            }) from None
-    try:
-        session = await mint_call_session(request)
-    except HTTPException as error:
-        if reservation_id and error.status_code == 429:
-            release_bolna_rejected(reservation_id)
-        raise
-    if reservation_id:
-        finish_bolna(reservation_id, session['run_id'])
+    await authorize(authorization)
+    session = await mint_call_session(request)
     return JSONResponse(session, headers={'Cache-Control': 'no-store'})
 
 
@@ -364,8 +288,6 @@ async def bolna_session(request: BolnaCallContext | None = None,
 async def voice_session(request: VoiceSessionRequest | None = None,
                         authorization: str | None = Header(default=None)):
     uid = await authorize(authorization)
-    if REVIEWER_ACCESS_REQUIRED:
-        raise HTTPException(403, detail={'code': 'direct_openai_voice_paused'})
     session = voice_state(uid)
     session['compatible_activity_ids'] = compatible_ids(
         request.client_activity_capabilities
@@ -394,8 +316,6 @@ async def voice_session(request: VoiceSessionRequest | None = None,
 @app.post('/workers/voice/transcription')
 async def brain_dump_transcription_session(authorization: str | None = Header(default=None)):
     await authorize(authorization)
-    if REVIEWER_ACCESS_REQUIRED:
-        raise HTTPException(403, detail={'code': 'direct_openai_voice_paused'})
     result = await provider('realtime/client_secrets', json={
         'expires_after': {'anchor': 'created_at', 'seconds': 60},
         'session': {

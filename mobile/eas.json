@@ -9,6 +9,14 @@
     "offline-gate": {
       "distribution": "internal",
       "android": { "buildType": "apk" }
+    },
+    "submission": {
+      "distribution": "internal",
+      "developmentClient": false,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://3.104.124.56"
+      },
+      "android": { "buildType": "apk" }
     }
   }
 }

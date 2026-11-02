@@ -52,10 +52,8 @@ function RootNavigator({ ready }: { ready: boolean }) {
   const { colors, isDark, themeReady } = useTheme();
   const { user, ready: authReady } = useAuth();
   const { welcomeCompleted } = useFirstRun();
-  // Dev builds can open the UI without Firebase; server-backed features still require a session.
-  const authRequired = !__DEV__;
-  const canOpenApp = !authRequired || !!user;
-  const appReady = ready && themeReady && (!authRequired || authReady) && welcomeCompleted !== null;
+  const canOpenApp = !!user;
+  const appReady = ready && themeReady && authReady && welcomeCompleted !== null;
   const userId = user?.uid;
   const statusBarStyle = isDark ? 'light' : 'dark';
   React.useEffect(() => {
@@ -76,7 +74,7 @@ function RootNavigator({ ready }: { ready: boolean }) {
           <Stack.Protected guard={!welcomeCompleted}>
             <Stack.Screen name="welcome" />
           </Stack.Protected>
-          <Stack.Protected guard={authRequired && !user}>
+          <Stack.Protected guard={!user}>
             <Stack.Screen name="sign-in" />
           </Stack.Protected>
           <Stack.Protected guard={canOpenApp}>

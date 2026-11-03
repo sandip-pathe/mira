@@ -13,7 +13,9 @@
     "submission": {
       "distribution": "internal",
       "developmentClient": false,
+      "environment": "production",
       "env": {
+        "EXPO_NO_DOTENV": "1",
         "EXPO_PUBLIC_API_URL": "https://3.104.124.56"
       },
       "android": { "buildType": "apk" }

@@ -47,7 +47,7 @@ export function SortActivityPanel({ run, onKeep }: CommonProps) {
       <Eyebrow>GET IT OUT OF YOUR HEAD</Eyebrow>
       <Text style={[typography.groupHeading, { color: colors.ink }]}>What is taking up space?</Text>
       <TextInput accessibilityLabel="Temporary task list" multiline value={run.draft} onChangeText={run.setDraft} placeholder="One thing per line" placeholderTextColor={colors.muted} selectionColor={colors.primary} style={[styles.input, { minHeight: 110, color: colors.ink, backgroundColor: colors.surface, borderColor: colors.line }]} />
-      <Text style={[typography.support, { color: colors.muted }]}>This entry is temporary. "Sort it for me" sends these lines for one-time AI suggestions.</Text>
+      <Text style={[typography.support, { color: colors.muted }]}>This entry is temporary. &quot;Sort it for me&quot; sends these lines for one-time AI suggestions.</Text>
       {!run.groups ? <>
         <ActionButton label="Sort it for me" loading={run.busy} disabled={!run.draft.trim()} onPress={() => void run.organize()} />
         <ActionButton label="Choose one without sorting" variant="quiet" onPress={() => run.setGroups({ now: run.draft.split('\n').map((value) => value.trim()).filter(Boolean), later: [], ignore: [] })} />

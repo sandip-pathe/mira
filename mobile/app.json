@@ -3,7 +3,7 @@
     "name": "Mira",
     "slug": "mira-native-spike",
     "scheme": "mira",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
     "icon": "./assets/brand/mira-launcher-icon.png",
     "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
     },
     "android": {
       "package": "com.sandi.mira",
-      "versionCode": 2,
+      "versionCode": 3,
       "allowBackup": false,
       "softwareKeyboardLayoutMode": "resize",
       "permissions": [

@@ -114,7 +114,7 @@ export function ActivityOutcome({
       {reuse === true && saved === undefined && (
         <ActivityPanel style={{ gap: 10 }}>
           <Eyebrow>REVIEW BEFORE SAVING</Eyebrow>
-          <Text style={[typography.body, { color: colors.ink }]}>"Mira may suggest {title} again in a similar moment."</Text>
+          <Text style={[typography.body, { color: colors.ink }]}>&quot;Mira may suggest {title} again in a similar moment.&quot;</Text>
           <ActionButton label="Save this preference" loading={busy} onPress={() => onSave(true)} />
           <ActionButton label="Keep it private" variant="quiet" onPress={() => onSave(false)} />
         </ActivityPanel>
